@@ -1,5 +1,7 @@
 package com.example.niki.fieldoutlookandroid;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -13,8 +15,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
+import com.example.niki.fieldoutlookandroid.fragment.AvailableJobFragment;
+import com.example.niki.fieldoutlookandroid.fragment.PricebookFragment;
+import com.example.niki.fieldoutlookandroid.fragment.QuoteFragment;
+import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
+
 public class MainNavigationActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, AssignedJobFragment.OnFragmentInteractionListener, AvailableJobFragment.OnFragmentInteractionListener,
+        PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener, QuoteFragment.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +88,43 @@ public class MainNavigationActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-//
+
+        if(id==R.id.nav_assigned_jobs){
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            AssignedJobFragment assignedJobFragment= new AssignedJobFragment();
+            fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, getString(R.string.AssignedJobs));
+            fragmentTransaction.commit();
+        }
+        else if(id==R.id.nav_available_jobs){
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            AvailableJobFragment availableJobFragment= new AvailableJobFragment();
+            fragmentTransaction.replace(R.id.fragment_container, availableJobFragment, getString(R.string.AvailableJobs));
+            fragmentTransaction.commit();
+        }else if(id==R.id.nav_pricebook_view){
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            PricebookFragment pricebookFragment= new PricebookFragment();
+            fragmentTransaction.replace(R.id.fragment_container, pricebookFragment, getString(R.string.Pricebook));
+            fragmentTransaction.commit();
+        }else if(id==R.id.nav_edit_timekeeping){
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            TimekeepingFragment timekeepingFragment=new TimekeepingFragment();
+            fragmentTransaction.replace(R.id.fragment_container, timekeepingFragment, getString(R.string.Timekeeping));
+            fragmentTransaction.commit();
+        }else if(id==R.id.nav_logout){
+          //TODO logout
+            Intent intent= new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }else if(id==R.id.nav_quote){
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            AssignedJobFragment assignedJobFragment= new AssignedJobFragment();
+            fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, "Assigned");
+            fragmentTransaction.commit();
+        }
 //        if (id == R.id.nav_camera) {
 //            // Handle the camera action
 //        } else if (id == R.id.nav_gallery) {
@@ -97,5 +142,15 @@ public class MainNavigationActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onFragmentInteraction(String id) {
+
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }

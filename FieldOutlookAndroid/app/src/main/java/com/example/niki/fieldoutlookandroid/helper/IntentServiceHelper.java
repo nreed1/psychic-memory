@@ -75,7 +75,7 @@ public class IntentServiceHelper extends IntentService {
         try {
             AuthenticationResponse stock = intent.getParcelableExtra("authenticateResponse");
             final ResultReceiver rec = (ResultReceiver) intent.getParcelableExtra("rec");
-            HttpURLConnection con = (HttpURLConnection) ( new URL(DEBUG_SERVICE_URI+"AuthenticateUser/"+stock.GetUsername()+"/"+stock.GetPassword())).openConnection();
+            HttpURLConnection con = (HttpURLConnection) ( new URL(SERVICE_URI+"AuthenticateUser/"+stock.GetUsername()+"/"+stock.GetPassword())).openConnection();
             con.setRequestMethod("GET");
             con.connect();
             InputStream is = con.getInputStream();

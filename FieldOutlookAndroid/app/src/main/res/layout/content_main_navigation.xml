@@ -11,5 +11,11 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.example.niki.fieldoutlookandroid.MainNavigationActivity"
     tools:showIn="@layout/app_bar_main_navigation">
-
+    <LinearLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
+    </LinearLayout>
 </RelativeLayout>

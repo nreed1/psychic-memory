@@ -15,7 +15,7 @@
             </menu>
         </item>
 
-<group android:checkableBehavior="single">
+<!--<group android:checkableBehavior="single">-->
     <item android:title="Pricebook">
         <menu>
             <item
@@ -28,7 +28,7 @@
                 android:title="Quote" />
         </menu>
     </item>
-</group>
+
     <group android:checkableBehavior="single">
         <item android:title="Timekeeping">
             <menu>

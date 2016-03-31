@@ -20,6 +20,7 @@ public class AuthenticationResponse implements Parcelable {
     public String GetUsername(){
         return this.username;
     }
+    public String GetIsAuthenticated(){return this.isAuthenticated;}
     public String GetPassword(){
         return this.password;
     }

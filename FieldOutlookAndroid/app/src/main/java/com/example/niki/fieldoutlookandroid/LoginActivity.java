@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -62,6 +63,21 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
     private View mProgressView;
     private View mLoginFormView;
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)  {
+        if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
+                && keyCode == KeyEvent.KEYCODE_BACK
+                && event.getRepeatCount() == 0) {
+            Log.d("CDA", "onKeyDown Called");
+            onBackPressed();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+    @Override
+    public void onBackPressed() {
+
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -276,6 +292,10 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
         AuthenticationResponse stock = resultData.getParcelable("authencticateResponse");
+        if(stock.GetIsAuthenticated().toLowerCase().equals("true")){
+            Intent intent= new Intent(this, MainNavigationActivity.class);
+            startActivity(intent);
+        }
         //Log.d("Srv", "Stock ["+stock+"]");
         System.out.print(stock.GetUsername());
 
@@ -316,6 +336,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
             showProgress(false);
 
             if (success) {
+
+
                 finish();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
