@@ -34,6 +34,7 @@ import android.widget.TextView;
 import com.example.niki.fieldoutlookandroid.helper.AuthenticateUserReciever;
 import com.example.niki.fieldoutlookandroid.helper.AuthenticationResponse;
 import com.example.niki.fieldoutlookandroid.helper.IntentServiceHelper;
+import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
 import java.io.Console;
 import java.util.ArrayList;
@@ -293,6 +294,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
     public void onReceiveResult(int resultCode, Bundle resultData) {
         AuthenticationResponse stock = resultData.getParcelable("authencticateResponse");
         if(stock.GetIsAuthenticated().toLowerCase().equals("true")){
+            Global.GetInstance().setUser(stock);
             Intent intent= new Intent(this, MainNavigationActivity.class);
             startActivity(intent);
         }

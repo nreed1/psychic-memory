@@ -96,15 +96,24 @@ public class IntentServiceHelper extends IntentService {
                 else if (event == XmlPullParser.TEXT) {
                     if(currentTag.equals("a:IsActive")) {
                         authenticationResponse.SetIsAuthenticated(parser.getText());
-                        Bundle b = new Bundle();
-                        b.putParcelable("authencticateResponse", authenticationResponse);
-                        rec.send(0, b);
+                    }else if(currentTag.equals("a:FirstName")){
+                        authenticationResponse.SetFirstName(parser.getText());
+                    }else if(currentTag.equals("a:LastName")){
+                        authenticationResponse.SetLastName(parser.getText());
+                    }else if(currentTag.equals("a:FullName")){
+                        authenticationResponse.SetFullName(parser.getText());
+                    }else if(currentTag.equals("a:UserID")){
+                        int userId = Integer.getInteger(parser.getText());
+                        authenticationResponse.SetUserId(userId);
                     }
                 }
 
                 event = parser.next();
 
             }
+            Bundle b = new Bundle();
+            b.putParcelable("authencticateResponse", authenticationResponse);
+            rec.send(0, b);
 
 //            DefaultHttpClient httpClient = new DefaultHttpClient();
 //            HttpGet request = new HttpGet(SERVICE_URI + "GetPersonListByCompany/1/asdf");

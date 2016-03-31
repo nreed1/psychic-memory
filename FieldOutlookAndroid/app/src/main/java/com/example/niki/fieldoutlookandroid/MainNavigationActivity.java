@@ -14,12 +14,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.AvailableJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.PricebookFragment;
 import com.example.niki.fieldoutlookandroid.fragment.QuoteFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
+import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
 public class MainNavigationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AssignedJobFragment.OnFragmentInteractionListener, AvailableJobFragment.OnFragmentInteractionListener,
@@ -31,6 +33,8 @@ public class MainNavigationActivity extends AppCompatActivity
         setContentView(R.layout.activity_main_navigation);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -49,6 +53,11 @@ public class MainNavigationActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        TextView name=(TextView)navigationView.getHeaderView(0).findViewById(R.id.userNameText);
+        if(name!=null){
+            name.setText(Global.GetInstance().getUser().GetFirstName());
+        }
     }
 
     @Override

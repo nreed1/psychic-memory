@@ -6,11 +6,11 @@
             <menu>
                 <item
                     android:id="@+id/nav_assigned_jobs"
-                    android:icon="@drawable/ic_menu_manage"
+                    android:icon="@mipmap/ic_list_item"
                     android:title="Assigned" />
                 <item
                     android:id="@+id/nav_available_jobs"
-                    android:icon="@drawable/ic_menu_gallery"
+                    android:icon="@mipmap/ic_list_choose"
                     android:title="Available" />
             </menu>
         </item>
@@ -20,11 +20,11 @@
         <menu>
             <item
                 android:id="@+id/nav_pricebook_view"
-                android:icon="@drawable/ic_menu_share"
+                android:icon="@mipmap/ic_eye"
                 android:title="View" />
             <item
                 android:id="@+id/nav_quote"
-                android:icon="@drawable/ic_menu_send"
+                android:icon="@mipmap/ic_tag"
                 android:title="Quote" />
         </menu>
     </item>
@@ -34,12 +34,13 @@
             <menu>
                 <item
                     android:id="@+id/nav_edit_timekeeping"
-                    android:icon="@drawable/ic_menu_share"
+                    android:icon="@mipmap/ic_clock"
                     android:title="View" />
 
             </menu>
         </item>
     </group>
     <item android:id="@+id/nav_logout"
+        android:icon="@mipmap/ic_power"
         android:title="Logout"></item>
 </menu>
