@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+        <item android:title="Jobs">
+            <menu>
+                <item
+                    android:id="@+id/nav_assigned_jobs"
+                    android:icon="@drawable/ic_menu_manage"
+                    android:title="Assigned" />
+                <item
+                    android:id="@+id/nav_available_jobs"
+                    android:icon="@drawable/ic_menu_gallery"
+                    android:title="Available" />
+            </menu>
+        </item>
+
+<group android:checkableBehavior="single">
+    <item android:title="Pricebook">
+        <menu>
+            <item
+                android:id="@+id/nav_pricebook_view"
+                android:icon="@drawable/ic_menu_share"
+                android:title="View" />
+            <item
+                android:id="@+id/nav_quote"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Quote" />
+        </menu>
+    </item>
+</group>
+    <group android:checkableBehavior="single">
+        <item android:title="Timekeeping">
+            <menu>
+                <item
+                    android:id="@+id/nav_edit_timekeeping"
+                    android:icon="@drawable/ic_menu_share"
+                    android:title="View" />
+
+            </menu>
+        </item>
+    </group>
+    <item android:id="@+id/nav_logout"
+        android:title="Logout"></item>
+</menu>
