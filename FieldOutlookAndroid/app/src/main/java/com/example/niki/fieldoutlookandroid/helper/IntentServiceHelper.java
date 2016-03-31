@@ -103,7 +103,7 @@ public class IntentServiceHelper extends IntentService {
                     }else if(currentTag.equals("a:FullName")){
                         authenticationResponse.SetFullName(parser.getText());
                     }else if(currentTag.equals("a:UserID")){
-                        int userId = Integer.getInteger(parser.getText());
+                        int userId = Integer.parseInt(parser.getText());
                         authenticationResponse.SetUserId(userId);
                     }
                 }

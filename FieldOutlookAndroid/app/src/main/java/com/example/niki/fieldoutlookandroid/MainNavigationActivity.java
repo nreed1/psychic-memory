@@ -56,7 +56,7 @@ public class MainNavigationActivity extends AppCompatActivity
 
         TextView name=(TextView)navigationView.getHeaderView(0).findViewById(R.id.userNameText);
         if(name!=null){
-            name.setText(Global.GetInstance().getUser().GetFirstName());
+            name.setText(Global.GetInstance().getUser().GetFullName());
         }
     }
 
