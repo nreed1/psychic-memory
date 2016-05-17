@@ -1,9 +1,19 @@
 <resources>
-    <string name="app_name">FieldOutlookAndroid</string>
-    <string name="title_activity_main_navigation">MainNavigationActivity</string>
+    <string name="app_name">Field Outlook</string>
+    <string name="title_activity_main_navigation">Field Outlook</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="Pricebook">Pricebook</string>
+    <string name="Timekeeping">Timekeeping</string>
+    <string name="Assigned">Assigned</string>
+    <string name="AssignedJobs">Assigned Jobs</string>
+    <string name="AvailableJobs">Available Jobs</string>
+    <string name="StartDay">Start Day</string>
+    <string name="viewJobs">View Jobs</string>
 </resources>

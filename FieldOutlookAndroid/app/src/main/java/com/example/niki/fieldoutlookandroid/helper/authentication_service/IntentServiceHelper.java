@@ -1,4 +1,4 @@
-package com.example.niki.fieldoutlookandroid.helper;
+package com.example.niki.fieldoutlookandroid.helper.authentication_service;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -6,11 +6,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
+import com.example.niki.fieldoutlookandroid.helper.CryptoHelper;
+
 import java.net.*;
 import java.io.InputStream;
 import org.xmlpull.v1.*;
@@ -19,7 +16,6 @@ import org.xmlpull.v1.*;
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
  * <p/>
- * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
 public class IntentServiceHelper extends IntentService {
@@ -75,7 +71,7 @@ public class IntentServiceHelper extends IntentService {
         try {
             AuthenticationResponse stock = intent.getParcelableExtra("authenticateResponse");
             final ResultReceiver rec = (ResultReceiver) intent.getParcelableExtra("rec");
-            HttpURLConnection con = (HttpURLConnection) ( new URL(DEBUG_SERVICE_URI+"AuthenticateUser/"+stock.GetUsername()+"/"+stock.GetPassword())).openConnection();
+            HttpURLConnection con = (HttpURLConnection) ( new URL(SERVICE_URI+"AuthenticateUser/"+stock.GetUsername()+"/"+stock.GetPassword())).openConnection();
             con.setRequestMethod("GET");
             con.connect();
             InputStream is = con.getInputStream();
@@ -87,6 +83,9 @@ public class IntentServiceHelper extends IntentService {
             String tagName = null;
             String currentTag = null;
             AuthenticationResponse authenticationResponse= new AuthenticationResponse();
+            authenticationResponse.SetUsername(stock.GetUsername());
+           CryptoHelper cryptoHelper=new CryptoHelper();
+            authenticationResponse.setEncryptedPassword(cryptoHelper.encrypt(stock.GetPassword()));
             while (event != XmlPullParser.END_DOCUMENT) {
                 tagName = parser.getName();
 
@@ -96,15 +95,24 @@ public class IntentServiceHelper extends IntentService {
                 else if (event == XmlPullParser.TEXT) {
                     if(currentTag.equals("a:IsActive")) {
                         authenticationResponse.SetIsAuthenticated(parser.getText());
-                        Bundle b = new Bundle();
-                        b.putParcelable("authencticateResponse", authenticationResponse);
-                        rec.send(0, b);
+                    }else if(currentTag.equals("a:FirstName")){
+                        authenticationResponse.SetFirstName(parser.getText());
+                    }else if(currentTag.equals("a:LastName")){
+                        authenticationResponse.SetLastName(parser.getText());
+                    }else if(currentTag.equals("a:FullName")){
+                        authenticationResponse.SetFullName(parser.getText());
+                    }else if(currentTag.equals("a:UserID")){
+                        int userId = Integer.parseInt(parser.getText());
+                        authenticationResponse.SetUserId(userId);
                     }
                 }
 
                 event = parser.next();
 
             }
+            Bundle b = new Bundle();
+            b.putParcelable("authencticateResponse", authenticationResponse);
+            rec.send(0, b);
 
 //            DefaultHttpClient httpClient = new DefaultHttpClient();
 //            HttpGet request = new HttpGet(SERVICE_URI + "GetPersonListByCompany/1/asdf");

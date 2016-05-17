@@ -1,4 +1,4 @@
-package com.example.niki.fieldoutlookandroid.helper;
+package com.example.niki.fieldoutlookandroid.helper.authentication_service;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -10,6 +10,11 @@ public class AuthenticationResponse implements Parcelable {
     private String isAuthenticated;
     private String username;
     private String password;
+    private String firstName;
+    private String lastName;
+    private String fullName;
+    private int userId;
+    private String encryptedPassword;
     public AuthenticationResponse(){}
 
     public void SetIsAuthenticated(String value){
@@ -17,11 +22,28 @@ public class AuthenticationResponse implements Parcelable {
     }
     public void SetUsername(String value){this.username=value;}
     public void SetPassword(String value){this.password=value;}
+    public void SetFirstName(String value){this.firstName =value;}
+    public void SetLastName(String value){this.lastName=value;}
+    public void SetFullName(String value){this.fullName=value;}
+    public void SetUserId(int value){this.userId=value;}
     public String GetUsername(){
         return this.username;
     }
+    public String GetIsAuthenticated(){return this.isAuthenticated;}
     public String GetPassword(){
         return this.password;
+    }
+    public String GetFirstName(){return this.firstName;}
+    public String GetLastName(){return this.lastName;}
+    public String GetFullName(){return this.fullName;}
+    public int GetUserId(){return this.userId;}
+
+    public String getEncryptedPassword() {
+        return encryptedPassword;
+    }
+
+    public void setEncryptedPassword(String encryptedPassword) {
+        this.encryptedPassword = encryptedPassword;
     }
 
     @Override

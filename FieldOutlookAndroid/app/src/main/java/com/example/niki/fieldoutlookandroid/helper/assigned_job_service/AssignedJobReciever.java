@@ -1,20 +1,24 @@
-package com.example.niki.fieldoutlookandroid.helper;
-
+package com.example.niki.fieldoutlookandroid.helper.assigned_job_service;
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
 
 /**
- * Created by Niki on 3/11/2015.
+ * Created by Owner on 5/16/2016.
  */
-public class AuthenticateUserReciever extends ResultReceiver {
+public class AssignedJobReciever extends ResultReceiver {
     private Listener listener;
-
-    public AuthenticateUserReciever(Handler handler) {
+    /**
+     * Create a new ResultReceive to receive results.  Your
+     * {@link #onReceiveResult} method will be called from the thread running
+     * <var>handler</var> if given, or from an arbitrary thread if null.
+     *
+     * @param handler
+     */
+    public AssignedJobReciever(Handler handler) {
         super(handler);
     }
-
     public void setListener(Listener listener) {
         this.listener = listener;
     }

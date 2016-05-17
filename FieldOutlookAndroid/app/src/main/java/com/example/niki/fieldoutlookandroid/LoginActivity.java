@@ -5,8 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -17,9 +15,9 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,11 +28,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.example.niki.fieldoutlookandroid.helper.AuthenticateUserReciever;
-import com.example.niki.fieldoutlookandroid.helper.AuthenticationResponse;
-import com.example.niki.fieldoutlookandroid.helper.IntentServiceHelper;
+import com.example.niki.fieldoutlookandroid.helper.authentication_service.AuthenticateUserReciever;
+import com.example.niki.fieldoutlookandroid.helper.authentication_service.AuthenticationResponse;
+import com.example.niki.fieldoutlookandroid.helper.authentication_service.IntentServiceHelper;
+import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
-import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +60,21 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
     private View mProgressView;
     private View mLoginFormView;
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)  {
+        if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
+                && keyCode == KeyEvent.KEYCODE_BACK
+                && event.getRepeatCount() == 0) {
+            Log.d("CDA", "onKeyDown Called");
+            onBackPressed();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+    @Override
+    public void onBackPressed() {
+
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -276,6 +289,11 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
         AuthenticationResponse stock = resultData.getParcelable("authencticateResponse");
+        if(stock.GetIsAuthenticated().toLowerCase().equals("true")){
+            Global.GetInstance().setUser(stock);
+            Intent intent= new Intent(this, MainNavigationActivity.class);
+            startActivity(intent);
+        }
         //Log.d("Srv", "Stock ["+stock+"]");
         System.out.print(stock.GetUsername());
 
@@ -316,6 +334,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
             showProgress(false);
 
             if (success) {
+
+
                 finish();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

@@ -1,8 +1,15 @@
 package com.example.niki.fieldoutlookandroid;
 
+import android.app.FragmentManager;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,25 +19,53 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
+import com.example.niki.fieldoutlookandroid.fragment.AvailableJobFragment;
+import com.example.niki.fieldoutlookandroid.fragment.PricebookFragment;
+import com.example.niki.fieldoutlookandroid.fragment.QuoteFragment;
+import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
+import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
+import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
+import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
+import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 public class MainNavigationActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
-
+        implements NavigationView.OnNavigationItemSelectedListener, AssignedJobFragment.OnFragmentInteractionListener, AvailableJobFragment.OnFragmentInteractionListener,
+        PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
+        QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener, AssignedJobReciever.Listener {
+    Toolbar toolbar;
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+    private Uri fileUri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_navigation);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        Intent i=new Intent(this, AssignedJobServiceHelper.class);
+        AssignedJobReciever reciever=new AssignedJobReciever(new Handler());
+        reciever.setListener(this);
+        i.putExtra("rec", reciever);
+        startService(i);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
+        //FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -40,6 +75,17 @@ public class MainNavigationActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        TextView name=(TextView)navigationView.getHeaderView(0).findViewById(R.id.userNameText);
+        if(name!=null){
+            name.setText(Global.GetInstance().getUser().GetFullName());
+        }
+
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        StartFragment startFragment= new StartFragment();
+        fragmentTransaction.replace(R.id.fragment_container, startFragment, getString(R.string.StartDay));
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -48,7 +94,21 @@ public class MainNavigationActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            FragmentManager fragmentManager=getFragmentManager();
+            if(fragmentManager.getBackStackEntryCount()>0) {
+                if((fragmentManager.getBackStackEntryCount()-2)>=0) {
+                    FragmentManager.BackStackEntry entry = fragmentManager.getBackStackEntryAt(fragmentManager.getBackStackEntryCount() - 2);
+                    toolbar.setTitle(entry.getName());
+                }else{
+                    toolbar.setTitle("Field Outlook");
+                }
+
+                fragmentManager.popBackStack();
+
+
+            }else {
+                //super.onBackPressed();
+            }
         }
     }
 
@@ -79,7 +139,59 @@ public class MainNavigationActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-//
+
+        if(id==R.id.nav_assigned_jobs){
+            toolbar.setTitle("Assigned Jobs");
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            AssignedJobFragment assignedJobFragment= new AssignedJobFragment();
+            fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, getString(R.string.AssignedJobs)).addToBackStack("Assigned Jobs");
+            fragmentTransaction.commit();
+        }
+        else if(id==R.id.nav_available_jobs){
+            toolbar.setTitle("Available Jobs");
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            AvailableJobFragment availableJobFragment= new AvailableJobFragment();
+            fragmentTransaction.replace(R.id.fragment_container, availableJobFragment, getString(R.string.AvailableJobs)).addToBackStack("Available Jobs");
+            fragmentTransaction.commit();
+        }else if(id==R.id.nav_pricebook_view){
+            toolbar.setTitle("Pricebook");
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            PricebookFragment pricebookFragment= new PricebookFragment();
+            fragmentTransaction.replace(R.id.fragment_container, pricebookFragment, getString(R.string.Pricebook)).addToBackStack("Pricebook");
+            fragmentTransaction.commit();
+        }else if(id==R.id.nav_edit_timekeeping){
+            toolbar.setTitle("Timekeeping");
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            TimekeepingFragment timekeepingFragment=new TimekeepingFragment();
+            fragmentTransaction.replace(R.id.fragment_container, timekeepingFragment, getString(R.string.Timekeeping)).addToBackStack("Timekeeping");
+            fragmentTransaction.commit();
+        }else if(id==R.id.nav_logout){
+            Intent intent= new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }else if(id==R.id.nav_quote){
+            toolbar.setTitle("Quote");
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            AssignedJobFragment assignedJobFragment= new AssignedJobFragment();
+            Bundle b =new Bundle();
+            b.putParcelableArrayList("workOrders", workOrders);
+            assignedJobFragment.setArguments(b);
+            fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, "Assigned").addToBackStack("Assigned");
+            fragmentTransaction.commit();
+        }else if(id== R.id.nav_camera){
+            // create Intent to take a picture and return control to the calling application
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+            fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE); // create a file to save the image
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+
+            // start the image capture Intent
+            startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+        }
 //        if (id == R.id.nav_camera) {
 //            // Handle the camera action
 //        } else if (id == R.id.nav_gallery) {
@@ -97,5 +209,84 @@ public class MainNavigationActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onFragmentInteraction(String id) {
+
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                // Image captured and saved to fileUri specified in the Intent
+
+
+                Toast.makeText(this, "Image saved to:\n" +
+                        data.getData(), Toast.LENGTH_LONG).show();
+            } else if (resultCode == RESULT_CANCELED) {
+                // User cancelled the image capture
+            } else {
+                // Image capture failed, advise user
+            }
+        }
+
+
+    }
+
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
+
+    /** Create a file Uri for saving an image or video */
+    private static Uri getOutputMediaFileUri(int type){
+        return Uri.fromFile(getOutputMediaFile(type));
+    }
+
+    /** Create a File for saving an image or video */
+    private static File getOutputMediaFile(int type){
+        // To be safe, you should check that the SDCard is mounted
+        // using Environment.getExternalStorageState() before doing this.
+
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "MyCameraApp");
+        // This location works best if you want the created images to be shared
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        if (! mediaStorageDir.exists()){
+            if (! mediaStorageDir.mkdirs()){
+                Log.d("MyCameraApp", "failed to create directory");
+                return null;
+            }
+        }
+
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File mediaFile;
+        if (type == MEDIA_TYPE_IMAGE){
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                    "IMG_"+ timeStamp + ".jpg");
+        } else if(type == MEDIA_TYPE_VIDEO) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                    "VID_"+ timeStamp + ".mp4");
+        } else {
+            return null;
+        }
+
+        return mediaFile;
+    }
+    private ArrayList<WorkOrder> workOrders= new ArrayList<>();
+    @Override
+    public void onReceiveResult(int resultCode, Bundle resultData) {
+        ArrayList<WorkOrder> resultWorkOrders=resultData.getParcelableArrayList("assignedWorkOrders");
+        if(workOrders!=null &&!workOrders.isEmpty()){
+            workOrders=resultWorkOrders;
+        }
     }
 }
