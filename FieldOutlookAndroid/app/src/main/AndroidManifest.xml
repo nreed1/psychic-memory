@@ -44,7 +44,8 @@
             android:name=".MainNavigationActivity"
             android:exported="true"
             android:label="@string/title_activity_main_navigation"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:configChanges="orientation|screenSize"/>
 
         <service
             android:name=".helper.assigned_job_service.AssignedJobServiceHelper"

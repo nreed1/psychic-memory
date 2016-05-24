@@ -27,8 +27,10 @@ import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.AvailableJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.PricebookFragment;
 import com.example.niki.fieldoutlookandroid.fragment.QuoteFragment;
+import com.example.niki.fieldoutlookandroid.fragment.SelectedWorkorderFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
@@ -45,17 +47,14 @@ public class MainNavigationActivity extends AppCompatActivity
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
+    private DBHelper dbHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_navigation);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Intent i=new Intent(this, AssignedJobServiceHelper.class);
-        AssignedJobReciever reciever=new AssignedJobReciever(new Handler());
-        reciever.setListener(this);
-        i.putExtra("rec", reciever);
-        startService(i);
+        dbHelper=new DBHelper(this.getApplicationContext());
 
 
         //FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -145,6 +144,9 @@ public class MainNavigationActivity extends AppCompatActivity
             android.app.FragmentManager fragmentManager= getFragmentManager();
             android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
             AssignedJobFragment assignedJobFragment= new AssignedJobFragment();
+            Bundle b =new Bundle();
+            b.putParcelableArrayList("workOrders", dbHelper.GetWorkOrders());
+            assignedJobFragment.setArguments(b);
             fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, getString(R.string.AssignedJobs)).addToBackStack("Assigned Jobs");
             fragmentTransaction.commit();
         }
@@ -176,11 +178,8 @@ public class MainNavigationActivity extends AppCompatActivity
             toolbar.setTitle("Quote");
             android.app.FragmentManager fragmentManager= getFragmentManager();
             android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-            AssignedJobFragment assignedJobFragment= new AssignedJobFragment();
-            Bundle b =new Bundle();
-            b.putParcelableArrayList("workOrders", workOrders);
-            assignedJobFragment.setArguments(b);
-            fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, "Assigned").addToBackStack("Assigned");
+            QuoteFragment quoteFragment=new QuoteFragment();
+            fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "Quote").addToBackStack("Quote");
             fragmentTransaction.commit();
         }else if(id== R.id.nav_camera){
             // create Intent to take a picture and return control to the calling application
@@ -191,6 +190,12 @@ public class MainNavigationActivity extends AppCompatActivity
 
             // start the image capture Intent
             startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+        }else if(id==R.id.nav_update_data){
+            Intent i=new Intent(this, AssignedJobServiceHelper.class);
+            AssignedJobReciever reciever=new AssignedJobReciever(new Handler());
+            reciever.setListener(this);
+            i.putExtra("rec", reciever);
+            startService(i);
         }
 //        if (id == R.id.nav_camera) {
 //            // Handle the camera action
@@ -213,7 +218,20 @@ public class MainNavigationActivity extends AppCompatActivity
 
     @Override
     public void onFragmentInteraction(String id) {
+        toolbar.setTitle("Selected Work Order");
 
+        int position=Integer.parseInt(id);
+        WorkOrder selectedWorkOrder = workOrders.get(position);
+
+        SelectedWorkorderFragment selectedWorkorderFragment=new SelectedWorkorderFragment();
+        Bundle b= new Bundle();
+        b.putParcelable("workOrder", selectedWorkOrder);
+        selectedWorkorderFragment.setArguments(b);
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+
+        fragmentTransaction.replace(R.id.fragment_container, selectedWorkorderFragment, "Selected Work Order").addToBackStack("Selected Work Order");
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -285,8 +303,11 @@ public class MainNavigationActivity extends AppCompatActivity
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
         ArrayList<WorkOrder> resultWorkOrders=resultData.getParcelableArrayList("assignedWorkOrders");
-        if(workOrders!=null &&!workOrders.isEmpty()){
+        if(resultWorkOrders!=null &&!resultWorkOrders.isEmpty()){
             workOrders=resultWorkOrders;
+            DBHelper dbHelper=new DBHelper(this.getApplicationContext());
+            dbHelper.SaveWorkOrderList(workOrders);
+
         }
     }
 }
