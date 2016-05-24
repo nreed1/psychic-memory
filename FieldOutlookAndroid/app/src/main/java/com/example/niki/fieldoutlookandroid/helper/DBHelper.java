@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
@@ -39,6 +40,12 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String WORKORDER_TOTALHOURSFORJOB="totalhoursalotted";
     public static final String WORKORDER_HOURSWORKED="hoursworked";
 
+    public static final String TABLE_OTHERTASKS="othertasks";
+    public static final String OTHERTASKS_ID="id";
+    public static final String OTHERTASKS_USERID="userid";
+    public static final String OTHERTASKS_TASKNAME="taskname";
+    public static final String OTHERTASKS_TASKDESCRIPTION="description";
+
     SQLiteDatabase db;
 
     public DBHelper(Context context){
@@ -61,6 +68,7 @@ private void create(){
             db.execSQL("create table if not exists workorder (id integer primary key, workorderid integer, companyid integer, personid integer, name text, description text, " +
                     "arrivaltime string, estimatedduration real," +
                     "costofjob real, wherebilled text, notes text, workordertypeid integer, totalhoursalotted integer, hoursworked integer)");
+            db.execSQL("create table if not exists othertasks(id integer primary key, taskname text, userid integer, description text)");
         //}
     }
 
@@ -90,7 +98,7 @@ private void create(){
     }
 
     public void SaveWorkOrder(WorkOrder workOrder) {
-        db = this.getReadableDatabase();
+        db = this.getWritableDatabase();
         ContentValues contentValues=new ContentValues();
         contentValues.put(WORKORDER_ID,workOrder.getWorkOrderId());
         contentValues.put(WORKORDER_ARRIVALTIME, workOrder.getArrivalTime());
@@ -150,6 +158,53 @@ private void create(){
         }
         return new ArrayList<WorkOrder>();
 
+    }
+
+    public void SaveOtherTask(OtherTask otherTask){
+        try {
+            db = this.getWritableDatabase();
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(OTHERTASKS_USERID, otherTask.getUserid());
+            contentValues.put(OTHERTASKS_TASKNAME, otherTask.getName());
+            contentValues.put(OTHERTASKS_TASKDESCRIPTION, otherTask.getDescription());
+            db.insert(TABLE_OTHERTASKS, null, contentValues);
+        }catch (Exception ex){
+
+        }finally {
+           // db.close();
+        }
+
+    }
+
+    public boolean UserHasOtherTasks(int userId){
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select top(1) from "+TABLE_OTHERTASKS+" where userid="+userId,null);
+        res.moveToFirst();
+        if(res.isAfterLast()==false){
+            return true;
+        }
+
+        return false;
+    }
+
+    public ArrayList<OtherTask> GetOtherTaskListByUserId(int userId){
+        try{
+            ArrayList<OtherTask> otherTasks=new ArrayList<>();
+            db=getReadableDatabase();
+            Cursor res=db.rawQuery("select * from "+TABLE_OTHERTASKS+" where userid="+userId,null);
+            res.moveToFirst();
+            while(res.isAfterLast()==false){
+                //public OtherTask(int id, int userid, String name, String description)
+                otherTasks.add(new OtherTask(res.getInt(res.getColumnIndex(OTHERTASKS_ID)),res.getInt(res.getColumnIndex(OTHERTASKS_USERID)),
+                        res.getString(res.getColumnIndex(OTHERTASKS_TASKNAME)), res.getString(res.getColumnIndex(OTHERTASKS_TASKDESCRIPTION))));
+
+                res.moveToNext();
+            }
+            return otherTasks;
+        }catch (Exception ex){
+
+        }
+        return new ArrayList<OtherTask>();
     }
 
 

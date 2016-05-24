@@ -101,7 +101,7 @@ public class PricebookFragment extends Fragment implements AbsListView.OnItemCli
             mListener = (OnFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnStartDayFragmentInteractionListener");
         }
     }
 

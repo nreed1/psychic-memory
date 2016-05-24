@@ -28,8 +28,10 @@ import com.example.niki.fieldoutlookandroid.fragment.AvailableJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.PricebookFragment;
 import com.example.niki.fieldoutlookandroid.fragment.QuoteFragment;
 import com.example.niki.fieldoutlookandroid.fragment.SelectedWorkorderFragment;
+import com.example.niki.fieldoutlookandroid.fragment.StartDayFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
+import com.example.niki.fieldoutlookandroid.fragment.TravelToFragment;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
@@ -43,7 +45,8 @@ import java.util.Date;
 public class MainNavigationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AssignedJobFragment.OnFragmentInteractionListener, AvailableJobFragment.OnFragmentInteractionListener,
         PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
-        QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener, AssignedJobReciever.Listener {
+        QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener, AssignedJobReciever.Listener, StartDayFragment.OnStartDayFragmentInteractionListener,
+        TravelToFragment.OnTravelToFragmentInteractionListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -309,5 +312,43 @@ public class MainNavigationActivity extends AppCompatActivity
             dbHelper.SaveWorkOrderList(workOrders);
 
         }
+    }
+
+    @Override
+    public void onStartDayFragmentInteraction(String nextFragment) {
+        if(nextFragment.equals("TravelTo")){
+            StartTravelToFragment();
+        }else if(nextFragment.equals("AtShop")){
+            //Snapshot of time
+        }else if(nextFragment.equals("Other")){
+            if(dbHelper.UserHasOtherTasks(Global.GetInstance().getUser().GetUserId())){
+
+            }else{
+                //New Other Task Screen
+            }
+        }else if(nextFragment.equals("EndDay")){
+            //Review and Send
+        }
+    }
+
+    private void StartTravelToFragment(){
+        toolbar.setTitle("Travel To");
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        QuoteFragment quoteFragment=new QuoteFragment();
+        fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "TravelTo").addToBackStack("TravelTo");
+        fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onTravelToFragmentInteraction(WorkOrder workOrder) {
+        toolbar.setTitle("Selected Work Order");
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        SelectedWorkorderFragment selectedWorkorderFragment= new SelectedWorkorderFragment();
+        Bundle b=new Bundle();
+        b.putParcelable("workOrder",workOrder);
+        fragmentTransaction.replace(R.id.fragment_container, selectedWorkorderFragment, "SelectedWorkOrder").addToBackStack("SelectedWorkOrder");
+        fragmentTransaction.commit();
     }
 }
