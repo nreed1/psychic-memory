@@ -1,6 +1,7 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -13,7 +14,13 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.Person;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.dummy.DummyContent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -57,13 +64,16 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
         fragment.setArguments(args);
         return fragment;
     }
-
+    ArrayList<Person> personList;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
     public AvailableJobFragment() {
+
     }
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,6 +84,7 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
+        // personList= new ArrayList<Person>();
         // TODO: Change Adapter to display your content
         mAdapter = new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
                 android.R.layout.simple_list_item_1, android.R.id.text1, DummyContent.ITEMS);
@@ -101,7 +112,7 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
             mListener = (OnFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnStartDayFragmentInteractionListener");
         }
     }
 

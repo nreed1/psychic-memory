@@ -5,8 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -17,7 +15,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
@@ -31,12 +28,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.example.niki.fieldoutlookandroid.helper.AuthenticateUserReciever;
-import com.example.niki.fieldoutlookandroid.helper.AuthenticationResponse;
-import com.example.niki.fieldoutlookandroid.helper.IntentServiceHelper;
+import com.example.niki.fieldoutlookandroid.helper.authentication_service.AuthenticateUserReciever;
+import com.example.niki.fieldoutlookandroid.helper.authentication_service.AuthenticationResponse;
+import com.example.niki.fieldoutlookandroid.helper.authentication_service.IntentServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
-import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
 

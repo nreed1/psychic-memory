@@ -1,6 +1,6 @@
 package com.example.niki.fieldoutlookandroid.helper.singleton;
 
-import com.example.niki.fieldoutlookandroid.helper.AuthenticationResponse;
+import com.example.niki.fieldoutlookandroid.helper.authentication_service.AuthenticationResponse;
 
 /**
  * Created by Niki on 3/31/2016.
@@ -8,6 +8,10 @@ import com.example.niki.fieldoutlookandroid.helper.AuthenticationResponse;
 public class Global {
     private AuthenticationResponse User;
     private Boolean IsDayStarted=false;
+    private Boolean IsDayEnded=false;
+
+    private static final String DEBUG_SERVICE_URI="http://localhost:32251/WebDataService.svc/xml/";
+    private static final String SERVICE_URI="http://fieldoutlookcloudservice.cloudapp.net/WebDataService.svc/xml/";
 
     private static Global instance=null;
     public static Global GetInstance(){
@@ -34,5 +38,16 @@ public class Global {
 
     public void setIsDayStarted(Boolean isDayStarted) {
         IsDayStarted = isDayStarted;
+    }
+
+    public Boolean getIsDayEnded(){return IsDayEnded;}
+    public void setIsDayEnded(Boolean isDayEnded){IsDayEnded=isDayEnded;}
+
+    public String getDebugServiceUri() {
+        return DEBUG_SERVICE_URI;
+    }
+
+    public String getServiceUri() {
+        return SERVICE_URI;
     }
 }
