@@ -1,5 +1,6 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.net.Uri;
@@ -27,7 +28,15 @@ public class StartDayFragment extends Fragment {
     public StartDayFragment() {
         // Required empty public constructor
     }
-
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (OnStartDayFragmentInteractionListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnStartDayFragmentInteractionListener");
+        }
+    }
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -51,6 +60,7 @@ public class StartDayFragment extends Fragment {
         if (getArguments() != null) {
 
         }
+        this.setHasOptionsMenu(false);
     }
 
     @Override

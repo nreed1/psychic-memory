@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -22,9 +23,12 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.AvailableJobFragment;
+import com.example.niki.fieldoutlookandroid.fragment.NewOtherTaskFragment;
+import com.example.niki.fieldoutlookandroid.fragment.OtherTaskListFragment;
 import com.example.niki.fieldoutlookandroid.fragment.PricebookFragment;
 import com.example.niki.fieldoutlookandroid.fragment.QuoteFragment;
 import com.example.niki.fieldoutlookandroid.fragment.SelectedWorkorderFragment;
@@ -32,6 +36,7 @@ import com.example.niki.fieldoutlookandroid.fragment.StartDayFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TravelToFragment;
+import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
@@ -46,7 +51,7 @@ public class MainNavigationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AssignedJobFragment.OnFragmentInteractionListener, AvailableJobFragment.OnFragmentInteractionListener,
         PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
         QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener, AssignedJobReciever.Listener, StartDayFragment.OnStartDayFragmentInteractionListener,
-        TravelToFragment.OnTravelToFragmentInteractionListener{
+        TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener, NewOtherTaskFragment.OnFragmentInteractionListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -200,20 +205,6 @@ public class MainNavigationActivity extends AppCompatActivity
             i.putExtra("rec", reciever);
             startService(i);
         }
-//        if (id == R.id.nav_camera) {
-//            // Handle the camera action
-//        } else if (id == R.id.nav_gallery) {
-//
-//        } else if (id == R.id.nav_slideshow) {
-//
-//        } else if (id == R.id.nav_manage) {
-//
-//        } else if (id == R.id.nav_share) {
-//
-//        } else if (id == R.id.nav_send) {
-//
-//        }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -322,13 +313,34 @@ public class MainNavigationActivity extends AppCompatActivity
             //Snapshot of time
         }else if(nextFragment.equals("Other")){
             if(dbHelper.UserHasOtherTasks(Global.GetInstance().getUser().GetUserId())){
+                StartOtherTaskListFragment();
 
             }else{
                 //New Other Task Screen
+               StartNewOtherTaskFragment();
             }
         }else if(nextFragment.equals("EndDay")){
             //Review and Send
         }
+    }
+
+    private void StartNewOtherTaskFragment(){
+        toolbar.setTitle("Other Task");
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        NewOtherTaskFragment newOtherTaskFragment=new NewOtherTaskFragment();
+        fragmentTransaction.replace(R.id.fragment_container, newOtherTaskFragment, "NewOtherTask").addToBackStack("NewOtherTask");
+        fragmentTransaction.commit();
+    }
+
+    private void StartOtherTaskListFragment(){
+
+        toolbar.setTitle("Other Task");
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        OtherTaskListFragment otherTaskListFragment=new OtherTaskListFragment();
+        fragmentTransaction.replace(R.id.fragment_container, otherTaskListFragment, "OtherTaskListFragment").addToBackStack("OtherTaskListFragment");
+        fragmentTransaction.commit();
     }
 
     private void StartTravelToFragment(){
@@ -350,5 +362,12 @@ public class MainNavigationActivity extends AppCompatActivity
         b.putParcelable("workOrder",workOrder);
         fragmentTransaction.replace(R.id.fragment_container, selectedWorkorderFragment, "SelectedWorkOrder").addToBackStack("SelectedWorkOrder");
         fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onOtherTaskListFragmentInteraction(OtherTask item) {
+        if(item==null){
+            StartNewOtherTaskFragment();
+        }
     }
 }

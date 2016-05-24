@@ -178,7 +178,7 @@ private void create(){
 
     public boolean UserHasOtherTasks(int userId){
         db=getReadableDatabase();
-        Cursor res=db.rawQuery("select top(1) from "+TABLE_OTHERTASKS+" where userid="+userId,null);
+        Cursor res=db.rawQuery("select * from "+TABLE_OTHERTASKS+" where userid="+userId+" limit 1",null);
         res.moveToFirst();
         if(res.isAfterLast()==false){
             return true;
