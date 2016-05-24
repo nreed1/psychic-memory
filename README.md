@@ -1,2 +1,2 @@
 # psychic-memory
-The beginning of Field Outlook -Android Edition
+The beginning of Field Outlook - Android Edition
