@@ -50,6 +50,8 @@
         <service
             android:name=".helper.assigned_job_service.AssignedJobServiceHelper"
             android:exported="false"></service>
+        <service android:name=".helper.time_entry_type_service.TimeEntryTypeServiceHelper"
+            android:exported="false"/>
     </application>
 
 </manifest>

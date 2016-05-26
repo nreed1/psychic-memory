@@ -145,6 +145,6 @@ public class StartDayFragment extends Fragment {
     public interface OnStartDayFragmentInteractionListener {
         // TODO: Update argument type and name
         void onStartDayFragmentInteraction(String nextFragment);
-       // void onFragmentInteraction(Uri uri);
+       // void onNewOtherTaskFragmentInteraction(Uri uri);
     }
 }

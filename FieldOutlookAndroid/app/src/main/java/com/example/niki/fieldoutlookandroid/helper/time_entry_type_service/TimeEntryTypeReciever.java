@@ -5,8 +5,6 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 
 
-import com.example.niki.fieldoutlookandroid.helper.authentication_service.AuthenticateUserReciever;
-
 /**
  * Created by Owner on 4/1/2016.
  */

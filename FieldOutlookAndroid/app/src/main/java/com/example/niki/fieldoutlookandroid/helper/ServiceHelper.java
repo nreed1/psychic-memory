@@ -15,4 +15,7 @@ public class ServiceHelper {
         return SERVICE_URI;
     }
 
+    public void RefreshData(){
+
+    }
 }

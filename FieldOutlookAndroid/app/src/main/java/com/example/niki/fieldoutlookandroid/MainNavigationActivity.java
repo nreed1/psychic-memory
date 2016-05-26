@@ -7,11 +7,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -24,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
+import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.AvailableJobFragment;
@@ -36,11 +33,13 @@ import com.example.niki.fieldoutlookandroid.fragment.StartDayFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TravelToFragment;
-import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
+import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeReciever;
+import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeServiceHelper;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -51,7 +50,8 @@ public class MainNavigationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AssignedJobFragment.OnFragmentInteractionListener, AvailableJobFragment.OnFragmentInteractionListener,
         PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
         QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener, AssignedJobReciever.Listener, StartDayFragment.OnStartDayFragmentInteractionListener,
-        TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener, NewOtherTaskFragment.OnFragmentInteractionListener{
+                    TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener,
+                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimeEntryTypeReciever.Listener {
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -88,7 +88,11 @@ public class MainNavigationActivity extends AppCompatActivity
             name.setText(Global.GetInstance().getUser().GetFullName());
         }
 
-        android.app.FragmentManager fragmentManager= getFragmentManager();
+        StartMainFragment();
+    }
+
+    private void StartMainFragment() {
+        FragmentManager fragmentManager= getFragmentManager();
         android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
         StartFragment startFragment= new StartFragment();
         fragmentTransaction.replace(R.id.fragment_container, startFragment, getString(R.string.StartDay));
@@ -199,11 +203,19 @@ public class MainNavigationActivity extends AppCompatActivity
             // start the image capture Intent
             startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
         }else if(id==R.id.nav_update_data){
+            //ServiceHelper serviceHelper=new ServiceHelper();
+            //serviceHelper.RefreshData();
             Intent i=new Intent(this, AssignedJobServiceHelper.class);
             AssignedJobReciever reciever=new AssignedJobReciever(new Handler());
             reciever.setListener(this);
             i.putExtra("rec", reciever);
             startService(i);
+            Intent timeentryintent=new Intent(this, TimeEntryTypeServiceHelper.class);
+            TimeEntryTypeReciever timeEntryTypeReciever=new TimeEntryTypeReciever(new Handler());
+            timeEntryTypeReciever.setListener(this);
+            timeentryintent.putExtra("rec", timeEntryTypeReciever);
+            startService(timeentryintent);
+
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -228,10 +240,7 @@ public class MainNavigationActivity extends AppCompatActivity
         fragmentTransaction.commit();
     }
 
-    @Override
-    public void onFragmentInteraction(Uri uri) {
 
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -296,13 +305,19 @@ public class MainNavigationActivity extends AppCompatActivity
     private ArrayList<WorkOrder> workOrders= new ArrayList<>();
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
+        DBHelper dbHelper=new DBHelper(this.getApplicationContext());
         ArrayList<WorkOrder> resultWorkOrders=resultData.getParcelableArrayList("assignedWorkOrders");
+        ArrayList<TimeEntryType> resultTimeEntryTypes=resultData.getParcelableArrayList("timeentrytypes");
         if(resultWorkOrders!=null &&!resultWorkOrders.isEmpty()){
             workOrders=resultWorkOrders;
-            DBHelper dbHelper=new DBHelper(this.getApplicationContext());
+
             dbHelper.SaveWorkOrderList(workOrders);
 
+        }else if(resultTimeEntryTypes!=null && !resultTimeEntryTypes.isEmpty() ){
+
         }
+
+
     }
 
     @Override
@@ -368,6 +383,18 @@ public class MainNavigationActivity extends AppCompatActivity
     public void onOtherTaskListFragmentInteraction(OtherTask item) {
         if(item==null){
             StartNewOtherTaskFragment();
+        }
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
+
+    @Override
+    public void onNewOtherTaskFragmentInteraction(String whatToDo) {
+        if(whatToDo.toLowerCase().equals("back")){
+            StartMainFragment();
         }
     }
 }

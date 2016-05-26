@@ -11,20 +11,24 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link NewOtherTaskFragment.OnFragmentInteractionListener} interface
+ * {@link OnNewOtherTaskFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link NewOtherTaskFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
 public class NewOtherTaskFragment extends Fragment {
 
-    private OnFragmentInteractionListener mListener;
+    private OnNewOtherTaskFragmentInteractionListener mListener;
     private EditText name;
     private EditText description;
+    private DBHelper dbHelper;
 
     public NewOtherTaskFragment() {
         // Required empty public constructor
@@ -52,6 +56,7 @@ public class NewOtherTaskFragment extends Fragment {
 
         }
         this.setHasOptionsMenu(false);
+        dbHelper=new DBHelper(this.getActivity().getApplicationContext());
     }
 
     @Override
@@ -67,27 +72,29 @@ public class NewOtherTaskFragment extends Fragment {
         saveOtherTask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO: Save other task logic and then bail out to start screen
+
+                dbHelper.SaveOtherTask(new OtherTask(0, Global.GetInstance().getUser().GetUserId(),name.getText().toString(),description.getText().toString()));
+                onButtonPressed("Back");
             }
         });
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
+
+    public void onButtonPressed(String uri) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            mListener.onNewOtherTaskFragmentInteraction(uri);
         }
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnNewOtherTaskFragmentInteractionListener) {
+            mListener = (OnNewOtherTaskFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnNewOtherTaskFragmentInteractionListener");
         }
     }
 
@@ -107,8 +114,8 @@ public class NewOtherTaskFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+    public interface OnNewOtherTaskFragmentInteractionListener {
+
+        void onNewOtherTaskFragmentInteraction(String whatToDo);
     }
 }

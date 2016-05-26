@@ -105,6 +105,10 @@ public class IntentServiceHelper extends IntentService {
                         int userId = Integer.parseInt(parser.getText());
                         authenticationResponse.SetUserId(userId);
                     }
+                    else if(currentTag.equals("a:ApplicationCompanyID")){
+                        int companyId=Integer.parseInt(parser.getText());
+                        authenticationResponse.SetCompanyId(companyId);
+                    }
                 }
 
                 event = parser.next();
@@ -113,7 +117,7 @@ public class IntentServiceHelper extends IntentService {
             Bundle b = new Bundle();
             b.putParcelable("authencticateResponse", authenticationResponse);
             rec.send(0, b);
-
+            stopSelf();
 //            DefaultHttpClient httpClient = new DefaultHttpClient();
 //            HttpGet request = new HttpGet(SERVICE_URI + "GetPersonListByCompany/1/asdf");
 //

@@ -128,7 +128,7 @@ public class AssignedJobServiceHelper extends IntentService {
            Bundle b = new Bundle();
            b.putParcelableArrayList("assignedWorkOrders", assignedWorkOrders);
            rec.send(0, b);
-
+            stopSelf();
 //            DefaultHttpClient httpClient = new DefaultHttpClient();
 //            HttpGet request = new HttpGet(SERVICE_URI + "GetPersonListByCompany/1/asdf");
 //

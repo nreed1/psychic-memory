@@ -19,7 +19,6 @@ import java.util.ArrayList;
  */
 public class DBHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME="fodatabase.db";
-
     public static final String TABLE_TIME_ENTRY_TYPE="timeentrytype";
     public static final String TIME_ENTRY_TYPE_TYPEID="typeid";
     public static final String TIME_ENTRY_TYPE_NAME="name";
@@ -78,7 +77,7 @@ private void create(){
     }
 
     public void SaveTimeEntryType(TimeEntryType timeEntryType){
-        SQLiteDatabase db=this.getReadableDatabase();
+        SQLiteDatabase db=this.getWritableDatabase();
         ContentValues contentValues=new ContentValues();
         contentValues.put(TIME_ENTRY_TYPE_TYPEID, timeEntryType.getTimeEntryTypeId());
         contentValues.put(TIME_ENTRY_TYPE_NAME, timeEntryType.getName());
