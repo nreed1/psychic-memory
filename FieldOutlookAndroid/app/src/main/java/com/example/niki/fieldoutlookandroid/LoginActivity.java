@@ -291,6 +291,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
         AuthenticationResponse stock = resultData.getParcelable("authencticateResponse");
         if(stock.GetIsAuthenticated().toLowerCase().equals("true")){
             Global.GetInstance().setUser(stock);
+            Global.IsLoggedIn=true;
             Intent intent= new Intent(this, MainNavigationActivity.class);
             startActivity(intent);
         }

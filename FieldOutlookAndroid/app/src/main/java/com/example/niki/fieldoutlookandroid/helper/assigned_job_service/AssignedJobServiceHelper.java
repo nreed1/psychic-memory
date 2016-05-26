@@ -5,6 +5,8 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Debug;
+import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
@@ -16,6 +18,7 @@ import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.Console;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -72,24 +75,20 @@ public class AssignedJobServiceHelper extends IntentService {
 
                if (event == XmlPullParser.START_TAG) {
                    currentTag = tagName;
+                   Log.d("currentTag",currentTag);
                    if (currentTag.equals("a:WorkOrder")) {
-                       if(newWorkOrder!=new WorkOrder()){
+                       if(newWorkOrder!=new WorkOrder() && newWorkOrder.getWorkOrderId()!=0){
                            assignedWorkOrders.add(newWorkOrder);
                        }
                        newWorkOrder = new WorkOrder();
                    }else if (currentTag.equals("a:Customer")) {
-                       if(customer!=new Person()){
+                       if(customer!=new Person() && customer.getPersonId()!=0){
                            newWorkOrder.setPerson(customer);
                        }
                        customer=new Person();
                    }
                } else if (event == XmlPullParser.TEXT) {
-                   if (currentTag.equals("a:WorkOrder")) {
-                       if(newWorkOrder!=new WorkOrder()){
-                           assignedWorkOrders.add(newWorkOrder);
-                       }
-                       newWorkOrder = new WorkOrder();
-                   } else if (currentTag.equals("a:Name")) {
+                  if (currentTag.equals("a:Name")) {
                        newWorkOrder.setName(parser.getText());
                    } else if (currentTag.equals("a:Description")) {
                        newWorkOrder.setDescription(parser.getText());
@@ -100,11 +99,6 @@ public class AssignedJobServiceHelper extends IntentService {
                    } else if (currentTag.equals("a:WorkOrderID")) {
                        String stringToInt=parser.getText();
                        if(stringToInt!=null && !stringToInt.isEmpty()) newWorkOrder.setWorkOrderId(Integer.parseInt(stringToInt));
-                   } else if (currentTag.equals("a:Customer")) {
-                       if(customer!=new Person()){
-                           newWorkOrder.setPerson(customer);
-                       }
-                       customer=new Person();
                    }else if(currentTag.equals("a:FirstName")){
                        customer.setFirstName(parser.getText());
                    }else if(currentTag.equals("a:LastName")){

@@ -44,6 +44,22 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String OTHERTASKS_USERID="userid";
     public static final String OTHERTASKS_TASKNAME="taskname";
     public static final String OTHERTASKS_TASKDESCRIPTION="description";
+//"create table if not exists person (id integer primary key, personid integer, firstname text, lastname text, fullname text, addressline1 text, addressline2 text, city text, state text, zipcode text," +
+    //"phonenumber text)"
+    public static final String TABLE_PERSON="person";
+    public static final String PERSON_ID="id";
+    public static final String PERSON_PERSONID="personid";
+    public static final String PERSON_FIRSTNAME="firstname";
+    public static final String PERSON_LASTNAME="lastname";
+    public static final String PERSON_FULLNAME="fullname";
+    public static final String PERSON_ADDRESSLINE1="addressline1";
+    public static final String PERSON_ADDRESSLINE2="addressline2";
+    public static final String PERSON_CITY="city";
+    public static final String PERSON_STATE="state";
+    public static final String PERSON_ZIPCODE="zipcode";
+    public static final String PERSON_PHONENUMBER="phonenumber";
+    public static final String PERSON_COMPANYID="companyid";
+
 
     SQLiteDatabase db;
 
@@ -68,6 +84,8 @@ private void create(){
                     "arrivaltime string, estimatedduration real," +
                     "costofjob real, wherebilled text, notes text, workordertypeid integer, totalhoursalotted integer, hoursworked integer)");
             db.execSQL("create table if not exists othertasks(id integer primary key, taskname text, userid integer, description text)");
+            db.execSQL("create table if not exists person (id integer primary key, personid integer, companyid integer,firstname text, lastname text, fullname text, addressline1 text, addressline2 text, city text, state text, zipcode text," +
+                    "phonenumber text)");
         //}
     }
 
@@ -119,6 +137,7 @@ private void create(){
         ContentValues contentValues=new ContentValues();
         for (WorkOrder workOrder:
                 workOrders) {
+            SavePerson(workOrder.getPerson());
             contentValues.put(WORKORDER_ID,workOrder.getWorkOrderId());
             contentValues.put(WORKORDER_ARRIVALTIME, workOrder.getArrivalTime());
             contentValues.put(WORKORDER_COMPANYID,workOrder.getCompanyId());
@@ -145,10 +164,12 @@ private void create(){
                 //public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob,
                 // String whereBilled, String notes,
                   //      Person person, int totalHoursForJob, int hoursWorkedOnJob)
-                workOrders.add(new WorkOrder(res.getInt(res.getColumnIndex(WORKORDER_ID)), res.getInt(res.getColumnIndex(WORKORDER_TYPEID)),res.getInt(res.getColumnIndex(WORKORDER_COMPANYID)), res.getInt(res.getColumnIndex(WORKORDER_PERSONID)),
+                WorkOrder newWorkOrder=new WorkOrder(res.getInt(res.getColumnIndex(WORKORDER_ID)), res.getInt(res.getColumnIndex(WORKORDER_TYPEID)),res.getInt(res.getColumnIndex(WORKORDER_COMPANYID)), res.getInt(res.getColumnIndex(WORKORDER_PERSONID)),
                         res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
-                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED))));
+                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)));
+                newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
+                workOrders.add(newWorkOrder);
                 res.moveToNext();
             }
             return workOrders;
@@ -206,5 +227,36 @@ private void create(){
         return new ArrayList<OtherTask>();
     }
 
+    public void SavePerson(Person person){
+        db=getWritableDatabase();
+        ContentValues contentValues=new ContentValues();
+        contentValues.put(PERSON_PERSONID, person.getPersonId());
+        contentValues.put(PERSON_FIRSTNAME,person.getFirstName());
+        contentValues.put(PERSON_LASTNAME,person.getLastName());
+        contentValues.put(PERSON_FULLNAME, person.getFullName());
+        if(person.getAddress()!=null) {
+            contentValues.put(PERSON_ADDRESSLINE1, person.getAddress().getStreetAddress1());
+
+        }
+        contentValues.put(PERSON_COMPANYID,person.getCompanyId());
+
+        db.insert(TABLE_PERSON,null, contentValues);
+
+    }
+    public Person GetPersonByPersonId(int personId){
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select * from "+TABLE_PERSON+" where personid="+personId,null);
+        res.moveToFirst();
+        Person selectedPerson=null;
+        while(res.isAfterLast()==false){
+            //public OtherTask(int id, int userid, String name, String description)
+          selectedPerson=new Person( res.getInt(res.getColumnIndex(PERSON_PERSONID)),res.getInt(res.getColumnIndex(PERSON_COMPANYID)),0,res.getString(res.getColumnIndex(PERSON_FIRSTNAME)),res.getString(res.getColumnIndex(PERSON_LASTNAME)),
+                  res.getString(res.getColumnIndex(PERSON_FULLNAME)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE1)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE2)),
+                  res.getString(res.getColumnIndex(PERSON_CITY)),res.getString(res.getColumnIndex(PERSON_STATE)), res.getString(res.getColumnIndex(PERSON_ZIPCODE)));
+
+            res.moveToNext();
+        }
+        return selectedPerson;
+    }
 
 }

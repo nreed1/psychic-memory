@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "267426276143",
+    "firebase_url": "https://fieldoutlookdev1.firebaseio.com",
+    "project_id": "fieldoutlookdev1",
+    "storage_bucket": "fieldoutlookdev1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267426276143:android:f3f1f0475e57a225",
+        "android_client_info": {
+          "package_name": "com.example.niki.fieldoutlookandroid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "267426276143-rb3dfnb5kij3fnas9aj9vrchf4n2omcb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCk_TpJ-MEKbh9NePbIi1NVjPOpY77w8Ck"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

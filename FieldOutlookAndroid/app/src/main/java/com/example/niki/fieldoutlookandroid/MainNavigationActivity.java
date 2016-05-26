@@ -40,6 +40,7 @@ import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.Assigned
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeReciever;
 import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeServiceHelper;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -87,7 +88,7 @@ public class MainNavigationActivity extends AppCompatActivity
         if(name!=null){
             name.setText(Global.GetInstance().getUser().GetFullName());
         }
-
+        FirebaseMessaging.getInstance().subscribeToTopic("news");
         StartMainFragment();
     }
 

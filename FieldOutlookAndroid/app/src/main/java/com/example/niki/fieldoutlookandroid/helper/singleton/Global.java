@@ -9,6 +9,7 @@ public class Global {
     private AuthenticationResponse User;
     private Boolean IsDayStarted=false;
     private Boolean IsDayEnded=false;
+    public static Boolean IsLoggedIn=false;
 
     private static final String DEBUG_SERVICE_URI="http://localhost:32251/WebDataService.svc/xml/";
     private static final String SERVICE_URI="http://fieldoutlookcloudservice.cloudapp.net/WebDataService.svc/xml/";
