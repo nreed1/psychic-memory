@@ -18,6 +18,7 @@ import java.util.Date;
  */
 public class WorkOrder implements Serializable, Parcelable {
     private  int WorkOrderId;
+    private int JobId;
     private int WorkOrderTypeId;
     private int CompanyId;
     private int PersonId;
@@ -33,12 +34,20 @@ public class WorkOrder implements Serializable, Parcelable {
     private int TotalHoursForJob;
     private int HoursWorkedOnJob;
 
+    public int getJobId() {
+        return JobId;
+    }
+
+    public void setJobId(int jobId) {
+        JobId = jobId;
+    }
+
     public WorkOrder(){
 
     }
 
     public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob, String whereBilled, String notes,
-                     Person person, int totalHoursForJob, int hoursWorkedOnJob){
+                     Person person, int totalHoursForJob, int hoursWorkedOnJob, int jobId){
 
         this.setWorkOrderId(workOrderId);
         this.setWorkOrderTypeId(workOrderTypeId);
@@ -54,6 +63,7 @@ public class WorkOrder implements Serializable, Parcelable {
         this.setPerson(person);
         this.setTotalHoursForJob(totalHoursForJob);
         this.setHoursWorkedOnJob(hoursWorkedOnJob);
+        this.setJobId(jobId);
     }
 
     public int getTotalHoursForJob() {

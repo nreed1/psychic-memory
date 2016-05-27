@@ -316,11 +316,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
+          try {
 
-            try {
-                // Simulate network access.
-               // Thread.sleep(2000);
                 startService(createCallingIntent(mEmail,mPassword));
 
             } catch (Exception e) {

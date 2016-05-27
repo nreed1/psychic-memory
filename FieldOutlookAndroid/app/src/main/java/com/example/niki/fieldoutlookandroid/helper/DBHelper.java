@@ -8,11 +8,13 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
+import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 /**
  * Created by Owner on 4/1/2016.
@@ -61,6 +63,20 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String PERSON_COMPANYID="companyid";
 
 
+    public static final String TABLE_TIMEENTRY="timeentry";
+    public static final String TIMEENTRY_ID="id";
+    public static final String TIMEENTRY_TIMEENTRYID="timeentryid";
+    public static final String TIMEENTRY_EMPLOYEEID="employeeid";
+    public static final String TIMEENTRY_DATEENTERED="dateentered";
+    public static final String TIMEENTRY_STARTDATE="startdate";
+    public static final String TIMEENTRY_ENDDATE="enddate";
+    public static final String TIMEENTRY_WORKORDERID="workorderid";
+    public static final String TIMEENTRY_STARTLATITUDE="startlatitude";
+    public static final String TIMEENTRY_STARTLONGITUDE="startlongitude";
+    public static final String TIMEENTRY_ENDLATITUDE="endlatitude";
+    public static final String TIMEENTRY_ENDLONGITUDE="endlongitude";
+    public static final String TIMEENTRY_NOTES="notes";
+
     SQLiteDatabase db;
 
     public DBHelper(Context context){
@@ -73,20 +89,26 @@ private void create(){
 }
     @Override
     public void onCreate(SQLiteDatabase db) {
-     //   File file = new File(DATABASE_NAME);
 
-       // if (file.exists() && !file.isDirectory()) {
-        //{
-
-            //db = SQLiteDatabase.openOrCreateDatabase(DATABASE_NAME, null);
+        //#start timekeeping
             db.execSQL("create table if not exists timeentrytype (id integer primary key, typeid integer,name text, description text)");
+            db.execSQL("create table if not exists timeentry (id integer primary key, timeentryid integer, employeeid integer, dateentered text, startdate text, enddate text, workorderid integer," +
+                    "startlatitude real, startlongitude real, endlatitude real, endlongitude real, notes text)");
+        //#end timekeeping
+        //#start workorder
             db.execSQL("create table if not exists workorder (id integer primary key, workorderid integer, companyid integer, personid integer, name text, description text, " +
                     "arrivaltime string, estimatedduration real," +
                     "costofjob real, wherebilled text, notes text, workordertypeid integer, totalhoursalotted integer, hoursworked integer)");
+        //#end workorder
+
+        //#start other tasks
             db.execSQL("create table if not exists othertasks(id integer primary key, taskname text, userid integer, description text)");
+        //#end other tasks
+        //#start person
             db.execSQL("create table if not exists person (id integer primary key, personid integer, companyid integer,firstname text, lastname text, fullname text, addressline1 text, addressline2 text, city text, state text, zipcode text," +
                     "phonenumber text)");
-        //}
+        //#end person
+
     }
 
     @Override
@@ -167,7 +189,7 @@ private void create(){
                 WorkOrder newWorkOrder=new WorkOrder(res.getInt(res.getColumnIndex(WORKORDER_ID)), res.getInt(res.getColumnIndex(WORKORDER_TYPEID)),res.getInt(res.getColumnIndex(WORKORDER_COMPANYID)), res.getInt(res.getColumnIndex(WORKORDER_PERSONID)),
                         res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
-                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)));
+                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0);
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 workOrders.add(newWorkOrder);
                 res.moveToNext();
@@ -257,6 +279,61 @@ private void create(){
             res.moveToNext();
         }
         return selectedPerson;
+    }
+
+    public void SaveTimeEntry(TimeEntry timeEntry){
+        db=getWritableDatabase();
+        ContentValues contentValues=new ContentValues();
+        contentValues.put(TIMEENTRY_TIMEENTRYID,timeEntry.getTimeEntryId());
+        contentValues.put(TIMEENTRY_EMPLOYEEID,timeEntry.getEmployeeId());
+        contentValues.put(TIMEENTRY_DATEENTERED, DateHelper.DateToString(timeEntry.getDateEntered()));
+        contentValues.put(TIMEENTRY_STARTDATE, DateHelper.DateToString(timeEntry.getStartDateTime()));
+        contentValues.put(TIMEENTRY_ENDDATE, DateHelper.DateToString(timeEntry.getEndDateTime()));
+        contentValues.put(TIMEENTRY_WORKORDERID,timeEntry.getWorkOrderId());
+        contentValues.put(TIMEENTRY_STARTLATITUDE,timeEntry.getStartLatitude());
+        contentValues.put(TIMEENTRY_STARTLONGITUDE,timeEntry.getStartLongitude());
+        contentValues.put(TIMEENTRY_ENDLATITUDE,timeEntry.getEndLatitude());
+        contentValues.put(TIMEENTRY_ENDLONGITUDE,timeEntry.getEndLongitude());
+        contentValues.put(TIMEENTRY_NOTES,timeEntry.getNotes());
+        db.insert(TABLE_TIMEENTRY,null, contentValues);
+    }
+
+    public ArrayList<TimeEntry> GetTimeEntryListForToday(){
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select * from "+TABLE_TIMEENTRY+" where dateentered like %"+DateHelper.GetTodayDateAsString()+"%",null);
+        res.moveToFirst();
+        ArrayList<TimeEntry> timeEntries=new ArrayList<>();
+
+        while(res.isAfterLast()==false) {
+            // public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes){
+            timeEntries.add(new TimeEntry(res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYID)),res.getInt(res.getColumnIndex(TIMEENTRY_EMPLOYEEID)),
+                    DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_DATEENTERED))),DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_STARTDATE))),
+                    DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),
+                    res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
+                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES))));
+            res.moveToNext();
+        }
+        return timeEntries;
+    }
+    /*This gets the TimeEntry by the id assigned by SQLite*/
+    public TimeEntry GetTimeEntryById(int id){
+
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select * from "+TABLE_TIMEENTRY+" where id="+id,null);
+        res.moveToFirst();
+
+        TimeEntry timeEntry=new TimeEntry();
+        while(res.isAfterLast()==false) {
+            // public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes){
+            timeEntry=new TimeEntry(res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYID)),res.getInt(res.getColumnIndex(TIMEENTRY_EMPLOYEEID)),
+                    DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_DATEENTERED))),DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_STARTDATE))),
+                    DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),
+                    res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
+                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)));
+            break;
+            //res.moveToNext();
+        }
+        return timeEntry;
     }
 
 }

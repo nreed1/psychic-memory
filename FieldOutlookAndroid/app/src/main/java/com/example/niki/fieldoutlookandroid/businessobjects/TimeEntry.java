@@ -1,22 +1,45 @@
 package com.example.niki.fieldoutlookandroid.businessobjects;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.Serializable;
+import java.sql.Time;
 import java.util.Date;
 
 /**
  * Created by NReed on 4/1/2016.
  */
-public class TimeEntry implements Serializable {
+public class TimeEntry implements Parcelable,Serializable {
     private TimeEntryType type;
     private int timeEntryId;
     private int employeeId;
+    private Date dateEntered;
     private Date startDateTime;
     private Date endDateTime;
-    private int jobId;
+    private int workOrderId;
     private double startLatitude;
     private double startLongitude;
     private double endLatitude;
     private double endLongitude;
+    private String notes;
+    public TimeEntry(){
+
+    }
+    public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes){
+        this.timeEntryId=timeEntryId;
+        this.employeeId=employeeId;
+        this.dateEntered=dateEntered;
+        this.startDateTime=startDateTime;
+        this.endDateTime=endDateTime;
+        this.workOrderId=workOrderId;
+        this.startLatitude=startLatitude;
+        this.startLongitude=startLongitude;
+        this.endLatitude=endLatitude;
+        this.endLongitude=endLongitude;
+        this.notes=notes;
+    }
+
 
     public TimeEntryType getType() {
         return type;
@@ -58,12 +81,12 @@ public class TimeEntry implements Serializable {
         this.endDateTime = endDateTime;
     }
 
-    public int getJobId() {
-        return jobId;
+    public int getWorkOrderId() {
+        return workOrderId;
     }
 
-    public void setJobId(int jobId) {
-        this.jobId = jobId;
+    public void setWorkOrderId(int workOrderId) {
+        this.workOrderId = workOrderId;
     }
 
     public double getStartLatitude() {
@@ -97,4 +120,51 @@ public class TimeEntry implements Serializable {
     public void setEndLongitude(double endLongitude) {
         this.endLongitude = endLongitude;
     }
+
+    public Date getDateEntered() {
+        return dateEntered;
+    }
+
+    public void setDateEntered(Date dateEntered) {
+        this.dateEntered = dateEntered;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(getPerson(),0);
+        dest.writeInt(getWorkOrderId());
+        dest.writeInt(getWorkOrderTypeId());
+        dest.writeInt(getCompanyId());
+        dest.writeInt(getPersonId());
+        dest.writeString(getName());
+        dest.writeString(getDescription());
+        dest.writeString(getArrivalTime());
+        dest.writeString(getEstimatedDurationOfWork());
+        dest.writeDouble(getCostOfJob());
+        dest.writeString(getWhereBilled());
+        dest.writeString(getNotes());
+    }
+    public static  final Creator<TimeEntry> CREATOR= new Creator<TimeEntry>() {
+        @Override
+        public TimeEntry createFromParcel(Parcel source) {
+
+        }
+
+        @Override
+        public TimeEntry[] newArray(int size) {
+            return new TimeEntry[0];
+        }
+    };
 }
