@@ -2,6 +2,9 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.view.SoundEffectConstants;
+
+import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 
 import java.io.Serializable;
 import java.sql.Time;
@@ -140,26 +143,38 @@ public class TimeEntry implements Parcelable,Serializable {
     public int describeContents() {
         return 0;
     }
-
+//    private TimeEntryType type;
+//    private int timeEntryId;
+//    private int employeeId;
+//    private Date dateEntered;
+//    private Date startDateTime;
+//    private Date endDateTime;
+//    private int workOrderId;
+//    private double startLatitude;
+//    private double startLongitude;
+//    private double endLatitude;
+//    private double endLongitude;
+//    private String notes;
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(getPerson(),0);
+        dest.writeParcelable(getType(),0);
+        dest.writeInt(getTimeEntryId());
+        dest.writeInt(getEmployeeId());
+        dest.writeString(DateHelper.DateToString(getDateEntered()));
+        dest.writeString(DateHelper.DateToString(getStartDateTime()));
+        dest.writeString(DateHelper.DateToString(getEndDateTime()));
         dest.writeInt(getWorkOrderId());
-        dest.writeInt(getWorkOrderTypeId());
-        dest.writeInt(getCompanyId());
-        dest.writeInt(getPersonId());
-        dest.writeString(getName());
-        dest.writeString(getDescription());
-        dest.writeString(getArrivalTime());
-        dest.writeString(getEstimatedDurationOfWork());
-        dest.writeDouble(getCostOfJob());
-        dest.writeString(getWhereBilled());
+        dest.writeDouble(getStartLatitude());
+        dest.writeDouble(getStartLongitude());
+        dest.writeDouble(getEndLatitude());
+        dest.writeDouble(getEndLongitude());
         dest.writeString(getNotes());
     }
     public static  final Creator<TimeEntry> CREATOR= new Creator<TimeEntry>() {
         @Override
         public TimeEntry createFromParcel(Parcel source) {
-
+            return new TimeEntry(source.readInt(),source.readInt(),DateHelper.StringToDate(source.readString()),DateHelper.StringToDate(source.readString()),
+                    DateHelper.StringToDate(source.readString()),source.readInt(),source.readDouble(),source.readDouble(),source.readDouble(),source.readDouble(),source.readString());
         }
 
         @Override
