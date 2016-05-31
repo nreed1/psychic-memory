@@ -12,6 +12,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -68,11 +71,15 @@ public class StartDayFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view= inflater.inflate(R.layout.fragment_start_day, container, false);
+        DBHelper dbHelper=new DBHelper(getActivity().getApplicationContext());
+        TimeEntryType timeEntryType =dbHelper.GetTimeEntryTypeByName("start");
+        TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
+        timekeepingHelper.AddTimekeepingEntry(getActivity().getApplicationContext(),timeEntryType);
         Button travelTo=(Button) view.findViewById(R.id.travelToButton);
         travelTo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                OnButtonPressed("TravelTo");
+                OnButtonPressed("Travel To");
             }
         });
 
@@ -80,7 +87,7 @@ public class StartDayFragment extends Fragment {
         atShop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                OnButtonPressed("AtShop");
+                OnButtonPressed("At Shop");
             }
         });
 
@@ -97,7 +104,7 @@ public class StartDayFragment extends Fragment {
         endDay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                OnButtonPressed("EndDay");
+                OnButtonPressed("End Day");
             }
         });
 
@@ -106,11 +113,16 @@ public class StartDayFragment extends Fragment {
 
     public void OnButtonPressed(String buttonPressed){
         if(mListener!=null){
+            DBHelper dbHelper=new DBHelper(getActivity().getApplicationContext());
+            TimeEntryType timeEntryType =dbHelper.GetTimeEntryTypeByName(buttonPressed.toString());
+            TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
+            timekeepingHelper.AddTimekeepingEntry(getActivity().getApplicationContext(),timeEntryType);
             mListener.onStartDayFragmentInteraction(buttonPressed);
         }
     }
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
+
             mListener.onStartDayFragmentInteraction(uri.toString());
         }
     }

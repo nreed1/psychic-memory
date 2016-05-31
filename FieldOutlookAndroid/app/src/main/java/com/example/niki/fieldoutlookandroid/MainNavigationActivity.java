@@ -32,6 +32,7 @@ import com.example.niki.fieldoutlookandroid.fragment.SelectedWorkorderFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartDayFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
+import com.example.niki.fieldoutlookandroid.fragment.TimesheetReviewFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TravelToFragment;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
@@ -52,7 +53,7 @@ public class MainNavigationActivity extends AppCompatActivity
         PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
         QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener, AssignedJobReciever.Listener, StartDayFragment.OnStartDayFragmentInteractionListener,
                     TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener,
-                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimeEntryTypeReciever.Listener {
+                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimeEntryTypeReciever.Listener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener {
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -204,13 +205,14 @@ public class MainNavigationActivity extends AppCompatActivity
             // start the image capture Intent
             startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
         }else if(id==R.id.nav_update_data){
-            //ServiceHelper serviceHelper=new ServiceHelper();
-            //serviceHelper.RefreshData();
+            //Refresh the data //refdata
+
             Intent i=new Intent(this, AssignedJobServiceHelper.class);
             AssignedJobReciever reciever=new AssignedJobReciever(new Handler());
             reciever.setListener(this);
             i.putExtra("rec", reciever);
             startService(i);
+
             Intent timeentryintent=new Intent(this, TimeEntryTypeServiceHelper.class);
             TimeEntryTypeReciever timeEntryTypeReciever=new TimeEntryTypeReciever(new Handler());
             timeEntryTypeReciever.setListener(this);
@@ -323,9 +325,9 @@ public class MainNavigationActivity extends AppCompatActivity
 
     @Override
     public void onStartDayFragmentInteraction(String nextFragment) {
-        if(nextFragment.equals("TravelTo")){
+        if(nextFragment.equals("Travel To")){
             StartTravelToFragment();
-        }else if(nextFragment.equals("AtShop")){
+        }else if(nextFragment.equals("At Shop")){
             //Snapshot of time
         }else if(nextFragment.equals("Other")){
             if(dbHelper.UserHasOtherTasks(Global.GetInstance().getUser().GetUserId())){
@@ -335,11 +337,20 @@ public class MainNavigationActivity extends AppCompatActivity
                 //New Other Task Screen
                StartNewOtherTaskFragment();
             }
-        }else if(nextFragment.equals("EndDay")){
+        }else if(nextFragment.equals("End Day")){
             //Review and Send
+            StartTimekeepingReviewFragment();
         }
     }
 
+    private void StartTimekeepingReviewFragment(){
+        toolbar.setTitle("Review Day");
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        TimesheetReviewFragment timesheetReviewFragment=new TimesheetReviewFragment();
+        fragmentTransaction.replace(R.id.fragment_container, timesheetReviewFragment, "TimesheetReview").addToBackStack("TimesheetReview");
+        fragmentTransaction.commit();
+    }
     private void StartNewOtherTaskFragment(){
         toolbar.setTitle("Other Task");
         android.app.FragmentManager fragmentManager= getFragmentManager();
@@ -397,5 +408,10 @@ public class MainNavigationActivity extends AppCompatActivity
         if(whatToDo.toLowerCase().equals("back")){
             StartMainFragment();
         }
+    }
+
+    @Override
+    public void onTimesheetReviewFragmentInteraction(Uri uri) {
+
     }
 }

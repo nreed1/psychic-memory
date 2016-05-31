@@ -13,6 +13,7 @@ import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 
 import java.io.File;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -26,8 +27,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String TIME_ENTRY_TYPE_NAME="name";
     public static final String TIME_ENTRY_TYPE_DESCRIPTION="description";
 
-    public static final String  TABLE_WORKORDER="workorder";
-    public static final String  WORKORDER_ID="workorderid";
+    public static final String TABLE_WORKORDER="workorder";
+    public static final String WORKORDER_ID="workorderid";
     public static final String WORKORDER_COMPANYID="companyid";
     public static final String WORKORDER_PERSONID="personid";
     public static final String WORKORDER_NAME="name";
@@ -300,17 +301,28 @@ private void create(){
 
     public ArrayList<TimeEntry> GetTimeEntryListForToday(){
         db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from "+TABLE_TIMEENTRY+" where dateentered like %"+DateHelper.GetTodayDateAsString()+"%",null);
+        Cursor res=db.rawQuery("select * from "+TABLE_TIMEENTRY+" where dateentered like %"+DateHelper.GetTodayDateAsString()+"% order by"+TIMEENTRY_STARTDATE +" asc",null);
         res.moveToFirst();
         ArrayList<TimeEntry> timeEntries=new ArrayList<>();
-
+        TimeEntry previousTimeEntry=new TimeEntry();
         while(res.isAfterLast()==false) {
             // public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes){
-            timeEntries.add(new TimeEntry(res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYID)),res.getInt(res.getColumnIndex(TIMEENTRY_EMPLOYEEID)),
+            TimeEntry newTimeEntry=new TimeEntry(res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYID)),res.getInt(res.getColumnIndex(TIMEENTRY_EMPLOYEEID)),
                     DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_DATEENTERED))),DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_STARTDATE))),
-                    DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),
-                    res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
-                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES))));
+                    DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),
+                    res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)),
+                    res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
+                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)));
+            if(previousTimeEntry!=new TimeEntry()){
+                long difference = newTimeEntry.getStartDateTime().getTime()-previousTimeEntry.getStartDateTime().getTime();//newer.startTime-older.startTime
+                Time time= new Time(difference);
+                while(time.getMinutes()>=30) {
+                    timeEntries.add(new TimeEntry());
+                    time.setMinutes(time.getMinutes() - 30);
+                }
+            }
+
+            timeEntries.add(newTimeEntry);
             res.moveToNext();
         }
         return timeEntries;
@@ -334,6 +346,21 @@ private void create(){
             //res.moveToNext();
         }
         return timeEntry;
+    }
+
+    public TimeEntryType GetTimeEntryTypeByName(String name){
+        ArrayList<TimeEntryType> timeEntryTypes=new ArrayList<>();
+        SQLiteDatabase db=this.getReadableDatabase();
+        Cursor res=db.rawQuery("select * from timeentrytype where "+TIME_ENTRY_TYPE_NAME+" like %"+name+"%",null);
+        res.moveToFirst();
+        TimeEntryType selectedTimeEntryType=null;
+        while(res.isAfterLast()==false){
+            selectedTimeEntryType= new TimeEntryType(res.getInt(res.getColumnIndex(TIME_ENTRY_TYPE_TYPEID)),res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_NAME)),
+                    res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_DESCRIPTION)));
+
+            res.moveToNext();
+        }
+        return selectedTimeEntryType;
     }
 
 }

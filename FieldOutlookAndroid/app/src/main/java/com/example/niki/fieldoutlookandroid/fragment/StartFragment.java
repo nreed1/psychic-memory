@@ -12,6 +12,9 @@ import android.widget.Button;
 import android.support.v7.widget.Toolbar;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
 /**
@@ -69,6 +72,8 @@ public class StartFragment extends Fragment {
             startDayButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
+
                     Toolbar toolbar=(Toolbar) v.getRootView().findViewById(R.id.toolbar);
                     toolbar.setTitle("Select Time Entry Type");
                     FragmentManager fragmentManager= getFragmentManager();
