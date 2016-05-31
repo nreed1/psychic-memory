@@ -26,10 +26,12 @@ public class TimeEntry implements Parcelable,Serializable {
     private double endLatitude;
     private double endLongitude;
     private String notes;
+    private int sqlId;
     public TimeEntry(){
+        sqlId=0;
 
     }
-    public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes){
+    public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes, int sqlId){
         this.timeEntryId=timeEntryId;
         this.employeeId=employeeId;
         this.dateEntered=dateEntered;
@@ -41,6 +43,7 @@ public class TimeEntry implements Parcelable,Serializable {
         this.endLatitude=endLatitude;
         this.endLongitude=endLongitude;
         this.notes=notes;
+        this.sqlId=sqlId;
     }
 
 
@@ -139,6 +142,15 @@ public class TimeEntry implements Parcelable,Serializable {
     public void setNotes(String notes) {
         this.notes = notes;
     }
+
+    public int getSqlId() {
+        return sqlId;
+    }
+
+    public void setSqlId(int sqlId) {
+        this.sqlId = sqlId;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -169,12 +181,13 @@ public class TimeEntry implements Parcelable,Serializable {
         dest.writeDouble(getEndLatitude());
         dest.writeDouble(getEndLongitude());
         dest.writeString(getNotes());
+        dest.writeInt(getSqlId());
     }
     public static  final Creator<TimeEntry> CREATOR= new Creator<TimeEntry>() {
         @Override
         public TimeEntry createFromParcel(Parcel source) {
             return new TimeEntry(source.readInt(),source.readInt(),DateHelper.StringToDate(source.readString()),DateHelper.StringToDate(source.readString()),
-                    DateHelper.StringToDate(source.readString()),source.readInt(),source.readDouble(),source.readDouble(),source.readDouble(),source.readDouble(),source.readString());
+                    DateHelper.StringToDate(source.readString()),source.readInt(),source.readDouble(),source.readDouble(),source.readDouble(),source.readDouble(),source.readString(), source.readInt());
         }
 
         @Override

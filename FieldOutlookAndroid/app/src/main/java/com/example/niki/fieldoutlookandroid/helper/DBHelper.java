@@ -285,16 +285,16 @@ private void create(){
     public void SaveTimeEntry(TimeEntry timeEntry){
         db=getWritableDatabase();
         ContentValues contentValues=new ContentValues();
-        contentValues.put(TIMEENTRY_TIMEENTRYID,timeEntry.getTimeEntryId());
+       // contentValues.put(TIMEENTRY_TIMEENTRYID,timeEntry.getTimeEntryId());
         contentValues.put(TIMEENTRY_EMPLOYEEID,timeEntry.getEmployeeId());
         contentValues.put(TIMEENTRY_DATEENTERED, DateHelper.DateToString(timeEntry.getDateEntered()));
         contentValues.put(TIMEENTRY_STARTDATE, DateHelper.DateToString(timeEntry.getStartDateTime()));
-        contentValues.put(TIMEENTRY_ENDDATE, DateHelper.DateToString(timeEntry.getEndDateTime()));
+       // contentValues.put(TIMEENTRY_ENDDATE, DateHelper.DateToString(timeEntry.getEndDateTime()));
         contentValues.put(TIMEENTRY_WORKORDERID,timeEntry.getWorkOrderId());
         contentValues.put(TIMEENTRY_STARTLATITUDE,timeEntry.getStartLatitude());
         contentValues.put(TIMEENTRY_STARTLONGITUDE,timeEntry.getStartLongitude());
-        contentValues.put(TIMEENTRY_ENDLATITUDE,timeEntry.getEndLatitude());
-        contentValues.put(TIMEENTRY_ENDLONGITUDE,timeEntry.getEndLongitude());
+       // contentValues.put(TIMEENTRY_ENDLATITUDE,timeEntry.getEndLatitude());
+        //contentValues.put(TIMEENTRY_ENDLONGITUDE,timeEntry.getEndLongitude());
         contentValues.put(TIMEENTRY_NOTES,timeEntry.getNotes());
         db.insert(TABLE_TIMEENTRY,null, contentValues);
     }
@@ -312,8 +312,8 @@ private void create(){
                     DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),
                     res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)),
                     res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
-                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)));
-            if(previousTimeEntry.getTimeEntryId()!=0){
+                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)));
+            if(previousTimeEntry.getSqlId()!=0){
                 long difference = newTimeEntry.getStartDateTime().getTime()-previousTimeEntry.getStartDateTime().getTime();//newer.startTime-older.startTime
                 Time time= new Time(difference);
                 while(time.getMinutes()>=30) {
@@ -323,6 +323,7 @@ private void create(){
             }
 
             timeEntries.add(newTimeEntry);
+            previousTimeEntry=newTimeEntry;
             res.moveToNext();
         }
         return timeEntries;
@@ -341,7 +342,8 @@ private void create(){
                     DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_DATEENTERED))),DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_STARTDATE))),
                     DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),
                     res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
-                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)));
+                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res
+            .getInt(res.getColumnIndex(TIMEENTRY_ID)));
             break;
             //res.moveToNext();
         }

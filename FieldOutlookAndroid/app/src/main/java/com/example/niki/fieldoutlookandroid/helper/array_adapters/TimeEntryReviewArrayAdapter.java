@@ -1,6 +1,8 @@
 package com.example.niki.fieldoutlookandroid.helper.array_adapters;
 
 import android.app.Activity;
+import android.support.v4.widget.TextViewCompat;
+import android.support.v7.widget.AppCompatTextView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +11,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
-import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 
@@ -52,7 +53,7 @@ public class TimeEntryReviewArrayAdapter extends ArrayAdapter<TimeEntry> {
            // holder.timeTextView = (TextView) convertView.findViewById(R.id.timeStampTimeline);
             holder.descriptionTimeline = (TextView) convertView.findViewById(R.id.timeLineTextView);
            // holder.iconLayout=(RelativeLayout)convertView.findViewById(R.id.timelineIconLayout);
-            holder.iconView=(View)convertView.findViewById(R.id.view1);
+            holder.iconView=convertView.findViewById(R.id.view1);
 
 
             convertView.setTag(holder);
@@ -62,13 +63,14 @@ public class TimeEntryReviewArrayAdapter extends ArrayAdapter<TimeEntry> {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        if(rows.get(position).getTimeEntryId()==0){
+        if(rows.get(position).getSqlId()==0){
         // holder.iconLayout.setVisibility(View.INVISIBLE);
             holder.iconView.setVisibility(View.INVISIBLE);
         }else {
            // if(holder.timeTextView!=null)
-                //holder.timeTextView.setText("" + DateHelper.DateToString(rows.get(position).getStartDateTime()));
-            holder.descriptionTimeline.setText(rows.get(position).getWorkOrderId());
+               // holder.timeTextView.setText("" + DateHelper.DateToString(rows.get(position).getStartDateTime()));
+
+            holder.descriptionTimeline.setText(String.valueOf(position));
         }
         return convertView;
     }

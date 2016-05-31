@@ -7,18 +7,36 @@ import java.util.Date;
  * Created by Owner on 5/27/2016.
  */
 public class DateHelper {
-    public static Date StringToDate(String time){
-        try {
+
+    public static Date WebserviceDateStringToJavaDate(String time){
+        try{
+            if(time==null)return null;
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
             SimpleDateFormat output = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date d = sdf.parse(time);
-            String formattedTime = output.format(d);
+            //Date d = sdf.parse(time);
+            Date d=null;
+            if(d==null) d=sdf.parse(time);
             return d;
         }catch (Exception ex){
-
+            System.out.print(ex.getStackTrace());
         }
         return null;
     }
+    public static Date StringToDate(String time){
+        try {
+            if(time==null)return null;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+            SimpleDateFormat output = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            //Date d = sdf.parse(time);
+            Date d=null;
+            if(d==null) d=output.parse(time);
+            return d;
+        }catch (Exception ex){
+            System.out.print(ex.getStackTrace());
+        }
+        return null;
+    }
+
 
     public static String DateToString(Date date){
         try{
