@@ -79,7 +79,7 @@ public class StartDayFragment extends Fragment {
         travelTo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                OnButtonPressed("Travel To");
+                OnButtonPressed("Travel");
             }
         });
 
@@ -87,7 +87,7 @@ public class StartDayFragment extends Fragment {
         atShop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                OnButtonPressed("At Shop");
+                OnButtonPressed("Shop");
             }
         });
 
@@ -104,7 +104,7 @@ public class StartDayFragment extends Fragment {
         endDay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                OnButtonPressed("End Day");
+                OnButtonPressed("End");
             }
         });
 

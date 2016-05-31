@@ -14,7 +14,9 @@ import java.util.Date;
  */
 public class TimekeepingHelper {
     public void AddTimekeepingEntry(Context context, TimeEntryType timeEntryType){
+        if(timeEntryType==null) return;
         Location location=GetGPSSnapshot(context);
+
         TimeEntry newTimeEntry=new TimeEntry();
         newTimeEntry.setDateEntered(new Date());
         newTimeEntry.setStartDateTime(new Date());

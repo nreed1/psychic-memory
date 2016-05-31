@@ -48,8 +48,8 @@ public class TimeEntryTypeServiceHelper extends IntentService {
 
                 if (event == XmlPullParser.START_TAG) {
                     currentTag = tagName;
-                    if(currentTag=="a:TimeEntryType"){
-                        if(timeEntryType!=new TimeEntryType()){
+                    if(currentTag.equals("a:TimeEntryType")){
+                        if(timeEntryType.getTimeEntryTypeId()!=0){
                             timeEntryTypes.add(timeEntryType);
                         }
                         timeEntryType=new TimeEntryType();
@@ -71,6 +71,7 @@ public class TimeEntryTypeServiceHelper extends IntentService {
                 event = parser.next();
 
             }
+            timeEntryTypes.add(timeEntryType);
             Bundle b = new Bundle();
             b.putParcelableArrayList("timeentrytypes", timeEntryTypes);
             rec.send(0, b);

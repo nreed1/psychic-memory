@@ -1,6 +1,7 @@
 package com.example.niki.fieldoutlookandroid;
 
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -58,6 +59,7 @@ public class MainNavigationActivity extends AppCompatActivity
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
     private DBHelper dbHelper;
+    ProgressDialog progressDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -206,7 +208,10 @@ public class MainNavigationActivity extends AppCompatActivity
             startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
         }else if(id==R.id.nav_update_data){
             //Refresh the data //refdata
+            progressDialog=new ProgressDialog(this);
+            progressDialog.isIndeterminate();
 
+            progressDialog.show();
             Intent i=new Intent(this, AssignedJobServiceHelper.class);
             AssignedJobReciever reciever=new AssignedJobReciever(new Handler());
             reciever.setListener(this);
@@ -317,17 +322,20 @@ public class MainNavigationActivity extends AppCompatActivity
             dbHelper.SaveWorkOrderList(workOrders);
 
         }else if(resultTimeEntryTypes!=null && !resultTimeEntryTypes.isEmpty() ){
-
+            for(TimeEntryType t:resultTimeEntryTypes){
+                dbHelper.SaveTimeEntryType(t);
+            }
         }
 
+        progressDialog.dismiss();
 
     }
 
     @Override
     public void onStartDayFragmentInteraction(String nextFragment) {
-        if(nextFragment.equals("Travel To")){
+        if(nextFragment.equals("Travel")){
             StartTravelToFragment();
-        }else if(nextFragment.equals("At Shop")){
+        }else if(nextFragment.equals("Shop")){
             //Snapshot of time
         }else if(nextFragment.equals("Other")){
             if(dbHelper.UserHasOtherTasks(Global.GetInstance().getUser().GetUserId())){
@@ -337,7 +345,7 @@ public class MainNavigationActivity extends AppCompatActivity
                 //New Other Task Screen
                StartNewOtherTaskFragment();
             }
-        }else if(nextFragment.equals("End Day")){
+        }else if(nextFragment.equals("End")){
             //Review and Send
             StartTimekeepingReviewFragment();
         }

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
+import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 
 import java.util.ArrayList;
 
@@ -28,7 +29,7 @@ public class TimeEntryReviewArrayAdapter extends ArrayAdapter<TimeEntry> {
         TextView timeTextView;
         TextView descriptionTimeline;
         RelativeLayout iconLayout;
-
+        View iconView;
     }
 
     public TimeEntryReviewArrayAdapter(Activity context, int workorder_list_item, ArrayList<TimeEntry> rows)
@@ -48,9 +49,10 @@ public class TimeEntryReviewArrayAdapter extends ArrayAdapter<TimeEntry> {
             convertView = inflater.inflate(R.layout.timelinelayout,parent,false);
 
             holder = new ViewHolder();
-            holder.timeTextView = (TextView) convertView.findViewById(R.id.timeStampTimeline);
+           // holder.timeTextView = (TextView) convertView.findViewById(R.id.timeStampTimeline);
             holder.descriptionTimeline = (TextView) convertView.findViewById(R.id.timeLineTextView);
-            holder.iconLayout=(RelativeLayout)convertView.findViewById(R.id.timelineIconLayout);
+           // holder.iconLayout=(RelativeLayout)convertView.findViewById(R.id.timelineIconLayout);
+            holder.iconView=(View)convertView.findViewById(R.id.view1);
 
 
             convertView.setTag(holder);
@@ -61,9 +63,11 @@ public class TimeEntryReviewArrayAdapter extends ArrayAdapter<TimeEntry> {
         }
 
         if(rows.get(position).getTimeEntryId()==0){
-         holder.iconLayout.setVisibility(View.INVISIBLE);
+        // holder.iconLayout.setVisibility(View.INVISIBLE);
+            holder.iconView.setVisibility(View.INVISIBLE);
         }else {
-            holder.timeTextView.setText("" + rows.get(position).getStartDateTime());
+           // if(holder.timeTextView!=null)
+                //holder.timeTextView.setText("" + DateHelper.DateToString(rows.get(position).getStartDateTime()));
             holder.descriptionTimeline.setText(rows.get(position).getWorkOrderId());
         }
         return convertView;

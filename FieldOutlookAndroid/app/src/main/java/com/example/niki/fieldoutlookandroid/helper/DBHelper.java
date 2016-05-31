@@ -301,7 +301,7 @@ private void create(){
 
     public ArrayList<TimeEntry> GetTimeEntryListForToday(){
         db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from "+TABLE_TIMEENTRY+" where dateentered like %"+DateHelper.GetTodayDateAsString()+"% order by"+TIMEENTRY_STARTDATE +" asc",null);
+        Cursor res=db.rawQuery("select * from "+TABLE_TIMEENTRY+" where dateentered like '%"+DateHelper.GetTodayDateAsString()+"%' order by "+TIMEENTRY_STARTDATE +" asc",null);
         res.moveToFirst();
         ArrayList<TimeEntry> timeEntries=new ArrayList<>();
         TimeEntry previousTimeEntry=new TimeEntry();
@@ -313,7 +313,7 @@ private void create(){
                     res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)),
                     res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
                     res.getString(res.getColumnIndex(TIMEENTRY_NOTES)));
-            if(previousTimeEntry!=new TimeEntry()){
+            if(previousTimeEntry.getTimeEntryId()!=0){
                 long difference = newTimeEntry.getStartDateTime().getTime()-previousTimeEntry.getStartDateTime().getTime();//newer.startTime-older.startTime
                 Time time= new Time(difference);
                 while(time.getMinutes()>=30) {
@@ -351,7 +351,7 @@ private void create(){
     public TimeEntryType GetTimeEntryTypeByName(String name){
         ArrayList<TimeEntryType> timeEntryTypes=new ArrayList<>();
         SQLiteDatabase db=this.getReadableDatabase();
-        Cursor res=db.rawQuery("select * from timeentrytype where "+TIME_ENTRY_TYPE_NAME+" like %"+name+"%",null);
+        Cursor res=db.rawQuery("select * from timeentrytype where "+TIME_ENTRY_TYPE_NAME+" like '%"+name+"%'",null);
         res.moveToFirst();
         TimeEntryType selectedTimeEntryType=null;
         while(res.isAfterLast()==false){
