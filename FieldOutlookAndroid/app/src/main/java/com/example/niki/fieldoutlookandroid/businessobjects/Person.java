@@ -19,6 +19,25 @@ public class Person implements Serializable, Parcelable{
     private Address Address;
     private Phone Phone;
 
+    public Person(){
+
+    }
+    public Person(int personId, int companyId, int personTypeId,String firstName, String lastName, String fullName, String addressline1, String addressline2, String city, String state, String zip){
+        setPersonId(personId);
+        setCompanyId(companyId);
+        setPersonTypeId(personTypeId);
+        setFirstName(firstName);
+        setLastName(lastName);
+        setFullName(fullName);
+        com.example.niki.fieldoutlookandroid.businessobjects.Address address=new Address();
+        address.setPersonId(personId);
+        address.setStreetAddress1(addressline1);
+        address.setStreetAddress2(addressline2);
+        address.setCity(city);
+        address.setState(state);
+        address.setZipCode(zip);
+        setAddress(address);
+    }
 
     public int getPersonId() {
         return PersonId;

@@ -15,6 +15,7 @@ public class AuthenticationResponse implements Parcelable {
     private String fullName;
     private int userId;
     private String encryptedPassword;
+    private int companyId;
     public AuthenticationResponse(){}
 
     public void SetIsAuthenticated(String value){
@@ -26,6 +27,7 @@ public class AuthenticationResponse implements Parcelable {
     public void SetLastName(String value){this.lastName=value;}
     public void SetFullName(String value){this.fullName=value;}
     public void SetUserId(int value){this.userId=value;}
+    public void SetCompanyId(int value){this.companyId=value;}
     public String GetUsername(){
         return this.username;
     }
@@ -37,6 +39,7 @@ public class AuthenticationResponse implements Parcelable {
     public String GetLastName(){return this.lastName;}
     public String GetFullName(){return this.fullName;}
     public int GetUserId(){return this.userId;}
+    public int GetCompanyId(){return this.companyId;}
 
     public String getEncryptedPassword() {
         return encryptedPassword;

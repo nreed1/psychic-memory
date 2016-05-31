@@ -37,6 +37,10 @@ public class TimeEntryType implements Parcelable,Serializable {
         this.description = description;
     }
 
+    public TimeEntryType(){
+
+    }
+
     public TimeEntryType(int id, String name, String description ){
         this.timeEntryTypeId=id;
         this.name=name;
