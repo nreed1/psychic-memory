@@ -6,15 +6,18 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.example.niki.fieldoutlookandroid.businessobjects.FOException;
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
 import java.io.File;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.StringTokenizer;
 
 /**
@@ -79,6 +82,13 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String TIMEENTRY_NOTES="notes";
     public static final String TIMEENTRY_TIMEENTRYTYPEID="timeentrytypeid";
 
+    public static final String TABLE_EXCEPTION="exceptionlog";
+    public static final String EXCEPTION_ID="id";
+    public static final String EXCEPTION_MESSAGE="message";
+    public static final String EXCEPTION_STACKTRACE="stacktrace";
+    public static final String EXCEPTION_USERID="userid";
+    public static final String EXCEPTION_DATEINSERTED="dateinserted";
+
     SQLiteDatabase db;
 
     public DBHelper(Context context){
@@ -110,6 +120,10 @@ private void create(){
             db.execSQL("create table if not exists person (id integer primary key, personid integer, companyid integer,firstname text, lastname text, fullname text, addressline1 text, addressline2 text, city text, state text, zipcode text," +
                     "phonenumber text)");
         //#end person
+
+        //#start exception logger
+        db.execSQL("create table if not exists exceptionlog (id integer primary key, message text, stacktrace text, userid integer, dateinserted text)");
+        //#end exception logger
 
     }
 
@@ -147,6 +161,13 @@ private void create(){
         }
         return null;
     }
+    public boolean TruncateTimeEntryTypes(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_EXCEPTION,null);
+        if(res==null) return false;
+        return true;
+    }
+
 
     public void SaveWorkOrder(WorkOrder workOrder) {
         db = this.getWritableDatabase();
@@ -213,6 +234,13 @@ private void create(){
         return new ArrayList<WorkOrder>();
 
     }
+    public boolean TruncateWorkOrders(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_WORKORDER,null);
+        if(res==null) return false;
+        return true;
+    }
+
 
     public void SaveOtherTask(OtherTask otherTask){
         try {
@@ -228,6 +256,12 @@ private void create(){
            // db.close();
         }
 
+    }
+    public Boolean TruncateOtherTasks(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_OTHERTASKS,null);
+        if(res==null) return false;
+        return true;
     }
 
     public boolean UserHasOtherTasks(int userId){
@@ -291,6 +325,12 @@ private void create(){
             res.moveToNext();
         }
         return selectedPerson;
+    }
+    public boolean TruncatePerson(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_PERSON,null);
+        if(res==null) return false;
+        return true;
     }
 
     public void SaveTimeEntry(TimeEntry timeEntry){
@@ -363,6 +403,12 @@ private void create(){
         }
         return timeEntry;
     }
+    public boolean TruncateTimeEntry(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_TIMEENTRY,null);
+        if(res==null) return false;
+        return true;
+    }
 
     public TimeEntryType GetTimeEntryTypeByName(String name){
         ArrayList<TimeEntryType> timeEntryTypes=new ArrayList<>();
@@ -377,6 +423,33 @@ private void create(){
             res.moveToNext();
         }
         return selectedTimeEntryType;
+    }
+
+    public void SaveExceptionLog(Exception ex){
+        db=getWritableDatabase();
+        ContentValues contentValues=new ContentValues();
+        contentValues.put(EXCEPTION_DATEINSERTED, DateHelper.DateToString(new Date()));
+        contentValues.put(EXCEPTION_USERID, Global.GetInstance().getUser().GetUserId());
+        contentValues.put(EXCEPTION_MESSAGE,ex.getMessage());
+        contentValues.put(EXCEPTION_STACKTRACE, ex.getStackTrace().toString());
+        db.insert(TABLE_EXCEPTION,null,contentValues);
+    }
+    public boolean TruncateException(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_EXCEPTION,null);
+        if(res==null) return false;
+        return true;
+    }
+    public ArrayList<FOException> GetExceptions(){
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select * from "+TABLE_EXCEPTION,null);
+        res.moveToFirst();
+        ArrayList<FOException> exceptions=new ArrayList<>();
+        while(res.isAfterLast()==false){
+
+            res.moveToNext();
+        }
+        return  exceptions;
     }
 
 }

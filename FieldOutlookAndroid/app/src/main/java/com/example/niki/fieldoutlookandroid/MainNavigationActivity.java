@@ -39,7 +39,9 @@ import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
+import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobsAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
+import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeReciever;
 import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeServiceHelper;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -52,9 +54,9 @@ import java.util.Date;
 public class MainNavigationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AssignedJobFragment.OnFragmentInteractionListener, AvailableJobFragment.OnFragmentInteractionListener,
         PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
-        QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener, AssignedJobReciever.Listener, StartDayFragment.OnStartDayFragmentInteractionListener,
+        QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener,  StartDayFragment.OnStartDayFragmentInteractionListener,
                     TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener,
-                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimeEntryTypeReciever.Listener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener {
+                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener {
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -209,21 +211,44 @@ public class MainNavigationActivity extends AppCompatActivity
         }else if(id==R.id.nav_update_data){
             //Refresh the data //refdata
             progressDialog=new ProgressDialog(this);
+            progressDialog.setTitle("Refreshing Data");
             progressDialog.isIndeterminate();
-
+            progressDialog.setMessage("Getting Work Orders");
             progressDialog.show();
-            Intent i=new Intent(this, AssignedJobServiceHelper.class);
-            AssignedJobReciever reciever=new AssignedJobReciever(new Handler());
-            reciever.setListener(this);
-            i.putExtra("rec", reciever);
-            startService(i);
+//            Intent i=new Intent(this, AssignedJobServiceHelper.class);
+//            AssignedJobReciever reciever=new AssignedJobReciever(new Handler());
+//            reciever.setListener(this);
+//            i.putExtra("rec", reciever);
+//            startService(i);
+            AssignedJobsAsyncTask assignedJobsAsyncTask=new AssignedJobsAsyncTask(new AssignedJobsAsyncTask.AssignedJobsResponse(){
 
-            Intent timeentryintent=new Intent(this, TimeEntryTypeServiceHelper.class);
-            TimeEntryTypeReciever timeEntryTypeReciever=new TimeEntryTypeReciever(new Handler());
-            timeEntryTypeReciever.setListener(this);
-            timeentryintent.putExtra("rec", timeEntryTypeReciever);
-            startService(timeentryintent);
+                @Override
+                public void processFinish(ArrayList<WorkOrder> workOrders) {
+                    if(dbHelper==null) dbHelper=new DBHelper(getApplicationContext());
+                    dbHelper.SaveWorkOrderList(workOrders);
+                    progressDialog.setMessage("Downloaded "+workOrders.size()+" Work Orders");
+                }
+            });
+            ArrayList<WorkOrder> silly=new ArrayList<>();
 
+            assignedJobsAsyncTask.execute((String)null);
+//
+//            Intent timeentryintent=new Intent(this, TimeEntryTypeServiceHelper.class);
+//            TimeEntryTypeReciever timeEntryTypeReciever=new TimeEntryTypeReciever(new Handler());
+//            timeEntryTypeReciever.setListener(this);
+//            timeentryintent.putExtra("rec", timeEntryTypeReciever);
+//            startService(timeentryintent);
+            TimeEntryTypeAsyncTask timeEntryTypeAsyncTask=new TimeEntryTypeAsyncTask(new TimeEntryTypeAsyncTask.TimeEntryTypeResponse() {
+                @Override
+                public void processFinish(ArrayList<TimeEntryType> timeEntryTypes) {
+                    if(dbHelper==null) dbHelper=new DBHelper(getApplicationContext());
+                    for(TimeEntryType t:timeEntryTypes){
+                        dbHelper.SaveTimeEntryType(t);
+                    }
+                    progressDialog.dismiss();
+                }
+            });
+            timeEntryTypeAsyncTask.execute();
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -311,25 +336,25 @@ public class MainNavigationActivity extends AppCompatActivity
         return mediaFile;
     }
     private ArrayList<WorkOrder> workOrders= new ArrayList<>();
-    @Override
-    public void onReceiveResult(int resultCode, Bundle resultData) {
-        DBHelper dbHelper=new DBHelper(this.getApplicationContext());
-        ArrayList<WorkOrder> resultWorkOrders=resultData.getParcelableArrayList("assignedWorkOrders");
-        ArrayList<TimeEntryType> resultTimeEntryTypes=resultData.getParcelableArrayList("timeentrytypes");
-        if(resultWorkOrders!=null &&!resultWorkOrders.isEmpty()){
-            workOrders=resultWorkOrders;
-
-            dbHelper.SaveWorkOrderList(workOrders);
-
-        }else if(resultTimeEntryTypes!=null && !resultTimeEntryTypes.isEmpty() ){
-            for(TimeEntryType t:resultTimeEntryTypes){
-                dbHelper.SaveTimeEntryType(t);
-            }
-        }
-
-        progressDialog.dismiss();
-
-    }
+//    @Override
+//    public void onReceiveResult(int resultCode, Bundle resultData) {
+//        DBHelper dbHelper=new DBHelper(this.getApplicationContext());
+//        ArrayList<WorkOrder> resultWorkOrders=resultData.getParcelableArrayList("assignedWorkOrders");
+//        ArrayList<TimeEntryType> resultTimeEntryTypes=resultData.getParcelableArrayList("timeentrytypes");
+//        if(resultWorkOrders!=null &&!resultWorkOrders.isEmpty()){
+//            workOrders=resultWorkOrders;
+//
+//            dbHelper.SaveWorkOrderList(workOrders);
+//
+//        }else if(resultTimeEntryTypes!=null && !resultTimeEntryTypes.isEmpty() ){
+//            for(TimeEntryType t:resultTimeEntryTypes){
+//                dbHelper.SaveTimeEntryType(t);
+//            }
+//        }
+//
+//        progressDialog.dismiss();
+//
+//    }
 
     @Override
     public void onStartDayFragmentInteraction(String nextFragment) {

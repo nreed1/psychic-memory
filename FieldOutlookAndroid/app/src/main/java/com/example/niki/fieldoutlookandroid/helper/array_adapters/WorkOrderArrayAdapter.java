@@ -1,12 +1,14 @@
 package com.example.niki.fieldoutlookandroid.helper.array_adapters;
 
 import android.app.Activity;
+import android.content.res.Resources;
 import android.inputmethodservice.Keyboard;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
@@ -29,6 +31,7 @@ public class WorkOrderArrayAdapter extends ArrayAdapter<WorkOrder> {
         TextView workOrderCustomerName;
         TextView workOrderDate;
         TextView workOrderTime;
+        LinearLayout backgroundLayout;
     }
 
     public WorkOrderArrayAdapter(Activity context, int workorder_list_item, ArrayList<WorkOrder> rows)
@@ -37,7 +40,7 @@ public class WorkOrderArrayAdapter extends ArrayAdapter<WorkOrder> {
         this._context = context;
         this.rows = rows;
     }
-
+    boolean isOdd=false;
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
         ViewHolder holder = null;
@@ -52,12 +55,20 @@ public class WorkOrderArrayAdapter extends ArrayAdapter<WorkOrder> {
             holder.workOrderName = (TextView) convertView.findViewById(R.id.listItemWorkOrderName);
             holder.workOrderDate=(TextView)convertView.findViewById(R.id.listItemDateOfWorkOrder);
             holder.workOrderTime=(TextView)convertView.findViewById(R.id.listItemTimeOfWorkOrder);
-
+            holder.backgroundLayout=(LinearLayout)convertView.findViewById(R.id.workOrderListItemLinearLayout);
             convertView.setTag(holder);
         }
         else
         {
             holder = (ViewHolder) convertView.getTag();
+        }
+        if(isOdd==true){
+
+            holder.backgroundLayout.setBackgroundColor( getContext().getResources().getColor( R.color.lightGray));
+            isOdd=false;
+        }else{
+            isOdd=true;
+            holder.backgroundLayout.setBackgroundColor(getContext().getResources().getColor(R.color.listItemBackground));
         }
         DateFormat dateFormat= new SimpleDateFormat("MM/dd");
         DateFormat timeFormat= new SimpleDateFormat("HH:mm");

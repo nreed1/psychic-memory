@@ -26,16 +26,8 @@ import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
  * create an instance of this fragment.
  */
 public class SelectedWorkorderFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
     private static final String SELECTED_WORKORDER="workOrder";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
 
     private WorkOrder selectedWorkOrder;
@@ -57,9 +49,7 @@ public class SelectedWorkorderFragment extends Fragment {
     public static SelectedWorkorderFragment newInstance(String param1, String param2) {
         SelectedWorkorderFragment fragment = new SelectedWorkorderFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
+
         return fragment;
     }
 
@@ -89,6 +79,10 @@ public class SelectedWorkorderFragment extends Fragment {
         if(selectedWorkOrder.getPerson()!=null) {
             TextView workOrderCustomer = (TextView) view.findViewById(R.id.customerNameTextView);
             workOrderCustomer.setText(selectedWorkOrder.getPerson().getFullName());
+            if(selectedWorkOrder.getPerson().getAddress()!=null) {
+                TextView workOrderCustomerAddress = (TextView) view.findViewById(R.id.customerAddressTextView);
+                workOrderCustomerAddress.setText(selectedWorkOrder.getPerson().getAddress().getPrintableAddress());
+            }
         }
 
         ProgressBar progressBar =(ProgressBar)view.findViewById(R.id.progressBar);
@@ -117,7 +111,7 @@ public class SelectedWorkorderFragment extends Fragment {
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
+
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
