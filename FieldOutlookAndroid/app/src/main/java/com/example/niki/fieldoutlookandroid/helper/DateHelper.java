@@ -60,4 +60,14 @@ public class DateHelper {
         }
         return "";
     }
+
+    public static String GetStringTimeFromDate(Date date){
+        try{
+            SimpleDateFormat output=new SimpleDateFormat("hh:mm a");
+            return output.format(date)+" ";
+        }catch (Exception ex){
+
+        }
+        return "";
+    }
 }

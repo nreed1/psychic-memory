@@ -50,7 +50,7 @@ public class TimeEntryReviewArrayAdapter extends ArrayAdapter<TimeEntry> {
             convertView = inflater.inflate(R.layout.timelinelayout,parent,false);
 
             holder = new ViewHolder();
-           // holder.timeTextView = (TextView) convertView.findViewById(R.id.timeStampTimeline);
+            holder.timeTextView = (TextView) convertView.findViewById(R.id.timeStampTimeline);
             holder.descriptionTimeline = (TextView) convertView.findViewById(R.id.timeLineTextView);
            // holder.iconLayout=(RelativeLayout)convertView.findViewById(R.id.timelineIconLayout);
             holder.iconView=convertView.findViewById(R.id.view1);
@@ -68,9 +68,10 @@ public class TimeEntryReviewArrayAdapter extends ArrayAdapter<TimeEntry> {
             holder.iconView.setVisibility(View.INVISIBLE);
         }else {
            // if(holder.timeTextView!=null)
-               // holder.timeTextView.setText("" + DateHelper.DateToString(rows.get(position).getStartDateTime()));
-
-            holder.descriptionTimeline.setText(String.valueOf(position));
+                holder.timeTextView.setText("" + DateHelper.GetStringTimeFromDate(rows.get(position).getStartDateTime()));
+            if(rows.get(position).getType()!=null) {
+                holder.descriptionTimeline.setText(String.valueOf(rows.get(position).getType().getName()));
+            }
         }
         return convertView;
     }

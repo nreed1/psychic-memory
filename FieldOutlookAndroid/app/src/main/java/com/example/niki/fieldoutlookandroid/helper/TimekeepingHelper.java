@@ -23,7 +23,7 @@ public class TimekeepingHelper {
         newTimeEntry.setDateEntered(Calendar.getInstance().getTime());
         newTimeEntry.setStartDateTime(Calendar.getInstance().getTime());
         newTimeEntry.setEmployeeId(Global.GetInstance().getUser().GetUserId());
-        newTimeEntry.setTimeEntryId(timeEntryType.getTimeEntryTypeId());
+        newTimeEntry.setTimeEntryTypeId(timeEntryType.getTimeEntryTypeId());
         if(location!=null){
             newTimeEntry.setStartLatitude(location.getLatitude());
             newTimeEntry.setStartLongitude(location.getLongitude());

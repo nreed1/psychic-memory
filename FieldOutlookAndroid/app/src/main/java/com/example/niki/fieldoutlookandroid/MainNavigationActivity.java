@@ -235,7 +235,7 @@ public class MainNavigationActivity extends AppCompatActivity
         toolbar.setTitle("Selected Work Order");
 
         int position=Integer.parseInt(id);
-        WorkOrder selectedWorkOrder = workOrders.get(position);
+        WorkOrder selectedWorkOrder = dbHelper.GetWorkOrders().get(position);
 
         SelectedWorkorderFragment selectedWorkorderFragment=new SelectedWorkorderFragment();
         Bundle b= new Bundle();

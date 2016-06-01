@@ -77,6 +77,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String TIMEENTRY_ENDLATITUDE="endlatitude";
     public static final String TIMEENTRY_ENDLONGITUDE="endlongitude";
     public static final String TIMEENTRY_NOTES="notes";
+    public static final String TIMEENTRY_TIMEENTRYTYPEID="timeentrytypeid";
 
     SQLiteDatabase db;
 
@@ -94,7 +95,7 @@ private void create(){
         //#start timekeeping
             db.execSQL("create table if not exists timeentrytype (id integer primary key, typeid integer,name text, description text)");
             db.execSQL("create table if not exists timeentry (id integer primary key, timeentryid integer, employeeid integer, dateentered text, startdate text, enddate text, workorderid integer," +
-                    "startlatitude real, startlongitude real, endlatitude real, endlongitude real, notes text)");
+                    "startlatitude real, startlongitude real, endlatitude real, endlongitude real, notes text, timeentrytypeid integer)");
         //#end timekeeping
         //#start workorder
             db.execSQL("create table if not exists workorder (id integer primary key, workorderid integer, companyid integer, personid integer, name text, description text, " +
@@ -135,6 +136,16 @@ private void create(){
             res.moveToNext();
         }
         return timeEntryTypes;
+    }
+    public TimeEntryType GetTimeEntryTypeById(int id){
+        SQLiteDatabase db=this.getReadableDatabase();
+        Cursor res=db.rawQuery("select * from timeentrytype where typeid="+id,null);
+        res.moveToFirst();
+        while(res.isAfterLast()==false){
+            return new TimeEntryType(res.getInt(res.getColumnIndex(TIME_ENTRY_TYPE_TYPEID)),res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_NAME)),res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_DESCRIPTION)));
+            //res.moveToNext();
+        }
+        return null;
     }
 
     public void SaveWorkOrder(WorkOrder workOrder) {
@@ -285,7 +296,7 @@ private void create(){
     public void SaveTimeEntry(TimeEntry timeEntry){
         db=getWritableDatabase();
         ContentValues contentValues=new ContentValues();
-       // contentValues.put(TIMEENTRY_TIMEENTRYID,timeEntry.getTimeEntryId());
+        contentValues.put(TIMEENTRY_TIMEENTRYID,timeEntry.getTimeEntryId());
         contentValues.put(TIMEENTRY_EMPLOYEEID,timeEntry.getEmployeeId());
         contentValues.put(TIMEENTRY_DATEENTERED, DateHelper.DateToString(timeEntry.getDateEntered()));
         contentValues.put(TIMEENTRY_STARTDATE, DateHelper.DateToString(timeEntry.getStartDateTime()));
@@ -296,6 +307,7 @@ private void create(){
        // contentValues.put(TIMEENTRY_ENDLATITUDE,timeEntry.getEndLatitude());
         //contentValues.put(TIMEENTRY_ENDLONGITUDE,timeEntry.getEndLongitude());
         contentValues.put(TIMEENTRY_NOTES,timeEntry.getNotes());
+        contentValues.put(TIMEENTRY_TIMEENTRYTYPEID, timeEntry.getTimeEntryTypeId());
         db.insert(TABLE_TIMEENTRY,null, contentValues);
     }
 
@@ -312,7 +324,7 @@ private void create(){
                     DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),
                     res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)),
                     res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
-                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)));
+                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)), res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYTYPEID)));
             if(previousTimeEntry.getSqlId()!=0){
                 long difference = newTimeEntry.getStartDateTime().getTime()-previousTimeEntry.getStartDateTime().getTime();//newer.startTime-older.startTime
                 Time time= new Time(difference);
@@ -320,6 +332,9 @@ private void create(){
                     timeEntries.add(new TimeEntry());
                     time.setMinutes(time.getMinutes() - 30);
                 }
+            }
+            if(newTimeEntry.getTimeEntryTypeId()!=0){
+                newTimeEntry.setType(GetTimeEntryTypeById(newTimeEntry.getTimeEntryTypeId()));
             }
 
             timeEntries.add(newTimeEntry);
@@ -342,8 +357,7 @@ private void create(){
                     DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_DATEENTERED))),DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_STARTDATE))),
                     DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),
                     res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
-                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res
-            .getInt(res.getColumnIndex(TIMEENTRY_ID)));
+                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)), res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYTYPEID)));
             break;
             //res.moveToNext();
         }

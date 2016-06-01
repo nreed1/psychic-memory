@@ -2,12 +2,10 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.view.SoundEffectConstants;
 
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 
 import java.io.Serializable;
-import java.sql.Time;
 import java.util.Date;
 
 /**
@@ -15,6 +13,7 @@ import java.util.Date;
  */
 public class TimeEntry implements Parcelable,Serializable {
     private TimeEntryType type;
+    private int timeEntryTypeId;
     private int timeEntryId;
     private int employeeId;
     private Date dateEntered;
@@ -31,7 +30,7 @@ public class TimeEntry implements Parcelable,Serializable {
         sqlId=0;
 
     }
-    public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes, int sqlId){
+    public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes, int sqlId, int timeEntryTypeId){
         this.timeEntryId=timeEntryId;
         this.employeeId=employeeId;
         this.dateEntered=dateEntered;
@@ -42,6 +41,7 @@ public class TimeEntry implements Parcelable,Serializable {
         this.startLongitude=startLongitude;
         this.endLatitude=endLatitude;
         this.endLongitude=endLongitude;
+        this.timeEntryTypeId=timeEntryTypeId;
         this.notes=notes;
         this.sqlId=sqlId;
     }
@@ -151,6 +151,14 @@ public class TimeEntry implements Parcelable,Serializable {
         this.sqlId = sqlId;
     }
 
+    public int getTimeEntryTypeId() {
+        return timeEntryTypeId;
+    }
+
+    public void setTimeEntryTypeId(int timeEntryTypeId) {
+        this.timeEntryTypeId = timeEntryTypeId;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -182,12 +190,13 @@ public class TimeEntry implements Parcelable,Serializable {
         dest.writeDouble(getEndLongitude());
         dest.writeString(getNotes());
         dest.writeInt(getSqlId());
+        dest.writeInt(getTimeEntryTypeId());
     }
     public static  final Creator<TimeEntry> CREATOR= new Creator<TimeEntry>() {
         @Override
         public TimeEntry createFromParcel(Parcel source) {
             return new TimeEntry(source.readInt(),source.readInt(),DateHelper.StringToDate(source.readString()),DateHelper.StringToDate(source.readString()),
-                    DateHelper.StringToDate(source.readString()),source.readInt(),source.readDouble(),source.readDouble(),source.readDouble(),source.readDouble(),source.readString(), source.readInt());
+                    DateHelper.StringToDate(source.readString()),source.readInt(),source.readDouble(),source.readDouble(),source.readDouble(),source.readDouble(),source.readString(), source.readInt(), source.readInt());
         }
 
         @Override

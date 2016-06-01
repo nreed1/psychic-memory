@@ -76,7 +76,7 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
             workOrders=getArguments().getParcelableArrayList("workOrders");
            // mParam2 = getArguments().getString(ARG_PARAM2);
         }
-
+        if(workOrders!=null)
         mAdapter = new WorkOrderArrayAdapter(getActivity(),
                 R.layout.workorder_list_item, workOrders);
     }
