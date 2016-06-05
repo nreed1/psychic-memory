@@ -25,6 +25,11 @@ import java.util.StringTokenizer;
  */
 public class DBHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME="fodatabase.db";
+
+    public static final String TABLE_REFRESH="refresh";
+    public static final String REFRESH_ID="id";
+    public static final String REFRESH_DATETIME="dateoflastdataupdate";
+
     public static final String TABLE_TIME_ENTRY_TYPE="timeentrytype";
     public static final String TIME_ENTRY_TYPE_TYPEID="typeid";
     public static final String TIME_ENTRY_TYPE_NAME="name";
@@ -44,6 +49,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String WORKORDER_TYPEID="workordertypeid";
     public static final String WORKORDER_TOTALHOURSFORJOB="totalhoursalotted";
     public static final String WORKORDER_HOURSWORKED="hoursworked";
+    public static final String WORKORDER_ISCOMPLETED="iscompleted";
 
     public static final String TABLE_OTHERTASKS="othertasks";
     public static final String OTHERTASKS_ID="id";
@@ -91,9 +97,11 @@ public class DBHelper extends SQLiteOpenHelper {
 
     SQLiteDatabase db;
 
+    Context ctx;
     public DBHelper(Context context){
         super(context,DATABASE_NAME,null, 1);
         db=this.getWritableDatabase();
+        ctx=context;
        // create();
     }
 private void create(){
@@ -102,6 +110,8 @@ private void create(){
     @Override
     public void onCreate(SQLiteDatabase db) {
 
+
+            db.execSQL("create table if not exists refresh (id integer primary key,dateoflastdataupdate text )");
         //#start timekeeping
             db.execSQL("create table if not exists timeentrytype (id integer primary key, typeid integer,name text, description text)");
             db.execSQL("create table if not exists timeentry (id integer primary key, timeentryid integer, employeeid integer, dateentered text, startdate text, enddate text, workorderid integer," +
@@ -110,7 +120,7 @@ private void create(){
         //#start workorder
             db.execSQL("create table if not exists workorder (id integer primary key, workorderid integer, companyid integer, personid integer, name text, description text, " +
                     "arrivaltime string, estimatedduration real," +
-                    "costofjob real, wherebilled text, notes text, workordertypeid integer, totalhoursalotted integer, hoursworked integer)");
+                    "costofjob real, wherebilled text, notes text, workordertypeid integer, totalhoursalotted integer, hoursworked integer, iscompleted integer)");
         //#end workorder
 
         //#start other tasks
@@ -131,7 +141,21 @@ private void create(){
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
+    public String GetLastRefreshDate(){
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select * from "+TABLE_REFRESH,null);
+        res.moveToFirst();
+        return  res.getString(res.getColumnIndex(REFRESH_DATETIME));
+    }
 
+
+    public void SaveLastRefreshDate(Date dateOfRefresh){
+        db=getWritableDatabase();
+        db.execSQL("delete from "+TABLE_REFRESH);
+        ContentValues contentValues=new ContentValues();
+        contentValues.put(REFRESH_DATETIME,DateHelper.DateToString(dateOfRefresh));
+        db.insert(TABLE_REFRESH, null,contentValues);
+    }
     public void SaveTimeEntryType(TimeEntryType timeEntryType){
         SQLiteDatabase db=this.getWritableDatabase();
         ContentValues contentValues=new ContentValues();
@@ -209,6 +233,32 @@ private void create(){
         }
         //db.close();
     }
+
+    public ArrayList<WorkOrder> GetCompletedWorkOrders(){
+        try{
+            ArrayList<WorkOrder> workOrders=new ArrayList<>();
+            SQLiteDatabase db=this.getReadableDatabase();
+            Cursor res=db.rawQuery("select * from "+TABLE_WORKORDER + "where iscompleted=1",null);
+            res.moveToFirst();
+            while(res.isAfterLast()==false){
+                //public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob,
+                // String whereBilled, String notes,
+                //      Person person, int totalHoursForJob, int hoursWorkedOnJob)
+                WorkOrder newWorkOrder=new WorkOrder(res.getInt(res.getColumnIndex(WORKORDER_ID)), res.getInt(res.getColumnIndex(WORKORDER_TYPEID)),res.getInt(res.getColumnIndex(WORKORDER_COMPANYID)), res.getInt(res.getColumnIndex(WORKORDER_PERSONID)),
+                        res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
+                        res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
+                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0, res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)));
+                newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
+                workOrders.add(newWorkOrder);
+                res.moveToNext();
+            }
+            return workOrders;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        return new ArrayList<WorkOrder>();
+    }
+
     public ArrayList<WorkOrder> GetWorkOrders(){
         try{
             ArrayList<WorkOrder> workOrders=new ArrayList<>();
@@ -222,14 +272,14 @@ private void create(){
                 WorkOrder newWorkOrder=new WorkOrder(res.getInt(res.getColumnIndex(WORKORDER_ID)), res.getInt(res.getColumnIndex(WORKORDER_TYPEID)),res.getInt(res.getColumnIndex(WORKORDER_COMPANYID)), res.getInt(res.getColumnIndex(WORKORDER_PERSONID)),
                         res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
-                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0);
+                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0,res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)));
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 workOrders.add(newWorkOrder);
                 res.moveToNext();
             }
             return workOrders;
         }catch (Exception ex){
-            System.out.print(ex.getStackTrace());
+            ExceptionHelper.LogException(ctx,ex);
         }
         return new ArrayList<WorkOrder>();
 

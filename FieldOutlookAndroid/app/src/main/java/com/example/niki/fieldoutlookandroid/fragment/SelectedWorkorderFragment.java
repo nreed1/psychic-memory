@@ -6,9 +6,13 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -16,6 +20,8 @@ import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+
+import static com.example.niki.fieldoutlookandroid.R.menu.selected_workorder_menu;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -28,14 +34,16 @@ import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 public class SelectedWorkorderFragment extends Fragment {
 
     private static final String SELECTED_WORKORDER="workOrder";
-
+    private static final String SHOW_TIMEKEEPING_INFORMATION="showTimekeepingInformation";
 
     private WorkOrder selectedWorkOrder;
     private OnFragmentInteractionListener mListener;
+    private Boolean showTimekeepingInformation=false;
 
     public SelectedWorkorderFragment() {
         // Required empty public constructor
     }
+
 
     /**
      * Use this factory method to create a new instance of
@@ -58,10 +66,32 @@ public class SelectedWorkorderFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             selectedWorkOrder=getArguments().getParcelable(SELECTED_WORKORDER);
-           // mParam1 = getArguments().getString(ARG_PARAM1);
-           // mParam2 = getArguments().getString(ARG_PARAM2);
+            showTimekeepingInformation=getArguments().getBoolean(SHOW_TIMEKEEPING_INFORMATION);
         }
-        this.setHasOptionsMenu(false);
+
+        this.setHasOptionsMenu(true);
+
+    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(selected_workorder_menu,menu);
+        if(showTimekeepingInformation==true){
+            menu.findItem(R.id.arrivedAtSiteItem).setVisible(false);
+        }
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.arrivedAtSiteItem:
+
+                return true;
+            case R.id.viewPartsList:
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override

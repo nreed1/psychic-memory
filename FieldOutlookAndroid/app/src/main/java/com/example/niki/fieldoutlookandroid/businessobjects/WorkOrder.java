@@ -33,6 +33,7 @@ public class WorkOrder implements Serializable, Parcelable {
     private Date ArrivalTimeDate;
     private int TotalHoursForJob;
     private int HoursWorkedOnJob;
+    private int IsCompleted;
 
     public int getJobId() {
         return JobId;
@@ -43,11 +44,11 @@ public class WorkOrder implements Serializable, Parcelable {
     }
 
     public WorkOrder(){
-
+        IsCompleted=0;
     }
 
     public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob, String whereBilled, String notes,
-                     Person person, int totalHoursForJob, int hoursWorkedOnJob, int jobId){
+                     Person person, int totalHoursForJob, int hoursWorkedOnJob, int jobId, int isCompleted){
 
         this.setWorkOrderId(workOrderId);
         this.setWorkOrderTypeId(workOrderTypeId);
@@ -64,6 +65,7 @@ public class WorkOrder implements Serializable, Parcelable {
         this.setTotalHoursForJob(totalHoursForJob);
         this.setHoursWorkedOnJob(hoursWorkedOnJob);
         this.setJobId(jobId);
+        this.setIsCompleted(isCompleted);
     }
 
     public int getTotalHoursForJob() {
@@ -196,6 +198,13 @@ public class WorkOrder implements Serializable, Parcelable {
         Notes = notes;
     }
 
+    public int getIsCompleted() {
+        return IsCompleted;
+    }
+
+    public void setIsCompleted(int isCompleted) {
+        IsCompleted = isCompleted;
+    }
 
     @Override
     public int describeContents() {
@@ -216,6 +225,7 @@ public class WorkOrder implements Serializable, Parcelable {
         dest.writeDouble(getCostOfJob());
         dest.writeString(getWhereBilled());
         dest.writeString(getNotes());
+        dest.writeInt(getIsCompleted());
     }
     public static  final Creator<WorkOrder> CREATOR= new Creator<WorkOrder>() {
         @Override
@@ -230,6 +240,7 @@ public class WorkOrder implements Serializable, Parcelable {
             workOrder.CostOfJob=source.readDouble();
             workOrder.WhereBilled=source.readString();
             workOrder.Notes=source.readString();
+            workOrder.IsCompleted=source.readInt();
             return workOrder;
         }
 

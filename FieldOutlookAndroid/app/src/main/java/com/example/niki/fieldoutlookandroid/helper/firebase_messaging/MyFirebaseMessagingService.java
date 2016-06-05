@@ -40,6 +40,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
     // [END receive_message]
 
+
     /**
      * Create and show a simple notification containing the received FCM message.
      *

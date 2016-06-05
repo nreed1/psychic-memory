@@ -186,8 +186,9 @@ public class MainNavigationActivity extends AppCompatActivity
             toolbar.setTitle("Timekeeping");
             android.app.FragmentManager fragmentManager= getFragmentManager();
             android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-            TimekeepingFragment timekeepingFragment=new TimekeepingFragment();
-            fragmentTransaction.replace(R.id.fragment_container, timekeepingFragment, getString(R.string.Timekeeping)).addToBackStack("Timekeeping");
+            //TimekeepingFragment timekeepingFragment=new TimekeepingFragment();
+            TimesheetReviewFragment timesheetReviewFragment=new TimesheetReviewFragment();
+            fragmentTransaction.replace(R.id.fragment_container, timesheetReviewFragment, getString(R.string.Timekeeping)).addToBackStack("Timekeeping");
             fragmentTransaction.commit();
         }else if(id==R.id.nav_logout){
             Intent intent= new Intent(this, LoginActivity.class);
