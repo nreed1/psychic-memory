@@ -40,7 +40,7 @@ public class WorkOrderArrayAdapter extends ArrayAdapter<WorkOrder> {
         this._context = context;
         this.rows = rows;
     }
-    boolean isOdd=false;
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
         ViewHolder holder = null;
@@ -62,17 +62,17 @@ public class WorkOrderArrayAdapter extends ArrayAdapter<WorkOrder> {
         {
             holder = (ViewHolder) convertView.getTag();
         }
-        if(isOdd==true){
+        if((position % 2) == 1){
 
             holder.backgroundLayout.setBackgroundColor( getContext().getResources().getColor( R.color.lightGray));
-            isOdd=false;
+
         }else{
-            isOdd=true;
+
             holder.backgroundLayout.setBackgroundColor(getContext().getResources().getColor(R.color.listItemBackground));
         }
         DateFormat dateFormat= new SimpleDateFormat("MM/dd");
         DateFormat timeFormat= new SimpleDateFormat("HH:mm");
-        holder.workOrderName.setText(""+rows.get(position).getName());
+        holder.workOrderName.setText(""+rows.get(position).getName()+"- "+rows.get(position).getDescription());
         if(rows.get(position).getPerson()!=null) {
             holder.workOrderCustomerName.setText(rows.get(position).getPerson().getFullName());
         }

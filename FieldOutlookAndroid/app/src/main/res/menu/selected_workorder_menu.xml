@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:id="@+id/timekeepingGroup">
-        <item android:id="@+id/arrivedAtSiteItem" android:title="Arrived at site">
+        <item android:id="@+id/arrivedAtSiteItem" android:title="Arrived at Site">
 
         </item>
     </group>
     <item android:id="@+id/viewPartsList" android:title="View Parts List">
 
     </item>
+    <item android:id="@+id/unassignWorkOrder" android:title="Unassign"></item>
 </menu>

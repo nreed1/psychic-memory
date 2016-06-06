@@ -67,13 +67,16 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
                     Log.d("currentTag",currentTag);
                     if (currentTag.equals("a:WorkOrder")) {
                         if(newWorkOrder!=new WorkOrder() && newWorkOrder.getWorkOrderId()!=0){
+                            if(customer!=new Person() && customer.getPersonId()!=0){
+                                newWorkOrder.setPerson(customer);
+                            }
                             assignedWorkOrders.add(newWorkOrder);
                         }
                         newWorkOrder = new WorkOrder();
                     }else if (currentTag.equals("a:Customer")) {
-                        if(customer!=new Person() && customer.getPersonId()!=0){
-                            newWorkOrder.setPerson(customer);
-                        }
+//                        if(customer!=new Person() && customer.getPersonId()!=0){
+//                            newWorkOrder.setPerson(customer);
+//                        }
                         customer=new Person();
                         address=new Address();
                         customer.setAddress(address);
@@ -134,7 +137,7 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
 
     @Override
     protected void onPostExecute(ArrayList<WorkOrder> result){
-      // super.onPostExecute(result);
+
         delegate.processFinish(result);
 
     }

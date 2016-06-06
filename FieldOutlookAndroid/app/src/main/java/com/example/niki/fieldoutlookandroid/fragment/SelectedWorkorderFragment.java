@@ -76,6 +76,8 @@ public class SelectedWorkorderFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(selected_workorder_menu,menu);
         if(showTimekeepingInformation==true){
+            menu.findItem(R.id.arrivedAtSiteItem).setVisible(true);
+        }else{
             menu.findItem(R.id.arrivedAtSiteItem).setVisible(false);
         }
     }
@@ -88,6 +90,8 @@ public class SelectedWorkorderFragment extends Fragment {
                 return true;
             case R.id.viewPartsList:
 
+                return true;
+            case R.id.unassignWorkOrder:
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

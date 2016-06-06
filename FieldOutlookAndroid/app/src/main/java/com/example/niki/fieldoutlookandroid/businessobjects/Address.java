@@ -19,15 +19,15 @@ public class Address implements Serializable {
     public String getPrintableAddress(){
         String printableAddress="";
         if(StreetAddress1!=null &&!StreetAddress1.isEmpty()){
-            printableAddress+=StreetAddress1+"/n";
+            printableAddress+=StreetAddress1+" \n";
         }
         if(StreetAddress2!=null && !StreetAddress2.isEmpty()){
-            printableAddress+=StreetAddress2+"/n";
+            printableAddress+=StreetAddress2+" \n";
         }
         if(UnitNumber!=null && !UnitNumber.isEmpty()){
-            printableAddress+=UnitNumber+"/n";
+            printableAddress+=UnitNumber+" \n";
         }
-        if(City!=null && City.isEmpty()){
+        if(City!=null && !City.isEmpty()){
             printableAddress+=City;
         }
         if(State!=null && !State.isEmpty()){

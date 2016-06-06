@@ -93,6 +93,11 @@ public class StartFragment extends Fragment {
                 FragmentManager fragmentManager= getFragmentManager();
                 android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
                 AssignedJobFragment assignedJobFragment=new AssignedJobFragment();
+                Bundle b =new Bundle();
+                DBHelper dbHelper=new DBHelper(getActivity().getApplicationContext());
+                b.putParcelableArrayList("workOrders", dbHelper.GetWorkOrders());
+                assignedJobFragment.setArguments(b);
+
                 fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, "Assigned Jobs").addToBackStack("Assigned Jobs");
                 fragmentTransaction.commit();
             }

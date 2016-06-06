@@ -1,5 +1,7 @@
 package com.example.niki.fieldoutlookandroid.helper;
 
+import android.util.Base64;
+
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
 import java.util.Calendar;
@@ -28,7 +30,8 @@ public class TokenHelper {
             String UnencryptedToken = String.valueOf(millis) + "||" + UserName + "||" + EncryptedPassword + "||" + Key;
 
 
-            return cryptoHelper.encrypt(UnencryptedToken);
+
+            return cryptoHelper.encrypt(UnencryptedToken).toString().replace('/','~').replace('+','`').replace('\n','|');
             //return Cryptography.Utilities.EncryptString(UnencryptedToken);
         }catch (Exception ex){
 

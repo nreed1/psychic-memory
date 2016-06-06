@@ -73,6 +73,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String PERSON_COMPANYID="companyid";
 
 
+
     public static final String TABLE_TIMEENTRY="timeentry";
     public static final String TIMEENTRY_ID="id";
     public static final String TIMEENTRY_TIMEENTRYID="timeentryid";
@@ -223,7 +224,7 @@ private void create(){
             contentValues.put(WORKORDER_COSTOFJOB, workOrder.getCostOfJob());
             contentValues.put(WORKORDER_DESCRIPTION, workOrder.getDescription());
             contentValues.put(WORKORDER_NAME, workOrder.getName());
-            contentValues.put(WORKORDER_PERSONID,workOrder.getPersonId());
+            contentValues.put(WORKORDER_PERSONID,workOrder.getPerson().getPersonId());
             contentValues.put(WORKORDER_WHEREBILLED,workOrder.getWhereBilled());
             contentValues.put(WORKORDER_ESTIMATEDDURATION,workOrder.getEstimatedDurationOfWork());
             contentValues.put(WORKORDER_NOTES,workOrder.getNotes());
@@ -346,19 +347,25 @@ private void create(){
     }
 
     public void SavePerson(Person person){
-        db=getWritableDatabase();
-        ContentValues contentValues=new ContentValues();
-        contentValues.put(PERSON_PERSONID, person.getPersonId());
-        contentValues.put(PERSON_FIRSTNAME,person.getFirstName());
-        contentValues.put(PERSON_LASTNAME,person.getLastName());
-        contentValues.put(PERSON_FULLNAME, person.getFullName());
-        if(person.getAddress()!=null) {
-            contentValues.put(PERSON_ADDRESSLINE1, person.getAddress().getStreetAddress1());
+        Person p=GetPersonByPersonId(person.getPersonId());//if person does not already exist based on the personid
+        if(p==null) {
+            db = getWritableDatabase();
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(PERSON_PERSONID, person.getPersonId());
+            contentValues.put(PERSON_FIRSTNAME, person.getFirstName());
+            contentValues.put(PERSON_LASTNAME, person.getLastName());
+            contentValues.put(PERSON_FULLNAME, person.getFullName());
+            if (person.getAddress() != null) {
+                contentValues.put(PERSON_ADDRESSLINE1, person.getAddress().getStreetAddress1());
+                contentValues.put(PERSON_ADDRESSLINE2, person.getAddress().getStreetAddress2());
+                contentValues.put(PERSON_CITY, person.getAddress().getCity());
+                contentValues.put(PERSON_STATE, person.getAddress().getState());
+                contentValues.put(PERSON_ZIPCODE, person.getAddress().getZipCode());
+            }
+            contentValues.put(PERSON_COMPANYID, person.getCompanyId());
 
+            db.insert(TABLE_PERSON, null, contentValues);
         }
-        contentValues.put(PERSON_COMPANYID,person.getCompanyId());
-
-        db.insert(TABLE_PERSON,null, contentValues);
 
     }
     public Person GetPersonByPersonId(int personId){

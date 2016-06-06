@@ -28,6 +28,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.example.niki.fieldoutlookandroid.helper.authentication_service.AuthenticateAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.authentication_service.AuthenticateUserReciever;
 import com.example.niki.fieldoutlookandroid.helper.authentication_service.AuthenticationResponse;
 import com.example.niki.fieldoutlookandroid.helper.authentication_service.IntentServiceHelper;
@@ -52,7 +53,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
+    private AuthenticateAsyncTask mAuthTask = null;
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -161,8 +162,18 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
-          //  showProgress(true);
-            startService(createCallingIntent(email, password));
+           // showProgress(true);
+            mAuthTask=new AuthenticateAsyncTask(new AuthenticateAsyncTask.AuthenticationDelegate() {
+                @Override
+                public void processFinish(AuthenticationResponse response) {
+                    Global.GetInstance().setUser(response);
+                    showProgress(false);
+                    mAuthTask=null;
+                }
+            });
+            mAuthTask.execute(mEmailView.getText().toString(),mPasswordView.getText().toString());
+            showProgress(true);
+           // startService(createCallingIntent(email, password));
            // String s=componentName.toString();
           //  mAuthTask = new UserLoginTask(email, password);
          //   mAuthTask.execute((Void) null);
@@ -299,54 +310,54 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
         System.out.print(stock.GetUsername());
 
     }
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mEmail;
-        private final String mPassword;
-
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
-        }
-
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-          try {
-
-                startService(createCallingIntent(mEmail,mPassword));
-
-            } catch (Exception e) {
-                return false;
-            }
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-
-
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
-    }
+//    /**
+//     * Represents an asynchronous login/registration task used to authenticate
+//     * the user.
+//     */
+//    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+//
+//        private final String mEmail;
+//        private final String mPassword;
+//
+//        UserLoginTask(String email, String password) {
+//            mEmail = email;
+//            mPassword = password;
+//        }
+//
+//
+//        @Override
+//        protected Boolean doInBackground(Void... params) {
+//          try {
+//
+//                startService(createCallingIntent(mEmail,mPassword));
+//
+//            } catch (Exception e) {
+//                return false;
+//            }
+//            return true;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(final Boolean success) {
+//            mAuthTask = null;
+//            showProgress(false);
+//
+//            if (success) {
+//
+//
+//                finish();
+//            } else {
+//                mPasswordView.setError(getString(R.string.error_incorrect_password));
+//                mPasswordView.requestFocus();
+//            }
+//        }
+//
+//        @Override
+//        protected void onCancelled() {
+//            mAuthTask = null;
+//            showProgress(false);
+//        }
+//    }
 }
 
 
