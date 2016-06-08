@@ -96,6 +96,25 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String EXCEPTION_USERID="userid";
     public static final String EXCEPTION_DATEINSERTED="dateinserted";
 
+    public static final String TABLE_PARTCATEGORY="partcategory";
+    public static final String PARTCATEGORY_ID="id";
+    public static final String PARTCATEGORY_PARTCATEGORYID="partcategoryid";
+    public static final String PARTCATEGORY_NAME="name";
+
+
+    public static final String TABLE_PART="part";
+    public static final String PART_ID="id";
+    public static final String PART_PARTID="partid";
+    public static final String PART_PARTTYPEID="parttypeid";
+    public static final String PART_PRICEBOOKID="pricebookid";
+    public static final String PART_DESCRIPTION="description";
+    public static final String PART_PARTNUMBER="partnumber";
+    public static final String PART_CATEGORYID="categoryid";
+    public static final String PART_MODEL="model";
+    public static final String PART_MANUFACTURER="manufacturer";
+    public static final String PART_NUMBERANDDESCRIPTION="numberanddescription";
+    public static final String PART_QUANTITY="quantity";
+
     SQLiteDatabase db;
 
     Context ctx;
@@ -135,6 +154,14 @@ private void create(){
         //#start exception logger
         db.execSQL("create table if not exists exceptionlog (id integer primary key, message text, stacktrace text, userid integer, dateinserted text)");
         //#end exception logger
+
+        //#start partcategory
+        db.execSQL("create table if not exists partcategory (id integer primary key, partcategoryid integer,name text)");
+        //#end partcategory
+
+        //#start part
+        db.execSQL("create table if not exists part (id integer primary key, partid integer,parttypeid integer,pricebookid integer, description text, partnumber text, categoryid integer, model text,manufacturer text, numberanddescription text, quantity integer)");
+        //#end part
 
     }
 

@@ -1,6 +1,7 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -22,6 +23,7 @@ import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.dummy.DummyContent;
+import com.example.niki.fieldoutlookandroid.helper.UnassignAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.WorkOrderArrayAdapter;
 
 import java.util.ArrayList;
@@ -104,6 +106,18 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
         switch(item.getItemId()) {
             case R.id.unassignWorkOrderContext:
                 // add stuff here
+                UnassignAsyncTask unassignAsyncTask=new UnassignAsyncTask(new UnassignAsyncTask.UnassignDelegate() {
+                    @Override
+                    public void processFinish(Boolean result) {
+                        if(result==false){
+                            Dialog dialog=new Dialog(getActivity());
+                            dialog.setTitle("Unable to unassign");
+                            //dialog.setDismissMessage("OK");
+                            dialog.show();
+                        }
+                    }
+                },getActivity());
+                unassignAsyncTask.execute(workOrders.get(info.position).getWorkOrderId());
                 return true;
 
             default:
@@ -122,6 +136,9 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
         switch (item.getItemId()) {
             case R.id.gotoMaps:
                 Intent mapsIntent=new Intent(this.getActivity(),MapsActivity.class);
+                Bundle b=new Bundle();
+                b.putBoolean("IsAssigned",true);
+                mapsIntent.putExtra("IsAssigned",true);
                 startActivity(mapsIntent);
 
                 return true;

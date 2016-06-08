@@ -1,6 +1,7 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -16,7 +17,9 @@ import android.widget.TextView;
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.helper.array_adapters.WorkOrderArrayAdapter;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
+import com.example.niki.fieldoutlookandroid.helper.available_workorders.GetAvailableWorkOrdersAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.dummy.DummyContent;
 
 import java.util.ArrayList;
@@ -54,6 +57,7 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
      * Views.
      */
     private ListAdapter mAdapter;
+    private ProgressDialog progressDialog;
 
     // TODO: Rename and change types of parameters
     public static AvailableJobFragment newInstance(String param1, String param2) {
@@ -70,7 +74,21 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
      * fragment (e.g. upon screen orientation changes).
      */
     public AvailableJobFragment() {
-
+        progressDialog=new ProgressDialog(getActivity());
+        GetAvailableWorkOrdersAsyncTask getAvailableWorkOrdersAsyncTask=new GetAvailableWorkOrdersAsyncTask(new GetAvailableWorkOrdersAsyncTask.GetAvailableWorkOrdersDelegate() {
+            @Override
+            public void processFinish(ArrayList<WorkOrder> workOrders) {
+                mAdapter=new WorkOrderArrayAdapter(getActivity(),R.layout.workorder_list_item,workOrders);
+                progressDialog.dismiss();
+            }
+        });
+        progressDialog.show();
+        getAvailableWorkOrdersAsyncTask.execute((Void)null);
+        try {
+            wait(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -85,9 +103,8 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
         }
 
         // personList= new ArrayList<Person>();
-        // TODO: Change Adapter to display your content
-        mAdapter = new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, DummyContent.ITEMS);
+
+       // mAdapter = new WorkOrderArrayAdapter(getActivity(),R.layout.workorder_list_item,)
     }
 
     @Override
@@ -96,8 +113,10 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
         View view = inflater.inflate(R.layout.fragment_job_available, container, false);
 
         // Set the adapter
-        mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        while(mAdapter==null) {
+            mListView = (AbsListView) view.findViewById(android.R.id.list);
+            ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        }
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
