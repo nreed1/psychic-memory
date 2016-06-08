@@ -1,12 +1,8 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.opengl.Visibility;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -26,7 +22,7 @@ import static com.example.niki.fieldoutlookandroid.R.menu.selected_workorder_men
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link SelectedWorkorderFragment.OnFragmentInteractionListener} interface
+ * {@link OnSelectedWorkOrderFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link SelectedWorkorderFragment#newInstance} factory method to
  * create an instance of this fragment.
@@ -37,7 +33,7 @@ public class SelectedWorkorderFragment extends Fragment {
     private static final String SHOW_TIMEKEEPING_INFORMATION="showTimekeepingInformation";
 
     private WorkOrder selectedWorkOrder;
-    private OnFragmentInteractionListener mListener;
+    private OnSelectedWorkOrderFragmentInteractionListener mListener;
     private Boolean showTimekeepingInformation=false;
 
     public SelectedWorkorderFragment() {
@@ -89,7 +85,7 @@ public class SelectedWorkorderFragment extends Fragment {
 
                 return true;
             case R.id.viewPartsList:
-
+                onButtonPressed("ViewParts");
                 return true;
             case R.id.unassignWorkOrder:
                 return true;
@@ -146,17 +142,17 @@ public class SelectedWorkorderFragment extends Fragment {
     }
 
 
-    public void onButtonPressed(Uri uri) {
+    public void onButtonPressed(String uri) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            mListener.onSelectedWorkOrderFragmentInteraction(uri);
         }
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnSelectedWorkOrderFragmentInteractionListener) {
+            mListener = (OnSelectedWorkOrderFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnStartDayFragmentInteractionListener");
@@ -179,8 +175,8 @@ public class SelectedWorkorderFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
+    public interface OnSelectedWorkOrderFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void onSelectedWorkOrderFragmentInteraction(String uri);
     }
 }

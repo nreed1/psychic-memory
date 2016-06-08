@@ -15,6 +15,16 @@ public class PartCategory implements Serializable, Parcelable {
     private String name;
     private ArrayList<PartCategory> subCategoryList;
     private ArrayList<Part> parts;
+    public PartCategory(){
+
+    }
+    public PartCategory(int partCategoryId, String name, ArrayList<PartCategory> subCategoryList,ArrayList<Part> partList){
+        this.partCategoryId=partCategoryId;
+        this.name=name;
+        this.subCategoryList=subCategoryList;
+        this.parts=partList;
+    }
+
 
     public int getPartCategoryId() {
         return partCategoryId;

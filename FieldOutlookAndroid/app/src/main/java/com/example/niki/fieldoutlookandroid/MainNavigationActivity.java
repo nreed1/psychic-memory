@@ -21,12 +21,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
+import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.AvailableJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.NewOtherTaskFragment;
 import com.example.niki.fieldoutlookandroid.fragment.OtherTaskListFragment;
+import com.example.niki.fieldoutlookandroid.fragment.PartListFragment;
 import com.example.niki.fieldoutlookandroid.fragment.PricebookFragment;
 import com.example.niki.fieldoutlookandroid.fragment.QuoteFragment;
 import com.example.niki.fieldoutlookandroid.fragment.SelectedWorkorderFragment;
@@ -36,6 +38,7 @@ import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimesheetReviewFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TravelToFragment;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.GetPartListAsyncTask.GetPartsListAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
@@ -56,7 +59,7 @@ public class MainNavigationActivity extends AppCompatActivity
         PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
         QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener,  StartDayFragment.OnStartDayFragmentInteractionListener,
                     TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener,
-                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener {
+                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener,SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener {
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -239,17 +242,30 @@ public class MainNavigationActivity extends AppCompatActivity
 //            timeEntryTypeReciever.setListener(this);
 //            timeentryintent.putExtra("rec", timeEntryTypeReciever);
 //            startService(timeentryintent);
-            TimeEntryTypeAsyncTask timeEntryTypeAsyncTask=new TimeEntryTypeAsyncTask(new TimeEntryTypeAsyncTask.TimeEntryTypeResponse() {
-                @Override
-                public void processFinish(ArrayList<TimeEntryType> timeEntryTypes) {
-                    if(dbHelper==null) dbHelper=new DBHelper(getApplicationContext());
-                    for(TimeEntryType t:timeEntryTypes){
-                        dbHelper.SaveTimeEntryType(t);
+
+            if(dbHelper.GetLastRefreshDate()!=null) {
+                TimeEntryTypeAsyncTask timeEntryTypeAsyncTask = new TimeEntryTypeAsyncTask(new TimeEntryTypeAsyncTask.TimeEntryTypeResponse() {
+                    @Override
+                    public void processFinish(ArrayList<TimeEntryType> timeEntryTypes) {
+                        if (dbHelper == null) dbHelper = new DBHelper(getApplicationContext());
+                        for (TimeEntryType t : timeEntryTypes) {
+                            dbHelper.SaveTimeEntryType(t);
+                        }
+
                     }
-                    progressDialog.dismiss();
-                }
-            });
-            timeEntryTypeAsyncTask.execute();
+                });
+                timeEntryTypeAsyncTask.execute();
+
+                GetPartsListAsyncTask getPartsListAsyncTask=new GetPartsListAsyncTask(new GetPartsListAsyncTask.GetPartsListDelegate() {
+                    @Override
+                    public void processFinish(ArrayList<PartCategory> result) {
+                        progressDialog.dismiss();
+                    }
+                });
+                getPartsListAsyncTask.execute((Void)null);
+
+
+            }
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -447,5 +463,20 @@ public class MainNavigationActivity extends AppCompatActivity
     @Override
     public void onTimesheetReviewFragmentInteraction(Uri uri) {
 
+    }
+
+    @Override
+    public void onSelectedWorkOrderFragmentInteraction(String uri) {
+        switch (uri){
+            case "ViewParts":
+                android.app.FragmentManager fragmentManager= getFragmentManager();
+                android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+                PartListFragment partListFragment=new PartListFragment();
+                fragmentTransaction.replace(R.id.fragment_container, partListFragment, "WorkOrderPartList").addToBackStack("WorkOrderPartList");
+                fragmentTransaction.commit();
+                return;
+            default:
+                return;
+        }
     }
 }

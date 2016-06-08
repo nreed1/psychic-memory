@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.FOException;
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
+import com.example.niki.fieldoutlookandroid.businessobjects.Part;
+import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
@@ -114,6 +116,12 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String PART_MANUFACTURER="manufacturer";
     public static final String PART_NUMBERANDDESCRIPTION="numberanddescription";
     public static final String PART_QUANTITY="quantity";
+    public static  final String PART_PRICE="price";
+
+    public static final String TABLE_PARTCATEGORYHIERARCHY="partcategoryhierarchy";
+    public static final String PARTCATEGORYHIERARCHY_ID="id";
+    public static final String PARTCATEGORYHIERARCHY_CATEGORYID="categoryid";
+    public static final String PARTCATEGORYHIERARCHY_SUBCATEGORYID="subcategoryid";
 
     SQLiteDatabase db;
 
@@ -160,10 +168,16 @@ private void create(){
         //#end partcategory
 
         //#start part
-        db.execSQL("create table if not exists part (id integer primary key, partid integer,parttypeid integer,pricebookid integer, description text, partnumber text, categoryid integer, model text,manufacturer text, numberanddescription text, quantity integer)");
+        db.execSQL("create table if not exists part (id integer primary key, partid integer,parttypeid integer,pricebookid integer, description text, partnumber text, categoryid integer, model text,manufacturer text, numberanddescription text, quantity integer, price real)");
         //#end part
 
+        //#start partcategoryhierarchy
+            db.execSQL("create table if not exists partcategoryhierarchy (id integer primary key, categoryid integer, subcategoryid integer)");
+        //#end partcategoryhierarchy
+
     }
+
+
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -173,6 +187,8 @@ private void create(){
         db=getReadableDatabase();
         Cursor res=db.rawQuery("select * from "+TABLE_REFRESH,null);
         res.moveToFirst();
+        if(res==null)return null;
+
         return  res.getString(res.getColumnIndex(REFRESH_DATETIME));
     }
 
@@ -184,6 +200,194 @@ private void create(){
         contentValues.put(REFRESH_DATETIME,DateHelper.DateToString(dateOfRefresh));
         db.insert(TABLE_REFRESH, null,contentValues);
     }
+
+    public boolean TruncatePartCategoryHierarchy(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_PARTCATEGORYHIERARCHY,null);
+        if(res==null) return false;
+        return true;
+    }
+    public void SavePartCategoryHierarchy(int categoryid, int subcategoryid){
+        db=getWritableDatabase();
+        ContentValues contentValues=new ContentValues();
+        contentValues.put(PARTCATEGORYHIERARCHY_CATEGORYID,categoryid);
+        contentValues.put(PARTCATEGORYHIERARCHY_SUBCATEGORYID, subcategoryid);
+        db.insert(TABLE_PARTCATEGORYHIERARCHY,null, contentValues);
+    }
+    private ArrayList<Integer> GetSubCategoryListIdsByCategoryId(int categoryId){
+        ArrayList<Integer> subCategoryIds=new ArrayList<>();
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select * from "+TABLE_PARTCATEGORYHIERARCHY +"where categoryid="+categoryId,null);
+        while(res.isAfterLast()==false){
+            subCategoryIds.add(res.getInt(res.getColumnIndex(PARTCATEGORYHIERARCHY_SUBCATEGORYID)));
+            res.moveToNext();
+        }
+        return subCategoryIds;
+    }
+    public ArrayList<PartCategory> GetSubCategoryList(int categoryId){
+        ArrayList<Integer> subCategoryIds=GetSubCategoryListIdsByCategoryId(categoryId);
+        ArrayList<PartCategory> categoryList=new ArrayList<>();
+        for (Integer subcategoryId:subCategoryIds){
+            categoryList.add(GetPartCategoryById(subcategoryId));
+        }
+        return categoryList;
+    }
+
+    public void SavePartCategory(PartCategory category){
+        db=getWritableDatabase();
+        ContentValues contentValues=new ContentValues();
+        contentValues.put(PARTCATEGORY_NAME,category.getName());
+        contentValues.put(PARTCATEGORY_PARTCATEGORYID,category.getPartCategoryId());
+        db.insert(TABLE_PARTCATEGORY,null, contentValues);
+    }
+
+    public ArrayList<PartCategory> GetPartCategoryList(int categoryId){
+        ArrayList<PartCategory> partCategories=new ArrayList<>();
+        db=getReadableDatabase();
+        if(categoryId==-100){//Top Headers
+            Cursor res=db.rawQuery("select distinct pc.categoryid from partcategoryhierarchy pc join part p on p.categoryid==pc.categoryid where pc.categoryid not in (select subcategoryid from partcategoryhierarchy)",null);
+            res.moveToFirst();
+            ArrayList<Integer> mainHeaders=new ArrayList<>();
+            while(res.isAfterLast()==false){
+                mainHeaders.add(res.getInt(0));
+                res.moveToFirst();
+            }
+        }else{
+
+        }
+        return new ArrayList<PartCategory>();
+    }
+
+
+
+    public PartCategory GetPartCategoryById(int categoryId){
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select * from "+TABLE_PARTCATEGORY+" where categoryid="+categoryId,null);
+        res.moveToFirst();
+        PartCategory category=null;
+        while(res.isAfterLast()==false){
+            category=new PartCategory();
+            category.setPartCategoryId(res.getInt(res.getColumnIndex(PARTCATEGORY_ID)));
+            category.setName(res.getString(res.getColumnIndex(PARTCATEGORY_NAME)));
+
+            res.moveToNext();
+        }
+        return  category;
+    }
+
+    public Part GetPartById(int partId){
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select * from part where partid=" +partId,null);
+        res.moveToFirst();
+        Part part=null;
+        while(res.isAfterLast()==false){
+
+            part=new Part();
+            part.setPartId(res.getInt(res.getColumnIndex(PART_PARTID)));
+            part.setCategoryId(res.getInt(res.getColumnIndex(PART_CATEGORYID)));
+            part.setPrice(res.getDouble(res.getColumnIndex(PART_PRICE)));
+            part.setPricebookId(res.getInt(res.getColumnIndex(PART_PRICEBOOKID)));
+            part.setPartTypeId(res.getInt(res.getColumnIndex(PART_PARTTYPEID)));
+            part.setDescription(res.getString(res.getColumnIndex(PART_DESCRIPTION)));
+            part.setManufacturer(res.getString(res.getColumnIndex(PART_MANUFACTURER)));
+            part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
+            part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
+            part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
+            part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
+            return part;
+
+        }
+        return part;
+    }
+    public ArrayList<Part> GetPartListByCategoryId(int categoryId){
+        db=getReadableDatabase();
+        Cursor res=db.rawQuery("select * from part where categoryid=" +categoryId,null);
+        res.moveToFirst();
+        ArrayList<Part> partList=new ArrayList<>();
+        Part part=null;
+        while(res.isAfterLast()==false){
+
+            part=new Part();
+            part.setPartId(res.getInt(res.getColumnIndex(PART_PARTID)));
+            part.setCategoryId(res.getInt(res.getColumnIndex(PART_CATEGORYID)));
+            part.setPrice(res.getDouble(res.getColumnIndex(PART_PRICE)));
+            part.setPricebookId(res.getInt(res.getColumnIndex(PART_PRICEBOOKID)));
+            part.setPartTypeId(res.getInt(res.getColumnIndex(PART_PARTTYPEID)));
+            part.setDescription(res.getString(res.getColumnIndex(PART_DESCRIPTION)));
+            part.setManufacturer(res.getString(res.getColumnIndex(PART_MANUFACTURER)));
+            part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
+            part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
+            part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
+            part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
+            partList.add(part);
+            res.moveToNext();
+
+        }
+        return partList;
+    }
+    public void SavePart(Part part){
+        db=getWritableDatabase();
+        ContentValues contentValues=new ContentValues();
+        contentValues.put(PART_PARTID,part.getPartId());
+        contentValues.put(PART_CATEGORYID,part.getCategoryId());
+        contentValues.put(PART_DESCRIPTION,part.getDescription());
+        contentValues.put(PART_MANUFACTURER,part.getManufacturer());
+        contentValues.put(PART_MODEL,part.getModel());
+        contentValues.put(PART_PARTNUMBER,part.getPartNumber());
+        contentValues.put(PART_NUMBERANDDESCRIPTION,part.getNumberAndDescription());
+        contentValues.put(PART_PARTTYPEID,part.getPartTypeId());
+        contentValues.put(PART_PRICE,part.getPrice());
+        contentValues.put(PART_PRICEBOOKID,part.getPricebookId());
+        contentValues.put(PART_QUANTITY,part.getQuantity());
+        db.insert(TABLE_PART,null, contentValues);
+    }
+
+    public  boolean TruncateParts(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_PART,null);
+        if(res==null) return false;
+        return true;
+    }
+
+    public boolean TruncatePartCategory(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_PARTCATEGORY,null);
+        if(res==null) return false;
+        return true;
+    }
+
+    /* *if TruncateFirst==true it truncates both the Part and PartCategory tables
+    * */
+    public void SavePartCategoryList(ArrayList<PartCategory> categories,Boolean truncatePartAndPartCategoryFirst){
+        if(truncatePartAndPartCategoryFirst==true){
+            TruncatePartCategoryHierarchy();
+            TruncateParts();
+            TruncatePartCategory();
+        }
+        db=getWritableDatabase();
+        for (PartCategory category:categories) {
+            if(!category.getParts().isEmpty()){
+                ArrayList<Part> partList=category.getParts();
+                for (Part part: partList){
+                    //SavePart
+                    SavePart(part);
+
+                }
+            }
+            //SaveCategory
+            SavePartCategory(category);
+
+            //CategoryHierarchy
+            if(!category.getSubCategoryList().isEmpty()){
+                for (PartCategory subCategory: category.getSubCategoryList()){
+                    SavePartCategoryHierarchy(category.getPartCategoryId(),subCategory.getPartCategoryId());
+                }
+            }
+        }
+    }
+
+
+
     public void SaveTimeEntryType(TimeEntryType timeEntryType){
         SQLiteDatabase db=this.getWritableDatabase();
         ContentValues contentValues=new ContentValues();

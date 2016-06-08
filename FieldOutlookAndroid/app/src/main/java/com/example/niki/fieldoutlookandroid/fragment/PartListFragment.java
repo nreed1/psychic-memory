@@ -11,8 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.PartListRecyclerViewAdapter;
 
 /**
@@ -69,7 +71,7 @@ public class PartListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            //recyclerView.setAdapter(new PartListRecyclerViewAdapter(DummyContent.ITEMS, mListener));
+            //recyclerView.setAdapter(new PartListRecyclerViewAdapter(new DBHelper(context).GetC, mListener));
         }
         return view;
     }
@@ -104,6 +106,6 @@ public class PartListFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+        void onListFragmentInteraction(PartCategory item);
     }
 }

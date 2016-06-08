@@ -19,6 +19,7 @@ public class Part implements Serializable,Parcelable{
     private String Manufacturer;
     private String NumberAndDescription;
     private int quantity;
+    private double price;
 
     public int getPartId() {
         return partId;
@@ -99,6 +100,15 @@ public class Part implements Serializable,Parcelable{
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -127,6 +137,7 @@ public class Part implements Serializable,Parcelable{
         dest.writeString(getManufacturer());
         dest.writeString(getNumberAndDescription());
         dest.writeInt(getQuantity());
+        dest.writeDouble(getPrice());
 
     }
     public static  final Creator<Part> CREATOR= new Creator<Part>() {
@@ -143,6 +154,7 @@ public class Part implements Serializable,Parcelable{
             part.Manufacturer=source.readString();
             part.NumberAndDescription=source.readString();
             part.quantity=source.readInt();
+            part.price=source.readDouble();
             return part;
         }
 

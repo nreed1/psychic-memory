@@ -40,8 +40,7 @@ public class GetAvailableWorkOrdersAsyncTask extends AsyncTask<Void,Void, ArrayL
         try{
             AuthenticationResponse user= Global.GetInstance().getUser();
             ArrayList<WorkOrder> assignedWorkOrders=new ArrayList<>();
-            //final android.os.ResultReceiver rec = (android.os.ResultReceiver)  intent.getParcelableExtra("rec");
-//GetUnassignedWorkOrders?companyID={companyID}&Token={Token}
+
             HttpURLConnection con = (HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "GetUnassignedWorkOrders?companyID=" + user.GetCompanyId() + "&Token=" + URLEncoder.encode(TokenHelper.getToken()))).openConnection();
 
             con.setRequestMethod("GET");
@@ -124,7 +123,7 @@ public class GetAvailableWorkOrdersAsyncTask extends AsyncTask<Void,Void, ArrayL
                 event = parser.next();
 
             }
-            Bundle b = new Bundle();
+           // Bundle b = new Bundle();
             // b.putParcelableArrayList("assignedWorkOrders", assignedWorkOrders);
             //rec.send(0, b);
             return assignedWorkOrders;
