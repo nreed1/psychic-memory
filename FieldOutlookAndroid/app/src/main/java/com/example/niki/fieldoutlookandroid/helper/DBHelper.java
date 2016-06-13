@@ -172,7 +172,7 @@ private void create(){
         //#end part
 
         //#start partcategoryhierarchy
-            db.execSQL("create table if not exists partcategoryhierarchy (id integer primary key, categoryid integer, subcategoryid integer)");
+            db.execSQL("create table if not exists partcategoryhierarchy (id integer primary key, partcategoryid integer, subcategoryid integer)");
         //#end partcategoryhierarchy
 
     }
@@ -212,12 +212,13 @@ private void create(){
         ContentValues contentValues=new ContentValues();
         contentValues.put(PARTCATEGORYHIERARCHY_CATEGORYID,categoryid);
         contentValues.put(PARTCATEGORYHIERARCHY_SUBCATEGORYID, subcategoryid);
-        db.insert(TABLE_PARTCATEGORYHIERARCHY,null, contentValues);
+        long id=db.insert(TABLE_PARTCATEGORYHIERARCHY,null, contentValues);
+
     }
     private ArrayList<Integer> GetSubCategoryListIdsByCategoryId(int categoryId){
         ArrayList<Integer> subCategoryIds=new ArrayList<>();
         db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from "+TABLE_PARTCATEGORYHIERARCHY +"where categoryid="+categoryId,null);
+        Cursor res=db.rawQuery("select * from "+TABLE_PARTCATEGORYHIERARCHY +" where partcategoryid="+categoryId,null);
         while(res.isAfterLast()==false){
             subCategoryIds.add(res.getInt(res.getColumnIndex(PARTCATEGORYHIERARCHY_SUBCATEGORYID)));
             res.moveToNext();
@@ -259,7 +260,7 @@ private void create(){
         ArrayList<PartCategory> partCategories=new ArrayList<>();
         db=getReadableDatabase();
         if(categoryId==-100){//Top Headers
-            Cursor res=db.rawQuery("select distinct pc.categoryid from partcategoryhierarchy pc join part p on p.categoryid==pc.categoryid where pc.categoryid not in (select subcategoryid from partcategoryhierarchy)",null);
+            Cursor res=db.rawQuery("select distinct pc.partcategoryid from partcategoryhierarchy pc join part p on p.categoryid==pc.partcategoryid where pc.partcategoryid not in (select subcategoryid from partcategoryhierarchy)",null);
             res.moveToFirst();
             ArrayList<Integer> mainHeaders=new ArrayList<>();
             while(res.isAfterLast()==false){
@@ -394,7 +395,7 @@ private void create(){
             TruncateParts();
             TruncatePartCategory();
         }
-        db=getWritableDatabase();
+        //db=getWritableDatabase();
         for (PartCategory category:categories) {
             if(category.getParts()!=null && !category.getParts().isEmpty()){
                 ArrayList<Part> partList=category.getParts();

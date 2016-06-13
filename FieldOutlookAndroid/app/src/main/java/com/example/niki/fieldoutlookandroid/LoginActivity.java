@@ -169,7 +169,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor>, 
                     Global.GetInstance().setUser(response);
                     showProgress(false);
                     mAuthTask=null;
-                    if(response.GetIsAuthenticated().toLowerCase().equals("true")) {
+                    if(response!=null && response.GetIsAuthenticated()!=null && response.GetIsAuthenticated().toLowerCase().equals("true")) {
                         Global.IsLoggedIn = true;
 
                         Intent intent = new Intent(getApplicationContext(), MainNavigationActivity.class);
