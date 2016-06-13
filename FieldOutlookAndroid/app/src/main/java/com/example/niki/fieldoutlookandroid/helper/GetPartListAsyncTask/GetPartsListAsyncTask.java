@@ -37,9 +37,7 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
         this.context=ctx;
     }
 
-    public GetPartsListAsyncTask(GetPartsListDelegate delegate) {
-        this.delegate=delegate;
-    }
+
 
 
     public interface  GetPartsListDelegate{
@@ -54,7 +52,7 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
             ArrayList<PartCategory> categories=new ArrayList<>();
             ArrayList<PartCategory> subcategories= new ArrayList<>();
 
-            HttpURLConnection con = (HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "GetPartCategoryList?Token=" + URLEncoder.encode(TokenHelper.getToken()))).openConnection();
+            HttpURLConnection con = (HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "GetPartCategoryListMobile?companyId="+Global.GetInstance().getUser().GetCompanyId()+"&Token=" + URLEncoder.encode(TokenHelper.getToken()))).openConnection();
 
             con.setRequestMethod("GET");
             con.connect();
@@ -66,19 +64,27 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
             int event = parser.getEventType();
             String tagName = null;
             String currentTag = null;
-            String endTag=null;
+            //String endTag=null;
             Part newPart=new Part();
             PartCategory category=new PartCategory();
-            Boolean isSubCategory=false;
+            ArrayList<Integer> subCategoryIds=new ArrayList<>();
+//            PartCategory subcategory=new PartCategory();
+//            Boolean isSubCategory=false;
+//            int level=0;
             while (event != XmlPullParser.END_DOCUMENT) {
                 tagName = parser.getName();
 
-                if(event==XmlPullParser.END_TAG){
-                    endTag=tagName;
-                    if(endTag.equals("a:SubCategoryList")){
-                        isSubCategory=false;
-                    }
-                }
+              //  if(event==XmlPullParser.END_TAG){
+                   // endTag=tagName;
+               //     Log.d("endTag",tagName);
+//                    if(endTag.equals("a:SubCategoryList")){
+//                        if(level!=0) level--;
+//                        isSubCategory=false;
+//                    }
+//                    else if(endTag.equals("a:PartCategory") && level>0){
+//
+//                    }
+               // }
                 if (event == XmlPullParser.START_TAG) {
                     currentTag = tagName;
                     Log.d("currentTag",currentTag);
@@ -88,13 +94,30 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
                             if(!parts.isEmpty()){
                                 category.setParts(parts);
                             }
-                            if(isSubCategory==false) {
+//                            if(isSubCategory==false && level==0) {
+                               // category.setSubCategoryList(subcategories);
+                                category.setSubCategoryIdList(subCategoryIds);
                                 categories.add(category);
-                            }else{
-                                subcategories.add(category);
-                            }
+
+                                category=new PartCategory();
+                                category.setSubCategoryList(new ArrayList<PartCategory>());
+                            subCategoryIds=new ArrayList<>();
+                                //subcategories=new ArrayList<>();
+
+//                            }else{
+//                                if(!parts.isEmpty()){
+//                                    subcategory.setParts(parts);
+//                                }
+//                                if(subcategory!=new PartCategory() && subcategory.getPartCategoryId()!=0) {
+//                                    subcategories.add(category);
+//                                }
+//                                subcategory=new PartCategory();
+//
+//                            }
+
+                            parts=new ArrayList<>();
                         }
-                        category=new PartCategory();
+
                     }
                     else if (currentTag.equals("a:Part")) {
                         if(newPart!=new Part() && newPart.getPartId()!=0){
@@ -102,17 +125,29 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
                             parts.add(newPart);
                         }
                         newPart = new Part();
-                    }else if(currentTag.equals("a:SubCategoryList")){
-                        isSubCategory=true;
                     }
+//                    else if(currentTag.equals("a:SubCategoryList")){
+//                        if(!parts.isEmpty()){
+//                            category.setParts(parts);
+//                        }
+//                        isSubCategory=true;
+//                        level++;
+//                    }
                 } else if (event == XmlPullParser.TEXT) {
                     if (currentTag.equals("a:CategoryName")) {
-                       category.setName(parser.getText());
+//                        if(isSubCategory) subcategory.setName(parser.getText());
+//                        else
+
+                            category.setName(parser.getText());
+
                     } else if (currentTag.equals("a:PartCategoryId")) {
                         Integer id=Integer.parseInt(parser.getText());
-                        category.setPartCategoryId(id);
+//                        if(isSubCategory) subcategory.setPartCategoryId(id);
+//                        else {
+                            category.setPartCategoryId(id);
+                        //}
                         newPart.setCategoryId(id);
-                    } else if (currentTag.equals("a:Description>")) {
+                    } else if (currentTag.equals("a:Description")) {
                         newPart.setDescription(parser.getText());
                     } else if (currentTag.equals("a:Manufacturer")) {
                         newPart.setManufacturer(parser.getText());
@@ -134,6 +169,9 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
                     }else if(currentTag.equals("a:PriceA")){
                         Double price=Double.parseDouble(parser.getText());
                         newPart.setPrice(price);
+                    }else if(currentTag.equals("b:int")){
+                        Integer id=Integer.parseInt(parser.getText());
+                        subCategoryIds.add(id);
                     }
                 }
 
@@ -146,8 +184,10 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
             return categories;
         }
         catch (Exception ex){
+            Log.d("partlist",ex.getStackTrace().toString());
             ExceptionHelper.LogException(context,ex);
         }
+
         return null;
     }
 

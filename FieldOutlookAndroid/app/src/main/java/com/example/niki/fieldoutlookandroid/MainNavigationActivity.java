@@ -38,6 +38,7 @@ import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimesheetReviewFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TravelToFragment;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.example.niki.fieldoutlookandroid.helper.GetPartListAsyncTask.GetPartsListAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
@@ -242,11 +243,17 @@ public class MainNavigationActivity extends AppCompatActivity
 //            timeEntryTypeReciever.setListener(this);
 //            timeentryintent.putExtra("rec", timeEntryTypeReciever);
 //            startService(timeentryintent);
+            String lastRefreshDateString=dbHelper.GetLastRefreshDate();
+            Date lastRefreshDate= new Date();
+            if(lastRefreshDateString!=null) {
+                lastRefreshDate=DateHelper.StringToDate(lastRefreshDateString);
+            }
 
-            if(dbHelper.GetLastRefreshDate()!=null) {
+           if(true){// if(lastRefreshDate==null || lastRefreshDate.before(new Date())) {
                 TimeEntryTypeAsyncTask timeEntryTypeAsyncTask = new TimeEntryTypeAsyncTask(new TimeEntryTypeAsyncTask.TimeEntryTypeResponse() {
                     @Override
                     public void processFinish(ArrayList<TimeEntryType> timeEntryTypes) {
+                        progressDialog.setMessage("Saving "+timeEntryTypes.size()+ " Time Entry Types");
                         if (dbHelper == null) dbHelper = new DBHelper(getApplicationContext());
                         for (TimeEntryType t : timeEntryTypes) {
                             dbHelper.SaveTimeEntryType(t);
@@ -259,9 +266,10 @@ public class MainNavigationActivity extends AppCompatActivity
                 GetPartsListAsyncTask getPartsListAsyncTask=new GetPartsListAsyncTask(new GetPartsListAsyncTask.GetPartsListDelegate() {
                     @Override
                     public void processFinish(ArrayList<PartCategory> result) {
+                        progressDialog.setMessage("Saving "+result.size()+" Parts List");
                         progressDialog.dismiss();
                     }
-                });
+                },getApplicationContext());
                 getPartsListAsyncTask.execute((Void)null);
 
 

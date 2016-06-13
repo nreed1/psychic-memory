@@ -15,6 +15,7 @@ public class PartCategory implements Serializable, Parcelable {
     private String name;
     private ArrayList<PartCategory> subCategoryList;
     private ArrayList<Part> parts;
+    private ArrayList<Integer> subCategoryIdList;
     public PartCategory(){
 
     }
@@ -57,6 +58,9 @@ public class PartCategory implements Serializable, Parcelable {
     public void setParts(ArrayList<Part> parts) {
         this.parts = parts;
     }
+
+    public ArrayList<Integer> getSubCategoryIdList(){return subCategoryIdList;}
+    public void setSubCategoryIdList(ArrayList<Integer> subCategoryIdList){this.subCategoryIdList=subCategoryIdList;}
     @Override
     public int describeContents() {
         return 0;
@@ -68,7 +72,7 @@ public class PartCategory implements Serializable, Parcelable {
         dest.writeString(getName());
         dest.writeList(getSubCategoryList());
         dest.writeList(getParts());
-
+        dest.writeList(getSubCategoryIdList());
     }
     public static  final Creator<PartCategory> CREATOR= new Creator<PartCategory>() {
         @Override
@@ -78,6 +82,7 @@ public class PartCategory implements Serializable, Parcelable {
             partCategory.name=source.readString();
             partCategory.subCategoryList=source.readArrayList(PartCategory.class.getClassLoader());
             partCategory.parts=source.readArrayList(Part.class.getClassLoader());
+            partCategory.subCategoryIdList=source.readArrayList(Integer.class.getClassLoader());
             return partCategory;
         }
 

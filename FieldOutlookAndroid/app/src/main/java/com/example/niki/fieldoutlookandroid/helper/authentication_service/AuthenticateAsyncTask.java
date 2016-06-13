@@ -34,9 +34,10 @@ public class AuthenticateAsyncTask extends AsyncTask<String, Void, Authenticatio
             //final ResultReceiver rec = (ResultReceiver) intent.getParcelableExtra("rec");
             CryptoHelper cryptoHelper=new CryptoHelper();
             HttpURLConnection con = (HttpURLConnection) ( new URL(ServiceHelper.GetServiceURL()+"AuthenticateUser/"+
-                    params[0].trim()+"/"+cryptoHelper.encrypt(params[1])+"/"+ URLEncoder.encode(TokenHelper.GetToken(params[0],cryptoHelper.encrypt(params[1])
+                    params[0].trim()+"/"+cryptoHelper.encrypt(params[1]).trim()+"/"+ URLEncoder.encode(TokenHelper.GetToken(params[0],cryptoHelper.encrypt(params[1])
 .toString()))).openConnection());
             con.setRequestMethod("GET");
+
             con.connect();
             InputStream is = con.getInputStream();
 

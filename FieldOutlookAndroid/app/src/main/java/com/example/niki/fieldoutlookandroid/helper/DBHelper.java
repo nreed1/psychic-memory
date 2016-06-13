@@ -120,7 +120,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public static final String TABLE_PARTCATEGORYHIERARCHY="partcategoryhierarchy";
     public static final String PARTCATEGORYHIERARCHY_ID="id";
-    public static final String PARTCATEGORYHIERARCHY_CATEGORYID="categoryid";
+    public static final String PARTCATEGORYHIERARCHY_CATEGORYID="partcategoryid";
     public static final String PARTCATEGORYHIERARCHY_SUBCATEGORYID="subcategoryid";
 
     SQLiteDatabase db;
@@ -128,7 +128,7 @@ public class DBHelper extends SQLiteOpenHelper {
     Context ctx;
     public DBHelper(Context context){
         super(context,DATABASE_NAME,null, 1);
-        db=this.getWritableDatabase();
+        //db=this.getWritableDatabase();
         ctx=context;
        // create();
     }
@@ -187,7 +187,7 @@ private void create(){
         db=getReadableDatabase();
         Cursor res=db.rawQuery("select * from "+TABLE_REFRESH,null);
         res.moveToFirst();
-        if(res==null)return null;
+        if(res==null || res.isAfterLast()==true)return null;
 
         return  res.getString(res.getColumnIndex(REFRESH_DATETIME));
     }
@@ -241,6 +241,20 @@ private void create(){
         db.insert(TABLE_PARTCATEGORY,null, contentValues);
     }
 
+    public ArrayList<PartCategory> GetPartSubCategoryListByCategoryId(int categoryId){
+        db=getReadableDatabase();
+        ArrayList<PartCategory> subcategories=new ArrayList<>();
+        Cursor res=db.rawQuery("select distinct subcategoryid from partcategoryhierarchy where categoryid="+categoryId,null);
+        res.moveToFirst();
+        while(res.isAfterLast()==false){
+            PartCategory category=GetPartCategoryById(res.getInt(0));
+            subcategories.add(category);
+            res.moveToNext();
+        }
+        return subcategories;
+
+    }
+
     public ArrayList<PartCategory> GetPartCategoryList(int categoryId){
         ArrayList<PartCategory> partCategories=new ArrayList<>();
         db=getReadableDatabase();
@@ -250,19 +264,32 @@ private void create(){
             ArrayList<Integer> mainHeaders=new ArrayList<>();
             while(res.isAfterLast()==false){
                 mainHeaders.add(res.getInt(0));
+                PartCategory category=GetPartCategoryById(res.getInt(0));
+                category.setSubCategoryList(GetPartCategoryList(res.getInt(0)));
+                category.setParts(GetPartListByCategoryId(res.getInt(0)));
+                partCategories.add(category);
                 res.moveToFirst();
             }
-        }else{
-
+        }else {
+            ArrayList<PartCategory> headers = GetSubCategoryList(categoryId);
+            if (!headers.isEmpty()) {
+                for (PartCategory subcategory : headers) {
+                    subcategory.setSubCategoryList(GetPartCategoryList(subcategory.getPartCategoryId()));
+                    subcategory.setParts(GetPartListByCategoryId(categoryId));
+                    partCategories.add(subcategory);
+                }
+            } else {
+                return new ArrayList<PartCategory>();
+            }
         }
-        return new ArrayList<PartCategory>();
+        return partCategories;
     }
 
 
 
     public PartCategory GetPartCategoryById(int categoryId){
         db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from "+TABLE_PARTCATEGORY+" where categoryid="+categoryId,null);
+        Cursor res=db.rawQuery("select * from "+TABLE_PARTCATEGORY+" where "+PARTCATEGORY_PARTCATEGORYID+"="+categoryId,null);
         res.moveToFirst();
         PartCategory category=null;
         while(res.isAfterLast()==false){
@@ -299,6 +326,7 @@ private void create(){
         }
         return part;
     }
+
     public ArrayList<Part> GetPartListByCategoryId(int categoryId){
         db=getReadableDatabase();
         Cursor res=db.rawQuery("select * from part where categoryid=" +categoryId,null);
@@ -325,6 +353,8 @@ private void create(){
         }
         return partList;
     }
+
+
     public void SavePart(Part part){
         db=getWritableDatabase();
         ContentValues contentValues=new ContentValues();
@@ -366,7 +396,7 @@ private void create(){
         }
         db=getWritableDatabase();
         for (PartCategory category:categories) {
-            if(!category.getParts().isEmpty()){
+            if(category.getParts()!=null && !category.getParts().isEmpty()){
                 ArrayList<Part> partList=category.getParts();
                 for (Part part: partList){
                     //SavePart
@@ -378,9 +408,16 @@ private void create(){
             SavePartCategory(category);
 
             //CategoryHierarchy
-            if(!category.getSubCategoryList().isEmpty()){
+            if(category.getSubCategoryList()!=null &&!category.getSubCategoryList().isEmpty()){
                 for (PartCategory subCategory: category.getSubCategoryList()){
                     SavePartCategoryHierarchy(category.getPartCategoryId(),subCategory.getPartCategoryId());
+                }
+            }
+
+            //CategoryHierarchy - Alt
+            if(category.getSubCategoryIdList()!=null && !category.getSubCategoryIdList().isEmpty()){
+                for (Integer subcategoryId:category.getSubCategoryIdList()){
+                    SavePartCategoryHierarchy(category.getPartCategoryId(),subcategoryId);
                 }
             }
         }

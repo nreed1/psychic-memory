@@ -1,5 +1,6 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -155,6 +156,16 @@ public class SelectedWorkorderFragment extends Fragment {
             mListener = (OnSelectedWorkOrderFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
+                    + " must implement OnStartDayFragmentInteractionListener");
+        }
+    }
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof OnSelectedWorkOrderFragmentInteractionListener) {
+            mListener = (OnSelectedWorkOrderFragmentInteractionListener) activity;
+        } else {
+            throw new RuntimeException(activity.toString()
                     + " must implement OnStartDayFragmentInteractionListener");
         }
     }

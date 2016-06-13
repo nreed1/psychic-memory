@@ -17,6 +17,8 @@ import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyIte
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.PartListRecyclerViewAdapter;
 
+import java.util.ArrayList;
+
 /**
  * A fragment representing a list of Items.
  * <p/>
@@ -66,12 +68,14 @@ public class PartListFragment extends Fragment {
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
+            mColumnCount=0;
             if (mColumnCount <= 1) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            //recyclerView.setAdapter(new PartListRecyclerViewAdapter(new DBHelper(context).GetC, mListener));
+            ArrayList<PartCategory> categories=new DBHelper(getActivity()).GetPartCategoryList(-100);
+            recyclerView.setAdapter(new PartListRecyclerViewAdapter(categories, mListener));
         }
         return view;
     }
