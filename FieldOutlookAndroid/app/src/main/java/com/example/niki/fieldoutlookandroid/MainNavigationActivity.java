@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
+import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
@@ -60,7 +61,7 @@ public class MainNavigationActivity extends AppCompatActivity
         PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
         QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener,  StartDayFragment.OnStartDayFragmentInteractionListener,
                     TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener,
-                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener,SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener {
+                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener,SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener, PartListFragment.OnPartListFragmentInteractionListener , PartListFragment.OnPartListPartFragmentInteractionListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -480,11 +481,40 @@ public class MainNavigationActivity extends AppCompatActivity
                 android.app.FragmentManager fragmentManager= getFragmentManager();
                 android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
                 PartListFragment partListFragment=new PartListFragment();
+                Bundle b=new Bundle();
+                b.putParcelableArrayList("categories-given",null);
+                partListFragment.setArguments(b);
                 fragmentTransaction.replace(R.id.fragment_container, partListFragment, "WorkOrderPartList").addToBackStack("WorkOrderPartList");
                 fragmentTransaction.commit();
                 return;
             default:
                 return;
         }
+    }
+
+    @Override
+    public void onPartListFragmentInteraction(PartCategory item) {
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        PartListFragment partListFragment=new PartListFragment();
+        Bundle b=new Bundle();
+        if(item.getParts()!=null && !item.getParts().isEmpty() && item.getSubCategoryList()!=null &&!item.getSubCategoryList().isEmpty()){
+            b.putParcelable("part-category",item);
+        }
+        else if(item.getSubCategoryList()!=null && !item.getSubCategoryList().isEmpty()) {
+            b.putParcelableArrayList("categories-given", item.getSubCategoryList());
+        }else if(item.getParts()!=null && !item.getParts().isEmpty()){
+            b.putParcelableArrayList("parts",item.getParts());
+        }else{
+            b.putParcelableArrayList("categories-given",null);
+        }
+        partListFragment.setArguments(b);
+        fragmentTransaction.replace(R.id.fragment_container, partListFragment, "SubPartList").addToBackStack("SubPartList");
+        fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onPartListPartInteraction(Part item) {
+        //TODO
     }
 }

@@ -1,5 +1,6 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -11,9 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
-import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent;
-import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.PartListRecyclerViewAdapter;
 
@@ -22,16 +22,23 @@ import java.util.ArrayList;
 /**
  * A fragment representing a list of Items.
  * <p/>
- * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
+ * Activities containing this fragment MUST implement the {@link OnPartListFragmentInteractionListener}
  * interface.
  */
 public class PartListFragment extends Fragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
+    private static final String ARG_CATEGORIES_GIVEN="categories-given";
+    private static final String ARG_PARTS="parts";
+    private static final String ARG_PART_CATEGORY="part-category";
     // TODO: Customize parameters
     private int mColumnCount = 1;
-    private OnListFragmentInteractionListener mListener;
+    private OnPartListFragmentInteractionListener mListener;
+    private OnPartListPartFragmentInteractionListener mPartListener;
+    private ArrayList<PartCategory> categories;
+    private ArrayList<Part> parts;
+    private PartCategory partCategory;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -56,6 +63,9 @@ public class PartListFragment extends Fragment {
 
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
+            categories=getArguments().getParcelableArrayList(ARG_CATEGORIES_GIVEN);
+            parts=getArguments().getParcelableArrayList(ARG_PARTS);
+            partCategory=getArguments().getParcelable(ARG_PART_CATEGORY);
         }
     }
 
@@ -74,8 +84,12 @@ public class PartListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            ArrayList<PartCategory> categories=new DBHelper(getActivity()).GetPartCategoryList(-100);
-            recyclerView.setAdapter(new PartListRecyclerViewAdapter(categories, mListener));
+            if(partCategory!=null){}
+
+            else if(categories==null) {
+                categories = new DBHelper(getActivity()).GetPartCategoryList(-100);
+            }
+            recyclerView.setAdapter(new PartListRecyclerViewAdapter(categories,parts,partCategory, mListener,mPartListener));
         }
         return view;
     }
@@ -84,11 +98,31 @@ public class PartListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnListFragmentInteractionListener) {
-            mListener = (OnListFragmentInteractionListener) context;
-        } else {
+        if (context instanceof OnPartListFragmentInteractionListener) {
+            mListener = (OnPartListFragmentInteractionListener) context;
+
+        } else if(context instanceof OnPartListPartFragmentInteractionListener) {
+            mPartListener=(OnPartListPartFragmentInteractionListener) context;
+        }
+        else
+         {
             throw new RuntimeException(context.toString()
-                    + " must implement OnListFragmentInteractionListener");
+                    + " must implement OnPartListFragmentInteractionListener");
+        }
+    }
+    @Override
+    public void onAttach(Activity context) {
+        super.onAttach(context);
+        if (context instanceof OnPartListFragmentInteractionListener) {
+            mListener = (OnPartListFragmentInteractionListener) context;
+
+        } else if(context instanceof OnPartListPartFragmentInteractionListener) {
+            mPartListener=(OnPartListPartFragmentInteractionListener) context;
+        }
+        else
+        {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnPartListFragmentInteractionListener");
         }
     }
 
@@ -108,8 +142,11 @@ public class PartListFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnListFragmentInteractionListener {
+    public interface OnPartListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(PartCategory item);
+        void onPartListFragmentInteraction(PartCategory item);
+    }
+    public interface OnPartListPartFragmentInteractionListener{
+        void onPartListPartInteraction(Part item);
     }
 }

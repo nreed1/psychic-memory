@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.FOException;
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
@@ -216,20 +217,32 @@ private void create(){
 
     }
     private ArrayList<Integer> GetSubCategoryListIdsByCategoryId(int categoryId){
-        ArrayList<Integer> subCategoryIds=new ArrayList<>();
-        db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from "+TABLE_PARTCATEGORYHIERARCHY +" where partcategoryid="+categoryId,null);
-        while(res.isAfterLast()==false){
-            subCategoryIds.add(res.getInt(res.getColumnIndex(PARTCATEGORYHIERARCHY_SUBCATEGORYID)));
-            res.moveToNext();
+        Cursor res=null;
+        try {
+            ArrayList<Integer> subCategoryIds = new ArrayList<>();
+            db = getReadableDatabase();
+            res = db.rawQuery("select subcategoryid from " + TABLE_PARTCATEGORYHIERARCHY + " where partcategoryid=" + categoryId+" and subcategoryid!=0", null);
+            res.moveToFirst();
+            while (res.isAfterLast() == false) {
+                subCategoryIds.add(res.getInt(0));
+                res.moveToNext();
+            }
+            return subCategoryIds;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
         }
-        return subCategoryIds;
+        finally {
+            if(res!=null) res.close();
+        }
+        return new ArrayList<Integer>();
     }
     public ArrayList<PartCategory> GetSubCategoryList(int categoryId){
         ArrayList<Integer> subCategoryIds=GetSubCategoryListIdsByCategoryId(categoryId);
         ArrayList<PartCategory> categoryList=new ArrayList<>();
         for (Integer subcategoryId:subCategoryIds){
-            categoryList.add(GetPartCategoryById(subcategoryId));
+            PartCategory partcategory=GetPartCategoryById(subcategoryId);
+            if(partcategory!=null)
+                categoryList.add(partcategory);
         }
         return categoryList;
     }
@@ -243,116 +256,166 @@ private void create(){
     }
 
     public ArrayList<PartCategory> GetPartSubCategoryListByCategoryId(int categoryId){
-        db=getReadableDatabase();
-        ArrayList<PartCategory> subcategories=new ArrayList<>();
-        Cursor res=db.rawQuery("select distinct subcategoryid from partcategoryhierarchy where categoryid="+categoryId,null);
-        res.moveToFirst();
-        while(res.isAfterLast()==false){
-            PartCategory category=GetPartCategoryById(res.getInt(0));
-            subcategories.add(category);
-            res.moveToNext();
+        Cursor res= null;
+        try {
+            db = getReadableDatabase();
+            ArrayList<PartCategory> subcategories = new ArrayList<>();
+            res = db.rawQuery("select distinct subcategoryid from partcategoryhierarchy where categoryid=" + categoryId, null);
+            res.moveToFirst();
+            while (res.isAfterLast() == false) {
+                PartCategory category = GetPartCategoryById(res.getInt(0));
+                subcategories.add(category);
+                res.moveToNext();
+            }
+            return subcategories;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
         }
-        return subcategories;
-
+        finally {
+            if(res!=null) res.close();
+        }
+        return new ArrayList<>();
     }
 
     public ArrayList<PartCategory> GetPartCategoryList(int categoryId){
-        ArrayList<PartCategory> partCategories=new ArrayList<>();
-        db=getReadableDatabase();
-        if(categoryId==-100){//Top Headers
-            Cursor res=db.rawQuery("select distinct pc.partcategoryid from partcategoryhierarchy pc join part p on p.categoryid==pc.partcategoryid where pc.partcategoryid not in (select subcategoryid from partcategoryhierarchy)",null);
-            res.moveToFirst();
-            ArrayList<Integer> mainHeaders=new ArrayList<>();
-            while(res.isAfterLast()==false){
-                mainHeaders.add(res.getInt(0));
-                PartCategory category=GetPartCategoryById(res.getInt(0));
-                category.setSubCategoryList(GetPartCategoryList(res.getInt(0)));
-                category.setParts(GetPartListByCategoryId(res.getInt(0)));
-                partCategories.add(category);
+        Cursor res=null;
+        try {
+            ArrayList<PartCategory> partCategories = new ArrayList<>();
+            db = getReadableDatabase();
+            if (categoryId == -100) {//Top Headers
+                res = db.rawQuery("select distinct pc.partcategoryid from partcategoryhierarchy pc join part p on p.categoryid==pc.partcategoryid where pc.partcategoryid not in (select subcategoryid from partcategoryhierarchy)", null);
                 res.moveToFirst();
-            }
-        }else {
-            ArrayList<PartCategory> headers = GetSubCategoryList(categoryId);
-            if (!headers.isEmpty()) {
-                for (PartCategory subcategory : headers) {
-                    subcategory.setSubCategoryList(GetPartCategoryList(subcategory.getPartCategoryId()));
-                    subcategory.setParts(GetPartListByCategoryId(categoryId));
-                    partCategories.add(subcategory);
+                ArrayList<Integer> mainHeaders = new ArrayList<>();
+                while (res.isAfterLast() == false) {
+                    mainHeaders.add(res.getInt(0));
+                    PartCategory category = GetPartCategoryById(res.getInt(0));
+                    category.setSubCategoryList(GetPartCategoryList(res.getInt(0)));
+                    category.setParts(GetPartListByCategoryId(res.getInt(0)));
+                    partCategories.add(category);
+                    res.moveToNext();
                 }
             } else {
-                return new ArrayList<PartCategory>();
+
+                ArrayList<PartCategory> headers = GetSubCategoryList(categoryId);
+                if (!headers.isEmpty() && headers.size() > 0) {
+                    for (PartCategory subcategory : headers) {
+                        if (subcategory != null && subcategory.getPartCategoryId()!=0) {
+                            subcategory.setParts(GetPartListByCategoryId(subcategory.getPartCategoryId()));
+                            if(!subcategory.getParts().isEmpty()) {
+                                subcategory.setSubCategoryList(GetPartCategoryList(subcategory.getPartCategoryId()));
+
+                                partCategories.add(subcategory);
+                            }
+                        }
+                    }
+                } else {
+                    return new ArrayList<PartCategory>();
+                }
             }
+            return partCategories;
+        }catch(Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
         }
-        return partCategories;
+        finally {
+            if(res!=null) res.close();
+        }
+        return new ArrayList<>();
     }
 
 
 
     public PartCategory GetPartCategoryById(int categoryId){
-        db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from "+TABLE_PARTCATEGORY+" where "+PARTCATEGORY_PARTCATEGORYID+"="+categoryId,null);
-        res.moveToFirst();
-        PartCategory category=null;
-        while(res.isAfterLast()==false){
-            category=new PartCategory();
-            category.setPartCategoryId(res.getInt(res.getColumnIndex(PARTCATEGORY_ID)));
-            category.setName(res.getString(res.getColumnIndex(PARTCATEGORY_NAME)));
+        Cursor res=null;
 
-            res.moveToNext();
+        try {
+            db = getReadableDatabase();
+            res = db.rawQuery("select * from " + TABLE_PARTCATEGORY + " where " + PARTCATEGORY_PARTCATEGORYID + "=" + categoryId, null);
+            res.moveToFirst();
+            PartCategory category = null;
+            while (res.isAfterLast() == false) {
+                category = new PartCategory();
+                category.setPartCategoryId(res.getInt(res.getColumnIndex(PARTCATEGORY_PARTCATEGORYID)));
+                category.setName(res.getString(res.getColumnIndex(PARTCATEGORY_NAME)));
+
+                res.moveToNext();
+            }
+            return category;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
         }
-        return  category;
+        finally {
+            if(res!=null) res.close();
+        }
+        return null;
     }
 
     public Part GetPartById(int partId){
-        db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from part where partid=" +partId,null);
-        res.moveToFirst();
-        Part part=null;
-        while(res.isAfterLast()==false){
+        Cursor res=null;
+        try {
+            db = getReadableDatabase();
+            res = db.rawQuery("select * from part where partid=" + partId, null);
+            res.moveToFirst();
+            Part part = null;
+            while (res.isAfterLast() == false) {
 
-            part=new Part();
-            part.setPartId(res.getInt(res.getColumnIndex(PART_PARTID)));
-            part.setCategoryId(res.getInt(res.getColumnIndex(PART_CATEGORYID)));
-            part.setPrice(res.getDouble(res.getColumnIndex(PART_PRICE)));
-            part.setPricebookId(res.getInt(res.getColumnIndex(PART_PRICEBOOKID)));
-            part.setPartTypeId(res.getInt(res.getColumnIndex(PART_PARTTYPEID)));
-            part.setDescription(res.getString(res.getColumnIndex(PART_DESCRIPTION)));
-            part.setManufacturer(res.getString(res.getColumnIndex(PART_MANUFACTURER)));
-            part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
-            part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
-            part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
-            part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
+                part = new Part();
+                part.setPartId(res.getInt(res.getColumnIndex(PART_PARTID)));
+                part.setCategoryId(res.getInt(res.getColumnIndex(PART_CATEGORYID)));
+                part.setPrice(res.getDouble(res.getColumnIndex(PART_PRICE)));
+                part.setPricebookId(res.getInt(res.getColumnIndex(PART_PRICEBOOKID)));
+                part.setPartTypeId(res.getInt(res.getColumnIndex(PART_PARTTYPEID)));
+                part.setDescription(res.getString(res.getColumnIndex(PART_DESCRIPTION)));
+                part.setManufacturer(res.getString(res.getColumnIndex(PART_MANUFACTURER)));
+                part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
+                part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
+                part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
+                part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
+                return part;
+
+            }
             return part;
-
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)
+                res.close();
         }
-        return part;
+        return null;
     }
 
     public ArrayList<Part> GetPartListByCategoryId(int categoryId){
-        db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from part where categoryid=" +categoryId,null);
-        res.moveToFirst();
-        ArrayList<Part> partList=new ArrayList<>();
-        Part part=null;
-        while(res.isAfterLast()==false){
+        Cursor res=null;
+        try {
+            db = getReadableDatabase();
+            res = db.rawQuery("select * from part where categoryid=" + categoryId, null);
+            res.moveToFirst();
+            ArrayList<Part> partList = new ArrayList<>();
+            Part part = null;
+            while (res.isAfterLast() == false) {
 
-            part=new Part();
-            part.setPartId(res.getInt(res.getColumnIndex(PART_PARTID)));
-            part.setCategoryId(res.getInt(res.getColumnIndex(PART_CATEGORYID)));
-            part.setPrice(res.getDouble(res.getColumnIndex(PART_PRICE)));
-            part.setPricebookId(res.getInt(res.getColumnIndex(PART_PRICEBOOKID)));
-            part.setPartTypeId(res.getInt(res.getColumnIndex(PART_PARTTYPEID)));
-            part.setDescription(res.getString(res.getColumnIndex(PART_DESCRIPTION)));
-            part.setManufacturer(res.getString(res.getColumnIndex(PART_MANUFACTURER)));
-            part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
-            part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
-            part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
-            part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
-            partList.add(part);
-            res.moveToNext();
+                part = new Part();
+                part.setPartId(res.getInt(res.getColumnIndex(PART_PARTID)));
+                part.setCategoryId(res.getInt(res.getColumnIndex(PART_CATEGORYID)));
+                part.setPrice(res.getDouble(res.getColumnIndex(PART_PRICE)));
+                part.setPricebookId(res.getInt(res.getColumnIndex(PART_PRICEBOOKID)));
+                part.setPartTypeId(res.getInt(res.getColumnIndex(PART_PARTTYPEID)));
+                part.setDescription(res.getString(res.getColumnIndex(PART_DESCRIPTION)));
+                part.setManufacturer(res.getString(res.getColumnIndex(PART_MANUFACTURER)));
+                part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
+                part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
+                part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
+                part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
+                partList.add(part);
+                res.moveToNext();
 
+            }
+            return partList;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null) res.close();
         }
-        return partList;
+        return null;
     }
 
 
@@ -374,17 +437,34 @@ private void create(){
     }
 
     public  boolean TruncateParts(){
-        db=getReadableDatabase();
-        Cursor res= db.rawQuery("delete from "+TABLE_PART,null);
-        if(res==null) return false;
-        return true;
+        Cursor res=null;
+        try {
+            db = getReadableDatabase();
+            res = db.rawQuery("delete from " + TABLE_PART, null);
+            if (res == null) return false;
+            return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null) res.close();
+        }
+        return false;
     }
 
     public boolean TruncatePartCategory(){
-        db=getReadableDatabase();
-        Cursor res= db.rawQuery("delete from "+TABLE_PARTCATEGORY,null);
-        if(res==null) return false;
-        return true;
+        Cursor res=null;
+        try {
+            db = getReadableDatabase();
+            res = db.rawQuery("delete from " + TABLE_PARTCATEGORY, null);
+            if (res == null) return false;
+            return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx, ex);
+        }finally {
+            if(res!=null) res.close();
+        }
+        return false;
     }
 
     /* *if TruncateFirst==true it truncates both the Part and PartCategory tables
@@ -435,15 +515,23 @@ private void create(){
         db.insert(TABLE_TIME_ENTRY_TYPE, null,contentValues);
     }
     public ArrayList<TimeEntryType> getTimeEntryTypeList(){
-        ArrayList<TimeEntryType> timeEntryTypes=new ArrayList<>();
-        SQLiteDatabase db=this.getReadableDatabase();
-        Cursor res=db.rawQuery("select * from timeentrytype",null);
-        res.moveToFirst();
-        while(res.isAfterLast()==false){
-            timeEntryTypes.add(new TimeEntryType(res.getInt(res.getColumnIndex(TIME_ENTRY_TYPE_TYPEID)),res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_NAME)),res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_DESCRIPTION))));
-            res.moveToNext();
+        Cursor res=null;
+        try {
+            ArrayList<TimeEntryType> timeEntryTypes = new ArrayList<>();
+            SQLiteDatabase db = this.getReadableDatabase();
+            res = db.rawQuery("select * from timeentrytype", null);
+            res.moveToFirst();
+            while (res.isAfterLast() == false) {
+                timeEntryTypes.add(new TimeEntryType(res.getInt(res.getColumnIndex(TIME_ENTRY_TYPE_TYPEID)), res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_NAME)), res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_DESCRIPTION))));
+                res.moveToNext();
+            }
+            return timeEntryTypes;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
         }
-        return timeEntryTypes;
+        return null;
     }
     public TimeEntryType GetTimeEntryTypeById(int id){
         SQLiteDatabase db=this.getReadableDatabase();
@@ -505,10 +593,11 @@ private void create(){
     }
 
     public ArrayList<WorkOrder> GetCompletedWorkOrders(){
+        Cursor res=null;
         try{
             ArrayList<WorkOrder> workOrders=new ArrayList<>();
             SQLiteDatabase db=this.getReadableDatabase();
-            Cursor res=db.rawQuery("select * from "+TABLE_WORKORDER + "where iscompleted=1",null);
+            res=db.rawQuery("select * from "+TABLE_WORKORDER + "where iscompleted=1",null);
             res.moveToFirst();
             while(res.isAfterLast()==false){
                 //public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob,
@@ -525,15 +614,18 @@ private void create(){
             return workOrders;
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
         }
         return new ArrayList<WorkOrder>();
     }
 
     public ArrayList<WorkOrder> GetWorkOrders(){
+        Cursor res=null;
         try{
             ArrayList<WorkOrder> workOrders=new ArrayList<>();
             SQLiteDatabase db=this.getReadableDatabase();
-            Cursor res=db.rawQuery("select * from "+TABLE_WORKORDER,null);
+            res=db.rawQuery("select * from "+TABLE_WORKORDER,null);
             res.moveToFirst();
             while(res.isAfterLast()==false){
                 //public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob,
@@ -550,6 +642,9 @@ private void create(){
             return workOrders;
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null)res.close();
         }
         return new ArrayList<WorkOrder>();
 
@@ -596,10 +691,11 @@ private void create(){
     }
 
     public ArrayList<OtherTask> GetOtherTaskListByUserId(int userId){
+        Cursor res=null;
         try{
             ArrayList<OtherTask> otherTasks=new ArrayList<>();
             db=getReadableDatabase();
-            Cursor res=db.rawQuery("select * from "+TABLE_OTHERTASKS+" where userid="+userId,null);
+            res=db.rawQuery("select * from "+TABLE_OTHERTASKS+" where userid="+userId,null);
             res.moveToFirst();
             while(res.isAfterLast()==false){
                 //public OtherTask(int id, int userid, String name, String description)
@@ -610,7 +706,10 @@ private void create(){
             }
             return otherTasks;
         }catch (Exception ex){
-
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null) res.close();
         }
         return new ArrayList<OtherTask>();
     }
@@ -638,19 +737,27 @@ private void create(){
 
     }
     public Person GetPersonByPersonId(int personId){
-        db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from "+TABLE_PERSON+" where personid="+personId,null);
-        res.moveToFirst();
-        Person selectedPerson=null;
-        while(res.isAfterLast()==false){
-            //public OtherTask(int id, int userid, String name, String description)
-          selectedPerson=new Person( res.getInt(res.getColumnIndex(PERSON_PERSONID)),res.getInt(res.getColumnIndex(PERSON_COMPANYID)),0,res.getString(res.getColumnIndex(PERSON_FIRSTNAME)),res.getString(res.getColumnIndex(PERSON_LASTNAME)),
-                  res.getString(res.getColumnIndex(PERSON_FULLNAME)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE1)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE2)),
-                  res.getString(res.getColumnIndex(PERSON_CITY)),res.getString(res.getColumnIndex(PERSON_STATE)), res.getString(res.getColumnIndex(PERSON_ZIPCODE)));
+        Cursor res=null;
+        try {
+            db = getReadableDatabase();
+            res = db.rawQuery("select * from " + TABLE_PERSON + " where personid=" + personId, null);
+            res.moveToFirst();
+            Person selectedPerson = null;
+            while (res.isAfterLast() == false) {
+                //public OtherTask(int id, int userid, String name, String description)
+                selectedPerson = new Person(res.getInt(res.getColumnIndex(PERSON_PERSONID)), res.getInt(res.getColumnIndex(PERSON_COMPANYID)), 0, res.getString(res.getColumnIndex(PERSON_FIRSTNAME)), res.getString(res.getColumnIndex(PERSON_LASTNAME)),
+                        res.getString(res.getColumnIndex(PERSON_FULLNAME)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE1)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE2)),
+                        res.getString(res.getColumnIndex(PERSON_CITY)), res.getString(res.getColumnIndex(PERSON_STATE)), res.getString(res.getColumnIndex(PERSON_ZIPCODE)));
 
-            res.moveToNext();
+                res.moveToNext();
+            }
+            return selectedPerson;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null) res.close();
         }
-        return selectedPerson;
+        return null;
     }
     public boolean TruncatePerson(){
         db=getReadableDatabase();
@@ -678,36 +785,45 @@ private void create(){
     }
 
     public ArrayList<TimeEntry> GetTimeEntryListForToday(){
-        db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from "+TABLE_TIMEENTRY+" where dateentered like '%"+DateHelper.GetTodayDateAsString()+"%' order by "+TIMEENTRY_STARTDATE +" asc",null);
-        res.moveToFirst();
-        ArrayList<TimeEntry> timeEntries=new ArrayList<>();
-        TimeEntry previousTimeEntry=new TimeEntry();
-        while(res.isAfterLast()==false) {
-            // public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes){
-            TimeEntry newTimeEntry=new TimeEntry(res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYID)),res.getInt(res.getColumnIndex(TIMEENTRY_EMPLOYEEID)),
-                    DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_DATEENTERED))),DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_STARTDATE))),
-                    DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),
-                    res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)),
-                    res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
-                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)), res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYTYPEID)));
-            if(previousTimeEntry.getSqlId()!=0){
-                long difference = newTimeEntry.getStartDateTime().getTime()-previousTimeEntry.getStartDateTime().getTime();//newer.startTime-older.startTime
-                Time time= new Time(difference);
-                while(time.getMinutes()>=30) {
-                    timeEntries.add(new TimeEntry());
-                    time.setMinutes(time.getMinutes() - 30);
+        Cursor res=null;
+        try {
+            db = getReadableDatabase();
+            res = db.rawQuery("select * from " + TABLE_TIMEENTRY + " where dateentered like '%" + DateHelper.GetTodayDateAsString() + "%' order by " + TIMEENTRY_STARTDATE + " asc", null);
+            res.moveToFirst();
+            ArrayList<TimeEntry> timeEntries = new ArrayList<>();
+            TimeEntry previousTimeEntry = new TimeEntry();
+            while (res.isAfterLast() == false) {
+                // public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes){
+                TimeEntry newTimeEntry = new TimeEntry(res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYID)), res.getInt(res.getColumnIndex(TIMEENTRY_EMPLOYEEID)),
+                        DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_DATEENTERED))), DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_STARTDATE))),
+                        DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),
+                        res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)),
+                        res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
+                        res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)), res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYTYPEID)));
+                if (previousTimeEntry.getSqlId() != 0) {
+                    long difference = newTimeEntry.getStartDateTime().getTime() - previousTimeEntry.getStartDateTime().getTime();//newer.startTime-older.startTime
+                    Time time = new Time(difference);
+                    while (time.getMinutes() >= 30) {
+                        timeEntries.add(new TimeEntry());
+                        time.setMinutes(time.getMinutes() - 30);
+                    }
                 }
-            }
-            if(newTimeEntry.getTimeEntryTypeId()!=0){
-                newTimeEntry.setType(GetTimeEntryTypeById(newTimeEntry.getTimeEntryTypeId()));
-            }
+                if (newTimeEntry.getTimeEntryTypeId() != 0) {
+                    newTimeEntry.setType(GetTimeEntryTypeById(newTimeEntry.getTimeEntryTypeId()));
+                }
 
-            timeEntries.add(newTimeEntry);
-            previousTimeEntry=newTimeEntry;
-            res.moveToNext();
+                timeEntries.add(newTimeEntry);
+                previousTimeEntry = newTimeEntry;
+                res.moveToNext();
+            }
+            return timeEntries;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
         }
-        return timeEntries;
+        finally {
+            if(res!=null) res.close();
+        }
+        return new ArrayList<>();
     }
     /*This gets the TimeEntry by the id assigned by SQLite*/
     public TimeEntry GetTimeEntryById(int id){
@@ -767,15 +883,25 @@ private void create(){
         return true;
     }
     public ArrayList<FOException> GetExceptions(){
-        db=getReadableDatabase();
-        Cursor res=db.rawQuery("select * from "+TABLE_EXCEPTION,null);
-        res.moveToFirst();
-        ArrayList<FOException> exceptions=new ArrayList<>();
-        while(res.isAfterLast()==false){
+        Cursor res=null;
+        try {
+            db = getReadableDatabase();
+            res = db.rawQuery("select * from " + TABLE_EXCEPTION, null);
+            res.moveToFirst();
+            ArrayList<FOException> exceptions = new ArrayList<>();
+            while (res.isAfterLast() == false) {
 
-            res.moveToNext();
+                res.moveToNext();
+            }
+            return exceptions;
         }
-        return  exceptions;
+        catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null)res.close();
+        }
+        return new ArrayList<>();
     }
 
 }

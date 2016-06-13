@@ -90,8 +90,21 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
                     Log.d("currentTag",currentTag);
                     if(currentTag.equals("a:PartCategory")){
                         if(category!=new PartCategory() && category.getPartCategoryId()!=0){
-                            if(newPart!=new Part() && newPart.getPartId()!=0 && !parts.contains(newPart)) parts.add(newPart);
+                            //if(newPart!=new Part() && newPart.getPartId()!=0 &&parts!=null &&!parts.isEmpty() && parts.get(parts.size()-1).getPartId()!=newPart.getPartId()) parts.add(newPart);
+                            boolean oneExtra=true;
+                            for(Part p :parts){
+                                if(p.getPartId()==newPart.getPartId()) {
+                                    oneExtra = false;
+                                    break;
+                                }
+                            }
+
+                            if(newPart!=new Part() && newPart.getPartId()>0 && newPart.getCategoryId()==category.getPartCategoryId() && oneExtra==false ) parts.add(newPart);
+                            if(category.getPartCategoryId()==11472 ){
+                                Log.d("categoryid", String.valueOf(category.getPartCategoryId()));
+                            }
                             if(!parts.isEmpty()){
+
                                 category.setParts(parts);
                             }
 //                            if(isSubCategory==false && level==0) {
@@ -116,12 +129,13 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
 //                            }
 
                             parts=new ArrayList<>();
+                            newPart=new Part();
                         }
 
                     }
                     else if (currentTag.equals("a:Part")) {
                         if(newPart!=new Part() && newPart.getPartId()!=0){
-
+                            //if(newPart.getCategoryId()==0)newPart.setCategoryId(category.getPartCategoryId());
                             parts.add(newPart);
                         }
                         newPart = new Part();
@@ -146,14 +160,14 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
 //                        else {
                             category.setPartCategoryId(id);
                         //}
-                        newPart.setCategoryId(id);
+                        //newPart.setCategoryId(id);
                     } else if (currentTag.equals("a:Description")) {
                         newPart.setDescription(parser.getText());
                     } else if (currentTag.equals("a:Manufacturer")) {
                         newPart.setManufacturer(parser.getText());
                     } else if (currentTag.equals("a:Model")) {
                        newPart.setModel(parser.getText());
-                    }else if(currentTag.equals("a:NumberAndDescription>")){
+                    }else if(currentTag.equals("a:NumberAndDescription")){
                         newPart.setNumberAndDescription(parser.getText());
                     }else if(currentTag.equals("a:PartID")){
                         Integer id=Integer.parseInt(parser.getText());
@@ -172,6 +186,9 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
                     }else if(currentTag.equals("b:int")){
                         Integer id=Integer.parseInt(parser.getText());
                         subCategoryIds.add(id);
+                    }else if(currentTag.equals("a:CategoryID")){
+                        Integer id=Integer.parseInt(parser.getText());
+                        newPart.setCategoryId(id);
                     }
                 }
 
