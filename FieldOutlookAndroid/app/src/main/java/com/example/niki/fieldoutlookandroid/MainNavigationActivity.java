@@ -185,11 +185,19 @@ public class MainNavigationActivity extends AppCompatActivity
             fragmentTransaction.replace(R.id.fragment_container, availableJobFragment, getString(R.string.AvailableJobs)).addToBackStack("Available Jobs");
             fragmentTransaction.commit();
         }else if(id==R.id.nav_pricebook_view){
-            toolbar.setTitle("Pricebook");
+//            toolbar.setTitle("Pricebook");
+//            android.app.FragmentManager fragmentManager= getFragmentManager();
+//            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+//            PricebookFragment pricebookFragment= new PricebookFragment();
+//            fragmentTransaction.replace(R.id.fragment_container, pricebookFragment, getString(R.string.Pricebook)).addToBackStack("Pricebook");
+//            fragmentTransaction.commit();
             android.app.FragmentManager fragmentManager= getFragmentManager();
             android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-            PricebookFragment pricebookFragment= new PricebookFragment();
-            fragmentTransaction.replace(R.id.fragment_container, pricebookFragment, getString(R.string.Pricebook)).addToBackStack("Pricebook");
+            PartListFragment partListFragment=new PartListFragment();
+            Bundle b=new Bundle();
+            b.putParcelableArrayList("categories-given",null);
+            partListFragment.setArguments(b);
+            fragmentTransaction.replace(R.id.fragment_container, partListFragment, "PartList").addToBackStack("PartList");
             fragmentTransaction.commit();
         }else if(id==R.id.nav_edit_timekeeping){
             toolbar.setTitle("Timekeeping");
@@ -225,11 +233,7 @@ public class MainNavigationActivity extends AppCompatActivity
             progressDialog.isIndeterminate();
             progressDialog.setMessage("Getting Work Orders");
             progressDialog.show();
-//            Intent i=new Intent(this, AssignedJobServiceHelper.class);
-//            AssignedJobReciever reciever=new AssignedJobReciever(new Handler());
-//            reciever.setListener(this);
-//            i.putExtra("rec", reciever);
-//            startService(i);
+
             AssignedJobsAsyncTask assignedJobsAsyncTask=new AssignedJobsAsyncTask(new AssignedJobsAsyncTask.AssignedJobsResponse(){
 
                 @Override
@@ -242,12 +246,7 @@ public class MainNavigationActivity extends AppCompatActivity
             ArrayList<WorkOrder> silly=new ArrayList<>();
 
             assignedJobsAsyncTask.execute((String)null);
-//
-//            Intent timeentryintent=new Intent(this, TimeEntryTypeServiceHelper.class);
-//            TimeEntryTypeReciever timeEntryTypeReciever=new TimeEntryTypeReciever(new Handler());
-//            timeEntryTypeReciever.setListener(this);
-//            timeentryintent.putExtra("rec", timeEntryTypeReciever);
-//            startService(timeentryintent);
+
             String lastRefreshDateString=dbHelper.GetLastRefreshDate();
             Date lastRefreshDate= new Date();
             if(lastRefreshDateString!=null) {

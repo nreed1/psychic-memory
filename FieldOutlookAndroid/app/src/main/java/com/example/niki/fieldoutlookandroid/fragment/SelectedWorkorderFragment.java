@@ -1,24 +1,26 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.NotificationHelper;
 import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.UnassignAsyncTask;
@@ -104,10 +106,13 @@ public class SelectedWorkorderFragment extends Fragment {
                         public void processFinish(Boolean result) {
                             if (result) {
                                 NotificationHelper.NotifyUser(getActivity(), "Unassign Successful");
+                                DBHelper dbHelper=new DBHelper(getActivity());
+                                dbHelper.DeleteWorkOrderById(selectedWorkOrder.getWorkOrderId());
                             }
                         }
                     }, getActivity());
                     unassignAsyncTask.execute(selectedWorkOrder.getWorkOrderId());
+
                 }
                 return true;
             default:
@@ -125,7 +130,25 @@ public class SelectedWorkorderFragment extends Fragment {
 
         TextView workOrderDescription=(TextView)view.findViewById(R.id.descriptionTextView);
         workOrderDescription.setText(selectedWorkOrder.getDescription());
-        TextView workOrderNotes=(TextView)view.findViewById(R.id.notesTextView);
+        EditText workOrderNotes=(EditText) view.findViewById(R.id.notesEditTextView);
+        workOrderNotes.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                selectedWorkOrder.setNotes(s.toString());
+                DBHelper dbHelper=new DBHelper(getActivity());
+                dbHelper.SaveWorkOrder(selectedWorkOrder);
+            }
+        });
         workOrderNotes.setText(selectedWorkOrder.getNotes());
         if(selectedWorkOrder.getPerson()!=null) {
             TextView workOrderCustomer = (TextView) view.findViewById(R.id.customerNameTextView);
@@ -137,27 +160,31 @@ public class SelectedWorkorderFragment extends Fragment {
         }
 
         ProgressBar progressBar =(ProgressBar)view.findViewById(R.id.progressBar);
-        if(selectedWorkOrder.getTotalHoursForJob()==0){
-            selectedWorkOrder.setTotalHoursForJob(100);
-        }
-        progressBar.setMax(selectedWorkOrder.getTotalHoursForJob());
+        if(selectedWorkOrder.getJobTime()!=null) {
+            progressBar.setMax(selectedWorkOrder.getJobTime().getProjectedHours());
+            progressBar.setProgress(selectedWorkOrder.getJobTime().getActualHours());
 
-        if(selectedWorkOrder.getHoursWorkedOnJob()==0){
-            selectedWorkOrder.setHoursWorkedOnJob(40);
-        }
-        progressBar.setProgress(selectedWorkOrder.getHoursWorkedOnJob());
+//        if(selectedWorkOrder.getTotalHoursForJob()==0){
+//            selectedWorkOrder.setTotalHoursForJob(100);
+//        }
+//        progressBar.setMax(selectedWorkOrder.getTotalHoursForJob());
 
-        TextView progressBarTextView=(TextView) view.findViewById(R.id.progressBarTextView);
-        progressBarTextView.setText(selectedWorkOrder.getHoursWorkedOnJob()+" hours / "+selectedWorkOrder.getTotalHoursForJob()+" hours");
-        if(selectedWorkOrder.getHoursWorkedOnJob()>selectedWorkOrder.getTotalHoursForJob()){
-            //ColorStateList colorStateList=ColorStateList.valueOf(Color.argb(255,216,83,83));
-            progressBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.DARKEN);
+//        if(selectedWorkOrder.getHoursWorkedOnJob()==0){
+//            selectedWorkOrder.setHoursWorkedOnJob(40);
+//        }
+//        progressBar.setProgress(selectedWorkOrder.getHoursWorkedOnJob());
 
-        }
-        else if(((double)selectedWorkOrder.getHoursWorkedOnJob()/selectedWorkOrder.getTotalHoursForJob())>=0.50){
-            progressBar.getProgressDrawable().setColorFilter(Color.YELLOW, PorterDuff.Mode.DARKEN);
-        }else {
-            progressBar.getProgressDrawable().setColorFilter(Color.argb(255,154,219,233), PorterDuff.Mode.DARKEN);
+            TextView progressBarTextView = (TextView) view.findViewById(R.id.progressBarTextView);
+            progressBarTextView.setText(selectedWorkOrder.getJobTime().getActualHours() + " hours / " + selectedWorkOrder.getJobTime().getProjectedHours() + " hours");
+            if (selectedWorkOrder.getJobTime().getActualHours() > selectedWorkOrder.getJobTime().getProjectedHours()) {
+                //ColorStateList colorStateList=ColorStateList.valueOf(Color.argb(255,216,83,83));
+                progressBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.ADD);
+
+            } else if (((double) selectedWorkOrder.getJobTime().getActualHours() / selectedWorkOrder.getJobTime().getProjectedHours()) >= 0.50) {
+                progressBar.getProgressDrawable().setColorFilter(Color.YELLOW, PorterDuff.Mode.ADD);
+            } else {
+                progressBar.getProgressDrawable().setColorFilter(Color.argb(255, 154, 219, 233), PorterDuff.Mode.ADD);
+            }
         }
         return view;
     }

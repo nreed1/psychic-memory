@@ -5,9 +5,11 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.Address;
+import com.example.niki.fieldoutlookandroid.businessobjects.JobTime;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.TokenHelper;
@@ -60,8 +62,9 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
             Person customer=new Person();
             Address address=new Address();
             customer.setAddress(address);
-            ArrayList<Part> partList= new ArrayList<>();
-            Part newPart=new Part();
+            ArrayList<WorkOrderPart> partList= new ArrayList<>();
+            WorkOrderPart newPart=new WorkOrderPart();
+            JobTime jobTime=new JobTime();
             while (event != XmlPullParser.END_DOCUMENT) {
                 tagName = parser.getName();
 
@@ -74,11 +77,13 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
                                 newWorkOrder.setPerson(customer);
                             }
                             newWorkOrder.setPartList(partList);
+                            newWorkOrder.setJobTime(jobTime);
                             assignedWorkOrders.add(newWorkOrder);
                         }
                         newWorkOrder = new WorkOrder();
-                        newPart=new Part();
+                        newPart=new WorkOrderPart();
                         partList=new ArrayList<>();
+                        jobTime=new JobTime();
                     }else if (currentTag.equals("a:Customer")) {
                         customer=new Person();
                         address=new Address();
@@ -87,7 +92,7 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
                         if(newPart!=new Part() && newPart.getPartId()>0){
                             partList.add(newPart);
                         }
-                        newPart=new Part();
+                        newPart=new WorkOrderPart();
                     }
                 } else if (event == XmlPullParser.TEXT) {
                     if (currentTag.equals("a:Name")) {
@@ -160,8 +165,19 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
                         Integer id=Integer.parseInt(parser.getText());
                         newPart.setCategoryId(id);
                     }else if(currentTag.equals("a:Quantity")){
-                        Integer amount=Integer.parseInt(parser.getText());
-                        newPart.setQuantity(amount);
+                        if(parser.getText()!=null && !parser.getText().isEmpty()) {
+                            Integer amount = Integer.parseInt(parser.getText());
+                            newPart.setQuantity(amount);
+                        }
+                    }else if(currentTag.equals("a:ActualHours")){
+                        Integer actualHours=Integer.parseInt(parser.getText());
+                        jobTime.setActualHours(actualHours);
+                    }else if(currentTag.equals("a:JobID")){
+                        Integer jobId=Integer.parseInt(parser.getText());
+                        jobTime.setJobId(jobId);
+                    }else if(currentTag.equals("a:ProjectedHours")){
+                        Integer projectedHours=Integer.parseInt(parser.getText());
+                        jobTime.setProjectedHours(projectedHours);
                     }
                 }
                 event = parser.next();

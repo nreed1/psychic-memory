@@ -1,28 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:weightSum="1">
-    <LinearLayout
-        android:layout_width="match_parent"
-         android:orientation="horizontal"
-         android:layout_height="wrap_content">
+    android:weightSum="1"
+    android:minHeight="70dp">
+    <!--<LinearLayout-->
+        <!--android:layout_width="match_parent"-->
+         <!--android:orientation="horizontal"-->
+         <!--android:layout_height="match_parent"-->
+        <!--android:layout_gravity="center_vertical">-->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="left"
+            android:layout_gravity="left|center"
             android:text="Part Name and Description"
             android:layout_weight=".5"
             android:id="@+id/workOrderPartListNameAndDescription"
-             />
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large" />
 
         <NumberPicker
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:minHeight="20dp"
             android:id="@+id/workOrderPartListQuantity"
             
-            android:layout_weight=".5" />
+            android:layout_weight=".5"
+            android:orientation="horizontal" />
 
-    </LinearLayout>
+    <!--</LinearLayout>-->
 
 </LinearLayout>

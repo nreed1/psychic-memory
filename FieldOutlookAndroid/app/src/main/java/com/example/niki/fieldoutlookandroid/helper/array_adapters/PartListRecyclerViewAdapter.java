@@ -2,7 +2,10 @@ package com.example.niki.fieldoutlookandroid.helper.array_adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
@@ -19,14 +22,16 @@ import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyIte
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
  * specified {@link PartListFragment.OnPartListFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRecyclerViewAdapter.ViewHolder> implements Filterable {
+public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRecyclerViewAdapter.ViewHolder> implements Filterable, View.OnCreateContextMenuListener {
 
     private List<PartCategory> mValues;
     private List<Part> mParts;
@@ -72,9 +77,12 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
                 holder.categoryName.setText(holder.mItem.getName());
                 holder.iconImageView.setImageResource(R.mipmap.ic_add);
             }else{
-                holder.mPart = mParts.get(position-mValues.size());
-                holder.categoryName.setText(holder.mPart.getNumberAndDescription());
-                holder.iconImageView.setImageResource(R.mipmap.ic_wrench);
+                if(mValues!=null) {
+                    holder.mPart = mParts.get(position - mValues.size());
+                    holder.categoryName.setText(holder.mPart.getNumberAndDescription());
+                    holder.iconImageView.setImageResource(R.mipmap.ic_wrench);
+                    holder.partPrice.setText(Currency.getInstance(Locale.getDefault()).getSymbol() + holder.mPart.getPrice());
+                }
             }
 
         }else {
@@ -82,6 +90,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
                 holder.mPart = mParts.get(position);
                 holder.categoryName.setText(holder.mPart.getNumberAndDescription());
                 holder.iconImageView.setImageResource(R.mipmap.ic_wrench);
+                holder.partPrice.setText(Currency.getInstance(Locale.getDefault()).getSymbol()+holder.mPart.getPrice());
             } else {
                 holder.iconImageView.setImageResource(R.mipmap.ic_add);
                 holder.mItem = mValues.get(position);
@@ -133,7 +142,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
 
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
-                List<Part> filteredResults = null;
+
                 FilterResults results = new FilterResults();
                 if (constraint.length() == 0) {
                     results.values = dbHelper.GetPartCategoryList(-100);
@@ -159,6 +168,14 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         return results;
     }
 
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        menu.setHeaderTitle("Part Menu");
+        menu.add(0,v.getId(),0,"Add to Work Order");
+
+    }
+
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
 //        public final TextView mIdView;
@@ -167,15 +184,18 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         public Part mPart;
         public final ImageView iconImageView;
         public final TextView categoryName;
+        public final TextView partPrice;
 
 
         public ViewHolder(View view) {
             super(view);
             mView = view;
+            //view.setOnCreateContextMenuListener(this);
 //            mIdView = (TextView) view.findViewById(R.id.id);
 //            mContentView = (TextView) view.findViewById(R.id.content);
             iconImageView=(ImageView)view.findViewById(R.id.partCategoryImage);
             categoryName=(TextView)view.findViewById(R.id.categoryTextView);
+            partPrice=(TextView)view.findViewById(R.id.partPriceTextView);
         }
 
 

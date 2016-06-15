@@ -35,7 +35,8 @@ public class WorkOrder implements Serializable, Parcelable {
     private int TotalHoursForJob;
     private int HoursWorkedOnJob;
     private int IsCompleted;
-    private ArrayList<Part> PartList;
+    private ArrayList<WorkOrderPart> PartList;
+    private JobTime JobTime;
 
     public int getJobId() {
         return JobId;
@@ -50,7 +51,7 @@ public class WorkOrder implements Serializable, Parcelable {
     }
 
     public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob, String whereBilled, String notes,
-                     Person person, int totalHoursForJob, int hoursWorkedOnJob, int jobId, int isCompleted){
+                     Person person, int totalHoursForJob, int hoursWorkedOnJob, int jobId, int isCompleted, ArrayList<WorkOrderPart> partList, JobTime jobTime){
 
         this.setWorkOrderId(workOrderId);
         this.setWorkOrderTypeId(workOrderTypeId);
@@ -68,6 +69,8 @@ public class WorkOrder implements Serializable, Parcelable {
         this.setHoursWorkedOnJob(hoursWorkedOnJob);
         this.setJobId(jobId);
         this.setIsCompleted(isCompleted);
+        this.setPartList(partList);
+        this.setJobTime(jobTime);
     }
 
     public int getTotalHoursForJob() {
@@ -208,12 +211,21 @@ public class WorkOrder implements Serializable, Parcelable {
         IsCompleted = isCompleted;
     }
 
-    public ArrayList<Part> getPartList() {
+    public ArrayList<WorkOrderPart> getPartList() {
         return PartList;
     }
 
-    public void setPartList(ArrayList<Part> partList) {
+    public void setPartList(ArrayList<WorkOrderPart> partList) {
         PartList = partList;
+    }
+
+
+    public com.example.niki.fieldoutlookandroid.businessobjects.JobTime getJobTime() {
+        return JobTime;
+    }
+
+    public void setJobTime(com.example.niki.fieldoutlookandroid.businessobjects.JobTime jobTime) {
+        JobTime = jobTime;
     }
 
     @Override
@@ -237,6 +249,7 @@ public class WorkOrder implements Serializable, Parcelable {
         dest.writeString(getNotes());
         dest.writeInt(getIsCompleted());
         dest.writeList(getPartList());
+        dest.writeParcelable(getJobTime(),0);
     }
     public static  final Creator<WorkOrder> CREATOR= new Creator<WorkOrder>() {
         @Override
@@ -252,7 +265,8 @@ public class WorkOrder implements Serializable, Parcelable {
             workOrder.WhereBilled=source.readString();
             workOrder.Notes=source.readString();
             workOrder.IsCompleted=source.readInt();
-            workOrder.PartList=source.readArrayList(Part.class.getClassLoader());
+            workOrder.PartList=source.readArrayList(WorkOrderPart.class.getClassLoader());
+            workOrder.JobTime=source.readParcelable(com.example.niki.fieldoutlookandroid.businessobjects.JobTime.class.getClassLoader());
             return workOrder;
         }
 

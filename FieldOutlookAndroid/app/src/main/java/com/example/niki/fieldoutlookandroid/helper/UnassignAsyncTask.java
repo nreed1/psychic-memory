@@ -43,6 +43,7 @@ public class UnassignAsyncTask extends AsyncTask<Integer, Void, Boolean> {
             con.setRequestMethod("GET");
             con.connect();
             InputStream is = con.getInputStream();
+
             return true;
         }catch(Exception ex){
             ExceptionHelper.LogException(context,ex);

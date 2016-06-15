@@ -94,7 +94,7 @@ public class WorkOrderPartFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new WorkOrderPartRecyclerViewAdapter(selectedWorkOrder, mListener));
+            recyclerView.setAdapter(new WorkOrderPartRecyclerViewAdapter(selectedWorkOrder, mListener,getActivity()));
         }
         return view;
     }

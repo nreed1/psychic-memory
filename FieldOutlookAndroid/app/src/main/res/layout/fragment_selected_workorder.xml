@@ -81,10 +81,10 @@
             android:padding="5dp"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="Notes:"/>
-        <TextView
+        <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/notesTextView"
+            android:id="@+id/notesEditTextView"
             android:padding="5dp"
             android:text="These are workorder notes.\n\n Noting things."
             android:background="@drawable/abc_ab_share_pack_mtrl_alpha" />

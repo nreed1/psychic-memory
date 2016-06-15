@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.FOException;
+import com.example.niki.fieldoutlookandroid.businessobjects.JobTime;
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
@@ -15,11 +16,13 @@ import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
 import java.io.File;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.StringTokenizer;
 
@@ -53,6 +56,9 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String WORKORDER_TOTALHOURSFORJOB="totalhoursalotted";
     public static final String WORKORDER_HOURSWORKED="hoursworked";
     public static final String WORKORDER_ISCOMPLETED="iscompleted";
+    public static final String WORKORDER_JOBID="jobid";
+    public static final String WORKORDER_PROJECTEDHOURS="projectedhours";
+    public static final String WORKORDER_ACTUALHOURS="actualhours";
 
     public static final String TABLE_OTHERTASKS="othertasks";
     public static final String OTHERTASKS_ID="id";
@@ -128,6 +134,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String WORKORDERPART_ID="id";
     public static final String WORKORDERPART_WORKORDERID="workorderid";
     public static final String WORKORDERPART_PARTID="partid";
+    public static final String WORKORDERPART_QUANTITY="quantity";
 
     SQLiteDatabase db;
 
@@ -154,7 +161,8 @@ private void create(){
         //#start workorder
             db.execSQL("create table if not exists workorder (id integer primary key, workorderid integer, companyid integer, personid integer, name text, description text, " +
                     "arrivaltime string, estimatedduration real," +
-                    "costofjob real, wherebilled text, notes text, workordertypeid integer, totalhoursalotted integer, hoursworked integer, iscompleted integer)");
+                    "costofjob real, wherebilled text, notes text, workordertypeid integer, totalhoursalotted integer, hoursworked integer, iscompleted integer, jobid integer, " +
+                    "projectedhours integer, actualhours integer)");
         //#end workorder
 
         //#start other tasks
@@ -182,7 +190,7 @@ private void create(){
         //#end partcategoryhierarchy
 
         //#start workorderpart
-        db.execSQL("create table if not exists workorderpart (id integer primary key, workorderid integer, partid integer)");
+        db.execSQL("create table if not exists workorderpart (id integer primary key, workorderid integer, partid integer, quantity integer)");
         //#end workorderpart
 
     }
@@ -378,7 +386,7 @@ private void create(){
                 part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
                 part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
                 part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
-                part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
+               // part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
                 return part;
 
             }
@@ -414,7 +422,7 @@ private void create(){
                 part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
                 part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
                 part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
-                part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
+               // part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
                 partList.add(part);
                 res.moveToNext();
 
@@ -446,7 +454,7 @@ private void create(){
                 part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
                 part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
                 part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
-                part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
+               // part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
                 parts.add(part);
                 res.moveToNext();
 
@@ -473,7 +481,7 @@ private void create(){
         contentValues.put(PART_PARTTYPEID,part.getPartTypeId());
         contentValues.put(PART_PRICE,part.getPrice());
         contentValues.put(PART_PRICEBOOKID,part.getPricebookId());
-        contentValues.put(PART_QUANTITY,part.getQuantity());
+      //  contentValues.put(PART_QUANTITY,part.getQuantity());
         db.insert(TABLE_PART,null, contentValues);
     }
 
@@ -590,23 +598,54 @@ private void create(){
         return true;
     }
 
+    public void DeleteWorkOrderById(int workOrderId){
+        db=getWritableDatabase();
+        db.rawQuery("delete from workorder where workorderid="+workOrderId,null);
+    }
+
+    private boolean WorkOrderExists(int workOrderId){
+        Cursor res=null;
+        try {
+            db = getReadableDatabase();
+            res=db.rawQuery("select workorderid from workorder where workorderid="+workOrderId,null);
+            res.moveToFirst();
+            if(!res.isAfterLast()){
+                return true;
+            }
+            return false;
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null) res.close();
+        }
+        return false;
+
+    }
 
     public void SaveWorkOrder(WorkOrder workOrder) {
         db = this.getWritableDatabase();
-        ContentValues contentValues=new ContentValues();
-        contentValues.put(WORKORDER_ID,workOrder.getWorkOrderId());
+        boolean workorderExists=WorkOrderExists(workOrder.getWorkOrderId());
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(WORKORDER_ID, workOrder.getWorkOrderId());
         contentValues.put(WORKORDER_ARRIVALTIME, workOrder.getArrivalTime());
-        contentValues.put(WORKORDER_COMPANYID,workOrder.getCompanyId());
+        contentValues.put(WORKORDER_COMPANYID, workOrder.getCompanyId());
         contentValues.put(WORKORDER_COSTOFJOB, workOrder.getCostOfJob());
         contentValues.put(WORKORDER_DESCRIPTION, workOrder.getDescription());
         contentValues.put(WORKORDER_NAME, workOrder.getName());
-        contentValues.put(WORKORDER_PERSONID,workOrder.getPersonId());
-        contentValues.put(WORKORDER_WHEREBILLED,workOrder.getWhereBilled());
-        contentValues.put(WORKORDER_ESTIMATEDDURATION,workOrder.getEstimatedDurationOfWork());
-        contentValues.put(WORKORDER_NOTES,workOrder.getNotes());
+        contentValues.put(WORKORDER_PERSONID, workOrder.getPersonId());
+        contentValues.put(WORKORDER_WHEREBILLED, workOrder.getWhereBilled());
+        contentValues.put(WORKORDER_ESTIMATEDDURATION, workOrder.getEstimatedDurationOfWork());
+        contentValues.put(WORKORDER_NOTES, workOrder.getNotes());
         contentValues.put(WORKORDER_TYPEID, workOrder.getWorkOrderTypeId());
-        db.insert(TABLE_WORKORDER,null, contentValues);
-        db.close();
+        if(workorderExists){
+            db.update(TABLE_WORKORDER,contentValues,WORKORDER_ID+"=?",new String[]{String.valueOf(workOrder.getWorkOrderId())});
+        }else {
+
+            db.insert(TABLE_WORKORDER, null, contentValues);
+            db.close();
+        }
 
     }
     public void SaveWorkOrderList(ArrayList<WorkOrder> workOrders){
@@ -629,6 +668,11 @@ private void create(){
             contentValues.put(WORKORDER_ESTIMATEDDURATION,workOrder.getEstimatedDurationOfWork());
             contentValues.put(WORKORDER_NOTES,workOrder.getNotes());
             contentValues.put(WORKORDER_TYPEID, workOrder.getWorkOrderTypeId());
+            if(workOrder.getJobTime()!=null && workOrder.getJobTime().getJobId()>0){
+                contentValues.put(WORKORDER_ACTUALHOURS,workOrder.getJobTime().getJobId());
+                contentValues.put(WORKORDER_PROJECTEDHOURS,workOrder.getJobTime().getProjectedHours());
+                contentValues.put(WORKORDER_ACTUALHOURS,workOrder.getJobTime().getActualHours());
+            }
             db.insert(TABLE_WORKORDER,null, contentValues);
 
         }
@@ -646,10 +690,11 @@ private void create(){
                 //public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob,
                 // String whereBilled, String notes,
                 //      Person person, int totalHoursForJob, int hoursWorkedOnJob)
+                JobTime jobTime=new JobTime(res.getInt(res.getColumnIndex(WORKORDER_JOBID)),res.getInt(res.getColumnIndex(WORKORDER_ACTUALHOURS)),res.getInt(res.getColumnIndex(WORKORDER_PROJECTEDHOURS)));
                 WorkOrder newWorkOrder=new WorkOrder(res.getInt(res.getColumnIndex(WORKORDER_ID)), res.getInt(res.getColumnIndex(WORKORDER_TYPEID)),res.getInt(res.getColumnIndex(WORKORDER_COMPANYID)), res.getInt(res.getColumnIndex(WORKORDER_PERSONID)),
                         res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
-                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0, res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)));
+                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0, res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)),GetWorkOrderPartList(res.getInt(res.getColumnIndex(WORKORDER_ID))),jobTime);
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 workOrders.add(newWorkOrder);
                 res.moveToNext();
@@ -674,10 +719,11 @@ private void create(){
                 //public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob,
                 // String whereBilled, String notes,
                   //      Person person, int totalHoursForJob, int hoursWorkedOnJob)
+                JobTime jobTime=new JobTime(res.getInt(res.getColumnIndex(WORKORDER_JOBID)),res.getInt(res.getColumnIndex(WORKORDER_ACTUALHOURS)),res.getInt(res.getColumnIndex(WORKORDER_PROJECTEDHOURS)));
                 WorkOrder newWorkOrder=new WorkOrder(res.getInt(res.getColumnIndex(WORKORDER_ID)), res.getInt(res.getColumnIndex(WORKORDER_TYPEID)),res.getInt(res.getColumnIndex(WORKORDER_COMPANYID)), res.getInt(res.getColumnIndex(WORKORDER_PERSONID)),
                         res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
-                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0,res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)));
+                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0,res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)),null,jobTime);
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 newWorkOrder.setPartList(GetWorkOrderPartList(newWorkOrder.getWorkOrderId()));
                 workOrders.add(newWorkOrder);
@@ -948,15 +994,16 @@ private void create(){
         return new ArrayList<>();
     }
 
-    public void SaveWorkOrderPartList(int workorderId, ArrayList<Part> parts){
+    public void SaveWorkOrderPartList(int workorderId, ArrayList<WorkOrderPart> parts){
         Cursor res=null;
         try{
             DeleteAllPartsFromWorkOrder(workorderId);
-            for (Part part:parts) {
+            for (WorkOrderPart part:parts) {
                 if(GetPartById(part.getPartId())==null ){
                     SavePart(part);
                 }
-                SaveWorkOrderPart(workorderId, part.getPartId());
+                //int quantity= Collections.frequency(parts,part);
+                SaveWorkOrderPart(workorderId, part.getPartId(),part.getQuantity());
 
             }
         }catch (Exception ex){
@@ -966,27 +1013,41 @@ private void create(){
         }
     }
 
+    public void UpdateWorkOrderPartQuantity(int workOrderId, int partId, int newQuantity){
+        Cursor res=null;
+        try{
+            db=getWritableDatabase();
+            res=db.rawQuery("update workorderpart set quantity="+newQuantity+" where workorderid="+workOrderId+" and partid="+partId,null);
+            res.moveToFirst();
+        }
+        catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null) res.close();
+        }
+    }
 
-    public void SaveWorkOrderPart(int workorderId, int partId){
+    public void SaveWorkOrderPart(int workorderId, int partId, int quantity){
         try{
             db=getReadableDatabase();
             ContentValues contentValues=new ContentValues();
             contentValues.put(WORKORDERPART_WORKORDERID,workorderId);
             contentValues.put(WORKORDERPART_PARTID, partId);
+            contentValues.put(WORKORDERPART_QUANTITY,quantity);
             db.insert(TABLE_WORKORDERPART,null, contentValues);
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
         }
     }
-    public ArrayList<Part> GetWorkOrderPartList(int workorderid){
+    public ArrayList<WorkOrderPart> GetWorkOrderPartList(int workorderid){
         Cursor res=null;
         try{
-            ArrayList<Part> partList=new ArrayList<>();
+            ArrayList<WorkOrderPart> partList=new ArrayList<>();
             db=getWritableDatabase();
-            res= db.rawQuery("select partid from "+TABLE_WORKORDERPART+" where workorderid="+workorderid,null);
+            res= db.rawQuery("select * from "+TABLE_WORKORDERPART+" where workorderid="+workorderid,null);
             res.moveToFirst();
             while(res.isAfterLast()==false){
-                Part newPart=GetPartById(res.getInt(0));
+                WorkOrderPart newPart=new WorkOrderPart(GetPartById(res.getInt(res.getColumnIndex(WORKORDERPART_PARTID))),res.getInt(res.getColumnIndex(WORKORDERPART_QUANTITY)));
                 if(newPart!=null){
                     partList.add(newPart);
                 }

@@ -1,5 +1,6 @@
 package com.example.niki.fieldoutlookandroid.helper.array_adapters;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +12,10 @@ import com.example.niki.fieldoutlookandroid.R;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
 import com.example.niki.fieldoutlookandroid.fragment.WorkOrderPartFragment;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 
 import java.util.ArrayList;
 
@@ -25,10 +28,12 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
 
     private final WorkOrder mValues;
     private final WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener mListener;
+    private final Context context;
 
-    public WorkOrderPartRecyclerViewAdapter(WorkOrder items, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener listener) {
+    public WorkOrderPartRecyclerViewAdapter(WorkOrder items, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener listener, Context context) {
         mValues = items;
         mListener = listener;
+        this.context=context;
     }
 
     @Override
@@ -44,10 +49,28 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
         if(mValues.getPartList().get(position).getNumberAndDescription()!=null && !mValues.getPartList().get(position).getNumberAndDescription().isEmpty()) {
             holder.mNumberandDescription.setText(mValues.getPartList().get(position).getNumberAndDescription());
         }else{
-            holder.mNumberandDescription.setText(mValues.getPartList().get(position).getPartNumber()+"-"+mValues.getPartList().get(position).getDescription());
+            String partNumber=mValues.getPartList().get(position).getPartNumber();
+            if(partNumber!=null &&!partNumber.isEmpty()) {
+                holder.mNumberandDescription.setText(mValues.getPartList().get(position).getPartNumber() + "-" + mValues.getPartList().get(position).getDescription());
+            }else{
+                holder.mNumberandDescription.setText( mValues.getPartList().get(position).getDescription());
+            }
         }
+        //holder.mQuantity.setDisplayedValues(null);
         holder.mQuantity.setMinValue(0);
+        holder.mQuantity.setMaxValue(1000);
+        holder.mQuantity.setFocusableInTouchMode(true);
+        holder.mQuantity.setWrapSelectorWheel(true);
+        //holder.mQuantity.sele
         holder.mQuantity.setValue(mValues.getPartList().get(position).getQuantity());
+        holder.mQuantity.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+                holder.mItem.setQuantity(newVal);
+                DBHelper dbHelper=new DBHelper(context);
+                dbHelper.UpdateWorkOrderPartQuantity(mValues.getWorkOrderId(),holder.mItem.getPartId(),newVal);
+            }
+        });
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,7 +87,7 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
     @Override
     public int getItemCount() {
         if(mValues.getPartList()==null) {
-            mValues.setPartList(new ArrayList<Part>());
+            mValues.setPartList(new ArrayList<WorkOrderPart>());
         }
         return mValues.getPartList().size();
     }
@@ -73,7 +96,7 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
         public final View mView;
         public final TextView mNumberandDescription;
         public final NumberPicker mQuantity;
-        public Part mItem;
+        public WorkOrderPart mItem;
 
         public ViewHolder(View view) {
             super(view);
