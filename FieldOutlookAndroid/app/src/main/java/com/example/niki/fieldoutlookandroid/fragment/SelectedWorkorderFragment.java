@@ -1,6 +1,8 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -17,6 +19,9 @@ import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.helper.NotificationHelper;
+import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
+import com.example.niki.fieldoutlookandroid.helper.UnassignAsyncTask;
 
 import static com.example.niki.fieldoutlookandroid.R.menu.selected_workorder_menu;
 
@@ -35,6 +40,7 @@ public class SelectedWorkorderFragment extends Fragment {
 
     private WorkOrder selectedWorkOrder;
     private OnSelectedWorkOrderFragmentInteractionListener mListener;
+    private OnSelectedWorkOrderMenuItemInteractionListener menuItemInteractionListener;
     private Boolean showTimekeepingInformation=false;
 
     public SelectedWorkorderFragment() {
@@ -83,12 +89,26 @@ public class SelectedWorkorderFragment extends Fragment {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.arrivedAtSiteItem:
+                TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
 
+                timekeepingHelper.AddTimekeepingEntry(getActivity(),"arrived");
                 return true;
             case R.id.viewPartsList:
-                onButtonPressed("ViewParts");
+                menuItemInteractionListener.onSelectedWorkOrderMenuItemInteraction(selectedWorkOrder);
+               // onButtonPressed("ViewParts");
                 return true;
             case R.id.unassignWorkOrder:
+                if(selectedWorkOrder!=null) {
+                    UnassignAsyncTask unassignAsyncTask = new UnassignAsyncTask(new UnassignAsyncTask.UnassignDelegate() {
+                        @Override
+                        public void processFinish(Boolean result) {
+                            if (result) {
+                                NotificationHelper.NotifyUser(getActivity(), "Unassign Successful");
+                            }
+                        }
+                    }, getActivity());
+                    unassignAsyncTask.execute(selectedWorkOrder.getWorkOrderId());
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -164,7 +184,11 @@ public class SelectedWorkorderFragment extends Fragment {
         super.onAttach(activity);
         if (activity instanceof OnSelectedWorkOrderFragmentInteractionListener) {
             mListener = (OnSelectedWorkOrderFragmentInteractionListener) activity;
-        } else {
+        }
+        if(activity instanceof OnSelectedWorkOrderMenuItemInteractionListener){
+            menuItemInteractionListener=(OnSelectedWorkOrderMenuItemInteractionListener)activity;
+        }
+        else {
             throw new RuntimeException(activity.toString()
                     + " must implement OnStartDayFragmentInteractionListener");
         }
@@ -189,5 +213,8 @@ public class SelectedWorkorderFragment extends Fragment {
     public interface OnSelectedWorkOrderFragmentInteractionListener {
         // TODO: Update argument type and name
         void onSelectedWorkOrderFragmentInteraction(String uri);
+    }
+    public interface OnSelectedWorkOrderMenuItemInteractionListener{
+        void onSelectedWorkOrderMenuItemInteraction(WorkOrder selectedWorkorder);
     }
 }

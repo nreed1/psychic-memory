@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.Address;
+import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
@@ -59,6 +60,8 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
             Person customer=new Person();
             Address address=new Address();
             customer.setAddress(address);
+            ArrayList<Part> partList= new ArrayList<>();
+            Part newPart=new Part();
             while (event != XmlPullParser.END_DOCUMENT) {
                 tagName = parser.getName();
 
@@ -70,22 +73,34 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
                             if(customer!=new Person() && customer.getPersonId()!=0){
                                 newWorkOrder.setPerson(customer);
                             }
+                            newWorkOrder.setPartList(partList);
                             assignedWorkOrders.add(newWorkOrder);
                         }
                         newWorkOrder = new WorkOrder();
+                        newPart=new Part();
+                        partList=new ArrayList<>();
                     }else if (currentTag.equals("a:Customer")) {
-//                        if(customer!=new Person() && customer.getPersonId()!=0){
-//                            newWorkOrder.setPerson(customer);
-//                        }
                         customer=new Person();
                         address=new Address();
                         customer.setAddress(address);
+                    }else if(currentTag.equals("a:Part")){
+                        if(newPart!=new Part() && newPart.getPartId()>0){
+                            partList.add(newPart);
+                        }
+                        newPart=new Part();
                     }
                 } else if (event == XmlPullParser.TEXT) {
                     if (currentTag.equals("a:Name")) {
-                        newWorkOrder.setName(parser.getText());
+                        if(newWorkOrder.getName()==null ||newWorkOrder.getName().isEmpty()){
+                            newWorkOrder.setName(parser.getText());
+                        }
+
                     } else if (currentTag.equals("a:Description")) {
-                        newWorkOrder.setDescription(parser.getText());
+                        if(newWorkOrder.getDescription()==null|| newWorkOrder.getDescription().isEmpty()) {
+                            newWorkOrder.setDescription(parser.getText());
+                        }else if(newPart.getDescription()==null ||newPart.getDescription().isEmpty()){
+                            newPart.setDescription(parser.getText());
+                        }
                     } else if (currentTag.equals("a:Notes")) {
                         newWorkOrder.setNotes(parser.getText());
                     } else if (currentTag.equals("a:WhereBilled")) {
@@ -119,15 +134,39 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
                         customer.getAddress().setUnitNumber(parser.getText());
                     }else if(currentTag.equals("a:ZipCode")){
                         customer.getAddress().setZipCode(parser.getText());
+                    }else if (currentTag.equals("a:Description")) {
+                        newPart.setDescription(parser.getText());
+                    } else if (currentTag.equals("a:Manufacturer")) {
+                        newPart.setManufacturer(parser.getText());
+                    } else if (currentTag.equals("a:Model")) {
+                        newPart.setModel(parser.getText());
+                    }else if(currentTag.equals("a:NumberAndDescription")){
+                        newPart.setNumberAndDescription(parser.getText());
+                    }else if(currentTag.equals("a:PartID")){
+                        Integer id=Integer.parseInt(parser.getText());
+                        newPart.setPartId(id);
+                    }else if(currentTag.equals("a:PartNumber")){
+                        newPart.setPartNumber(parser.getText());
+                    }else if(currentTag.equals("a:PartTypeID")){
+                        Integer id=Integer.parseInt(parser.getText());
+                        newPart.setPartTypeId(id);
+                    }else if(currentTag.equals("a:PriceBookID")){
+                        Integer id=Integer.parseInt(parser.getText());
+                        newPart.setPricebookId(id);
+                    }else if(currentTag.equals("a:PriceA")){
+                        Double price=Double.parseDouble(parser.getText());
+                        newPart.setPrice(price);
+                    }else if(currentTag.equals("a:CategoryID")){
+                        Integer id=Integer.parseInt(parser.getText());
+                        newPart.setCategoryId(id);
+                    }else if(currentTag.equals("a:Quantity")){
+                        Integer amount=Integer.parseInt(parser.getText());
+                        newPart.setQuantity(amount);
                     }
                 }
-
                 event = parser.next();
-
             }
-            Bundle b = new Bundle();
-           // b.putParcelableArrayList("assignedWorkOrders", assignedWorkOrders);
-            //rec.send(0, b);
+
             return assignedWorkOrders;
         } catch (Exception ex) {
             ex.printStackTrace();

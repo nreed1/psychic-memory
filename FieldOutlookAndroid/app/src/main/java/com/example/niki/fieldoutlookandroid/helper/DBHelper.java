@@ -124,6 +124,11 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String PARTCATEGORYHIERARCHY_CATEGORYID="partcategoryid";
     public static final String PARTCATEGORYHIERARCHY_SUBCATEGORYID="subcategoryid";
 
+    public static final String TABLE_WORKORDERPART="workorderpart";
+    public static final String WORKORDERPART_ID="id";
+    public static final String WORKORDERPART_WORKORDERID="workorderid";
+    public static final String WORKORDERPART_PARTID="partid";
+
     SQLiteDatabase db;
 
     Context ctx;
@@ -175,6 +180,10 @@ private void create(){
         //#start partcategoryhierarchy
             db.execSQL("create table if not exists partcategoryhierarchy (id integer primary key, partcategoryid integer, subcategoryid integer)");
         //#end partcategoryhierarchy
+
+        //#start workorderpart
+        db.execSQL("create table if not exists workorderpart (id integer primary key, workorderid integer, partid integer)");
+        //#end workorderpart
 
     }
 
@@ -377,8 +386,9 @@ private void create(){
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
         }finally {
-            if(res!=null)
+            if(res!=null) {
                 res.close();
+            }
         }
         return null;
     }
@@ -391,7 +401,7 @@ private void create(){
             res.moveToFirst();
             ArrayList<Part> partList = new ArrayList<>();
             Part part = null;
-            while (res.isAfterLast() == false) {
+            while (!res.isAfterLast()) {
 
                 part = new Part();
                 part.setPartId(res.getInt(res.getColumnIndex(PART_PARTID)));
@@ -417,7 +427,38 @@ private void create(){
         }
         return null;
     }
+    public ArrayList<Part> GetAllParts(){
+        Cursor res=null;
+        try{
+            ArrayList<Part> parts=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from part",null);
+            res.moveToFirst();
+            while(!res.isAfterLast()){
+                Part part = new Part();
+                part.setPartId(res.getInt(res.getColumnIndex(PART_PARTID)));
+                part.setCategoryId(res.getInt(res.getColumnIndex(PART_CATEGORYID)));
+                part.setPrice(res.getDouble(res.getColumnIndex(PART_PRICE)));
+                part.setPricebookId(res.getInt(res.getColumnIndex(PART_PRICEBOOKID)));
+                part.setPartTypeId(res.getInt(res.getColumnIndex(PART_PARTTYPEID)));
+                part.setDescription(res.getString(res.getColumnIndex(PART_DESCRIPTION)));
+                part.setManufacturer(res.getString(res.getColumnIndex(PART_MANUFACTURER)));
+                part.setModel(res.getString(res.getColumnIndex(PART_MODEL)));
+                part.setNumberAndDescription(res.getString(res.getColumnIndex(PART_NUMBERANDDESCRIPTION)));
+                part.setPartNumber(res.getString(res.getColumnIndex(PART_PARTNUMBER)));
+                part.setQuantity(res.getInt(res.getColumnIndex(PART_QUANTITY)));
+                parts.add(part);
+                res.moveToNext();
 
+            }
+            return parts;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return new ArrayList<>();
+    }
 
     public void SavePart(Part part){
         db=getWritableDatabase();
@@ -457,8 +498,7 @@ private void create(){
         try {
             db = getReadableDatabase();
             res = db.rawQuery("delete from " + TABLE_PARTCATEGORY, null);
-            if (res == null) return false;
-            return true;
+            return res != null;
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx, ex);
         }finally {
@@ -470,7 +510,7 @@ private void create(){
     /* *if TruncateFirst==true it truncates both the Part and PartCategory tables
     * */
     public void SavePartCategoryList(ArrayList<PartCategory> categories,Boolean truncatePartAndPartCategoryFirst){
-        if(truncatePartAndPartCategoryFirst==true){
+        if(truncatePartAndPartCategoryFirst){
             TruncatePartCategoryHierarchy();
             TruncateParts();
             TruncatePartCategory();
@@ -575,6 +615,9 @@ private void create(){
         for (WorkOrder workOrder:
                 workOrders) {
             SavePerson(workOrder.getPerson());
+            if(workOrder.getPartList()!=null && !workOrder.getPartList().isEmpty()) {
+                SaveWorkOrderPartList(workOrder.getWorkOrderId(), workOrder.getPartList());
+            }
             contentValues.put(WORKORDER_ID,workOrder.getWorkOrderId());
             contentValues.put(WORKORDER_ARRIVALTIME, workOrder.getArrivalTime());
             contentValues.put(WORKORDER_COMPANYID,workOrder.getCompanyId());
@@ -636,6 +679,7 @@ private void create(){
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
                         res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0,res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)));
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
+                newWorkOrder.setPartList(GetWorkOrderPartList(newWorkOrder.getWorkOrderId()));
                 workOrders.add(newWorkOrder);
                 res.moveToNext();
             }
@@ -902,6 +946,85 @@ private void create(){
             if(res!=null)res.close();
         }
         return new ArrayList<>();
+    }
+
+    public void SaveWorkOrderPartList(int workorderId, ArrayList<Part> parts){
+        Cursor res=null;
+        try{
+            DeleteAllPartsFromWorkOrder(workorderId);
+            for (Part part:parts) {
+                if(GetPartById(part.getPartId())==null ){
+                    SavePart(part);
+                }
+                SaveWorkOrderPart(workorderId, part.getPartId());
+
+            }
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+    }
+
+
+    public void SaveWorkOrderPart(int workorderId, int partId){
+        try{
+            db=getReadableDatabase();
+            ContentValues contentValues=new ContentValues();
+            contentValues.put(WORKORDERPART_WORKORDERID,workorderId);
+            contentValues.put(WORKORDERPART_PARTID, partId);
+            db.insert(TABLE_WORKORDERPART,null, contentValues);
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+    }
+    public ArrayList<Part> GetWorkOrderPartList(int workorderid){
+        Cursor res=null;
+        try{
+            ArrayList<Part> partList=new ArrayList<>();
+            db=getWritableDatabase();
+            res= db.rawQuery("select partid from "+TABLE_WORKORDERPART+" where workorderid="+workorderid,null);
+            res.moveToFirst();
+            while(res.isAfterLast()==false){
+                Part newPart=GetPartById(res.getInt(0));
+                if(newPart!=null){
+                    partList.add(newPart);
+                }
+                res.moveToNext();
+            }
+            return partList;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null) res.close();
+        }
+        return new ArrayList<>();
+    }
+    public boolean TruncateWorkOrderPartList(){
+        Cursor res=null;
+        try{
+            db=getReadableDatabase();
+            res= db.rawQuery("delete from "+TABLE_WORKORDERPART,null);
+            if(res==null) return false;
+            return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null) res.close();
+        }
+        return false;
+    }
+    public boolean DeleteAllPartsFromWorkOrder(int workorderid){
+        Cursor res=null;
+        try{
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null) res.close();
+        }
+        return false;
     }
 
 }

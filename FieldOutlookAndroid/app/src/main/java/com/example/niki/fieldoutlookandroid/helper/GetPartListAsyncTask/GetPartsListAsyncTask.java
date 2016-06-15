@@ -100,9 +100,7 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
                             }
 
                             if(newPart!=new Part() && newPart.getPartId()>0 && newPart.getCategoryId()==category.getPartCategoryId() && oneExtra==false ) parts.add(newPart);
-                            if(category.getPartCategoryId()==11472 ){
-                                Log.d("categoryid", String.valueOf(category.getPartCategoryId()));
-                            }
+
                             if(!parts.isEmpty()){
 
                                 category.setParts(parts);

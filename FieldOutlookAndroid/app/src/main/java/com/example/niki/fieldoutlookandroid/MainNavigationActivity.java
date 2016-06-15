@@ -38,6 +38,7 @@ import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimesheetReviewFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TravelToFragment;
+import com.example.niki.fieldoutlookandroid.fragment.WorkOrderPartFragment;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.example.niki.fieldoutlookandroid.helper.GetPartListAsyncTask.GetPartsListAsyncTask;
@@ -61,7 +62,10 @@ public class MainNavigationActivity extends AppCompatActivity
         PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
         QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener,  StartDayFragment.OnStartDayFragmentInteractionListener,
                     TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener,
-                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener,SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener, PartListFragment.OnPartListFragmentInteractionListener , PartListFragment.OnPartListPartFragmentInteractionListener{
+                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener,
+        SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener, PartListFragment.OnPartListFragmentInteractionListener ,
+        PartListFragment.OnPartListPartFragmentInteractionListener, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener,
+        WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -516,5 +520,36 @@ public class MainNavigationActivity extends AppCompatActivity
     @Override
     public void onPartListPartInteraction(Part item) {
         //TODO
+    }
+
+    @Override
+    public void onWorkOrderPartListFragmentInteraction(Part item) {
+
+    }
+
+    @Override
+    public void onWorkOrderPartMenuItemInteraction(WorkOrder selectedWorkOrder,MenuItem item) {
+        if(item.getItemId()==R.id.addPartToWorkOrderMenuItem){
+            android.app.FragmentManager fragmentManager= getFragmentManager();
+            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            PartListFragment partListFragment=new PartListFragment();
+            Bundle b=new Bundle();
+            b.putParcelableArrayList("categories-given",null);
+            partListFragment.setArguments(b);
+            fragmentTransaction.replace(R.id.fragment_container, partListFragment, "PartList").addToBackStack("PartList");
+            fragmentTransaction.commit();
+        }
+    }
+
+    @Override
+    public void onSelectedWorkOrderMenuItemInteraction(WorkOrder selectedWorkorder) {
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        WorkOrderPartFragment workOrderPartFragment=new WorkOrderPartFragment();
+        Bundle b=new Bundle();
+        b.putParcelable("selectedWorkOrder",selectedWorkorder);
+        workOrderPartFragment.setArguments(b);
+        fragmentTransaction.replace(R.id.fragment_container, workOrderPartFragment, "WorkOrderPartList").addToBackStack("WorkOrderPartList");
+        fragmentTransaction.commit();
     }
 }

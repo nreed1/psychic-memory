@@ -4,12 +4,18 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
@@ -18,6 +24,11 @@ import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.PartListRecyclerViewAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import static com.example.niki.fieldoutlookandroid.R.menu.action_searchable_menu;
+import static com.example.niki.fieldoutlookandroid.R.menu.part_list_menu;
+import static com.example.niki.fieldoutlookandroid.R.menu.selected_workorder_menu;
 
 /**
  * A fragment representing a list of Items.
@@ -25,7 +36,7 @@ import java.util.ArrayList;
  * Activities containing this fragment MUST implement the {@link OnPartListFragmentInteractionListener}
  * interface.
  */
-public class PartListFragment extends Fragment {
+public class PartListFragment extends Fragment implements SearchView.OnQueryTextListener {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -39,6 +50,10 @@ public class PartListFragment extends Fragment {
     private ArrayList<PartCategory> categories;
     private ArrayList<Part> parts;
     private PartCategory partCategory;
+
+
+    PartListRecyclerViewAdapter mAdapter;
+    RecyclerView view;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -67,6 +82,37 @@ public class PartListFragment extends Fragment {
             parts=getArguments().getParcelableArrayList(ARG_PARTS);
             partCategory=getArguments().getParcelable(ARG_PART_CATEGORY);
         }
+        this.setHasOptionsMenu(true);
+    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(action_searchable_menu,menu);
+        final MenuItem item = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
+        searchView.setOnQueryTextListener(this);
+    }
+    @Override
+    public boolean onQueryTextChange(String query) {
+        // Here is where we are going to implement our filter logic
+      mAdapter.getFilter().filter(query);
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.search_for_part:
+               // ((RecyclerView)getView()).setAdapter(new PartListRecyclerViewAdapter(categories,parts,partCategory, mListener,mPartListener));
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -78,6 +124,7 @@ public class PartListFragment extends Fragment {
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
+            view=recyclerView;
             mColumnCount=0;
             if (mColumnCount <= 1) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
@@ -89,7 +136,8 @@ public class PartListFragment extends Fragment {
             else if(categories==null) {
                 categories = new DBHelper(getActivity()).GetPartCategoryList(-100);
             }
-            recyclerView.setAdapter(new PartListRecyclerViewAdapter(categories,parts,partCategory, mListener,mPartListener));
+            mAdapter=new PartListRecyclerViewAdapter(getActivity().getApplicationContext(),categories,parts,partCategory, mListener,mPartListener);
+            recyclerView.setAdapter(mAdapter);
         }
         return view;
     }

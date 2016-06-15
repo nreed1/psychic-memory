@@ -1,9 +1,12 @@
 package com.example.niki.fieldoutlookandroid.helper.array_adapters;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -13,7 +16,9 @@ import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
 import com.example.niki.fieldoutlookandroid.fragment.PartListFragment;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,15 +26,19 @@ import java.util.List;
  * specified {@link PartListFragment.OnPartListFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRecyclerViewAdapter.ViewHolder> {
+public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRecyclerViewAdapter.ViewHolder> implements Filterable {
 
-    private final List<PartCategory> mValues;
-    private final List<Part> mParts;
+    private List<PartCategory> mValues;
+    private List<Part> mParts;
     private final PartCategory category;
     private final PartListFragment.OnPartListFragmentInteractionListener mListener;
     private final PartListFragment.OnPartListPartFragmentInteractionListener mPartListener;
+    protected List<Part> list;
+    protected List<Part> originalList;
+    protected Context context;
+    protected DBHelper dbHelper;
 
-    public PartListRecyclerViewAdapter(List<PartCategory> items, List<Part> parts,PartCategory partCategory, PartListFragment.OnPartListFragmentInteractionListener listener, PartListFragment.OnPartListPartFragmentInteractionListener partListener) {
+    public PartListRecyclerViewAdapter(Context context,List<PartCategory> items, List<Part> parts,PartCategory partCategory, PartListFragment.OnPartListFragmentInteractionListener listener, PartListFragment.OnPartListPartFragmentInteractionListener partListener) {
         category=partCategory;
         if(category!=null){
             mValues=category.getSubCategoryList();
@@ -42,6 +51,9 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         }
         mListener = listener;
         mPartListener = partListener;
+        this.context=context;
+        dbHelper=new DBHelper(context);
+        originalList=dbHelper.GetAllParts();
 
     }
 
@@ -71,7 +83,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
                 holder.categoryName.setText(holder.mPart.getNumberAndDescription());
                 holder.iconImageView.setImageResource(R.mipmap.ic_wrench);
             } else {
-
+                holder.iconImageView.setImageResource(R.mipmap.ic_add);
                 holder.mItem = mValues.get(position);
                 holder.categoryName.setText(holder.mItem.getName());
             }
@@ -101,6 +113,50 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         if(mParts!=null && !mParts.isEmpty()) return mParts.size();
 
         return mValues.size();
+    }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+               // list = (List<Part>) results.values;
+                if(((ArrayList<?>)results.values).get(0) instanceof Part){
+                    mParts=(ArrayList<Part>)results.values;
+                }else{
+                    mParts=null;
+                    mValues=(ArrayList<PartCategory>)results.values;
+                }
+                PartListRecyclerViewAdapter.this.notifyDataSetChanged();
+            }
+
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                List<Part> filteredResults = null;
+                FilterResults results = new FilterResults();
+                if (constraint.length() == 0) {
+                    results.values = dbHelper.GetPartCategoryList(-100);
+                } else {
+                    results.values = getFilteredResults(constraint.toString().toLowerCase());
+                }
+
+
+                //results.values = filteredResults;
+
+                return results;
+            }
+        };
+    }
+    protected List<Part> getFilteredResults(String constraint) {
+        List<Part> results = new ArrayList<>();
+
+        for (Part item : originalList) {
+            if (item.getNumberAndDescription().toLowerCase().contains(constraint)) {
+                results.add(item);
+            }
+        }
+        return results;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

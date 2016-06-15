@@ -32,6 +32,11 @@ public class TimekeepingHelper {
         dbHelper.SaveTimeEntry(newTimeEntry);
     }
 
+    public void AddTimekeepingEntry(Context context, String entryType){
+        DBHelper dbHelper=new DBHelper(context);
+        TimeEntryType timeEntryType=dbHelper.GetTimeEntryTypeByName(entryType);
+        AddTimekeepingEntry(context,timeEntryType);
+    }
 
     private Location GetGPSSnapshot(Context context){
         try{

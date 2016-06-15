@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -34,6 +35,7 @@ public class WorkOrder implements Serializable, Parcelable {
     private int TotalHoursForJob;
     private int HoursWorkedOnJob;
     private int IsCompleted;
+    private ArrayList<Part> PartList;
 
     public int getJobId() {
         return JobId;
@@ -206,6 +208,14 @@ public class WorkOrder implements Serializable, Parcelable {
         IsCompleted = isCompleted;
     }
 
+    public ArrayList<Part> getPartList() {
+        return PartList;
+    }
+
+    public void setPartList(ArrayList<Part> partList) {
+        PartList = partList;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -226,6 +236,7 @@ public class WorkOrder implements Serializable, Parcelable {
         dest.writeString(getWhereBilled());
         dest.writeString(getNotes());
         dest.writeInt(getIsCompleted());
+        dest.writeList(getPartList());
     }
     public static  final Creator<WorkOrder> CREATOR= new Creator<WorkOrder>() {
         @Override
@@ -241,6 +252,7 @@ public class WorkOrder implements Serializable, Parcelable {
             workOrder.WhereBilled=source.readString();
             workOrder.Notes=source.readString();
             workOrder.IsCompleted=source.readInt();
+            workOrder.PartList=source.readArrayList(Part.class.getClassLoader());
             return workOrder;
         }
 
