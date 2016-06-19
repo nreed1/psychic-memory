@@ -2,9 +2,12 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.google.android.gms.drive.realtime.internal.ParcelableChangeInfo;
 import com.google.android.gms.vision.barcode.Barcode;
+
+import org.json.JSONStringer;
 
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -37,6 +40,7 @@ public class WorkOrder implements Serializable, Parcelable {
     private int IsCompleted;
     private ArrayList<WorkOrderPart> PartList;
     private JobTime JobTime;
+    private String CompletedDate;
 
     public int getJobId() {
         return JobId;
@@ -228,6 +232,74 @@ public class WorkOrder implements Serializable, Parcelable {
         JobTime = jobTime;
     }
 
+    public String getCompletedDate() {
+        return CompletedDate;
+    }
+
+    public void setCompletedDate(String completedDate) {
+        CompletedDate = completedDate;
+    }
+
+    public void addWorkOrderPartToList(WorkOrderPart workOrderPart){
+        if(getPartList()!=null &&! getPartList().isEmpty()){
+            boolean partExistsInList=false;
+            for (WorkOrderPart part:this.PartList){
+                if(part.getPartId()==workOrderPart.getPartId()){
+                    partExistsInList=true;
+                    part.setQuantity(part.getQuantity()+1);//Increase quantity if it already exists in the list
+                    break;
+                }
+            }
+            if(!partExistsInList){
+                this.PartList.add(workOrderPart);
+            }
+        }else{
+            if(getPartList()==null){
+                setPartList(new ArrayList<WorkOrderPart>());
+            }
+            this.PartList.add(workOrderPart);
+        }
+    }
+
+    public void removeWorkOrderPartFromList(WorkOrderPart workOrderPart){
+        if(getPartList()!=null &&! getPartList().isEmpty()){
+            boolean partExistsInList=false;
+            for (WorkOrderPart part:this.PartList){
+                if(part.getPartId()==workOrderPart.getPartId()){
+                    partExistsInList=true;
+                    break;
+                }
+            }
+            if(!partExistsInList){
+                this.PartList.remove(workOrderPart);
+            }
+        }else{
+            if(getPartList()==null){
+                setPartList(new ArrayList<WorkOrderPart>());
+            }
+
+        }
+    }
+
+    public JSONStringer getJSON(){
+        try {
+            JSONStringer jsonStringer = new JSONStringer().object().key("WorkOrder").object().key("WorkOrderTypeId").value(this.WorkOrderTypeId)
+                    .key("CompanyId").value(this.getCompanyId())
+                    .key("PersonId").value(this.PersonId)
+                    .key("Name").value(this.Name)
+                    .key("Description").value(this.getDescription())
+                    .key("Notes").value(getNotes())
+                    .key("ReadyToInvoice").value(getIsCompleted())
+
+                    .endObject()
+                    .endObject();
+            return jsonStringer;
+        }catch (Exception ex){
+            Log.d("Workorder JSON", ex.getMessage());
+        }
+        return null;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -250,6 +322,7 @@ public class WorkOrder implements Serializable, Parcelable {
         dest.writeInt(getIsCompleted());
         dest.writeList(getPartList());
         dest.writeParcelable(getJobTime(),0);
+        dest.writeString(getCompletedDate());
     }
     public static  final Creator<WorkOrder> CREATOR= new Creator<WorkOrder>() {
         @Override
@@ -267,6 +340,7 @@ public class WorkOrder implements Serializable, Parcelable {
             workOrder.IsCompleted=source.readInt();
             workOrder.PartList=source.readArrayList(WorkOrderPart.class.getClassLoader());
             workOrder.JobTime=source.readParcelable(com.example.niki.fieldoutlookandroid.businessobjects.JobTime.class.getClassLoader());
+            workOrder.CompletedDate=source.readString();
             return workOrder;
         }
 

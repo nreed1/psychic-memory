@@ -20,6 +20,7 @@ import android.widget.ArrayAdapter;
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.PartListRecyclerViewAdapter;
 
@@ -43,13 +44,15 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
     private static final String ARG_CATEGORIES_GIVEN="categories-given";
     private static final String ARG_PARTS="parts";
     private static final String ARG_PART_CATEGORY="part-category";
-    // TODO: Customize parameters
+    private static final String ARG_SELECTED_WORKORDER="selectedworkorder";
+
     private int mColumnCount = 1;
     private OnPartListFragmentInteractionListener mListener;
     private OnPartListPartFragmentInteractionListener mPartListener;
     private ArrayList<PartCategory> categories;
     private ArrayList<Part> parts;
     private PartCategory partCategory;
+    private WorkOrder selectedWorkOrder;
 
 
     PartListRecyclerViewAdapter mAdapter;
@@ -62,7 +65,7 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
     public PartListFragment() {
     }
 
-    // TODO: Customize parameter initialization
+
     @SuppressWarnings("unused")
     public static PartListFragment newInstance(int columnCount) {
         PartListFragment fragment = new PartListFragment();
@@ -78,9 +81,10 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
 
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-            categories=getArguments().getParcelableArrayList(ARG_CATEGORIES_GIVEN);
-            parts=getArguments().getParcelableArrayList(ARG_PARTS);
-            partCategory=getArguments().getParcelable(ARG_PART_CATEGORY);
+            categories = getArguments().getParcelableArrayList(ARG_CATEGORIES_GIVEN);
+            parts = getArguments().getParcelableArrayList(ARG_PARTS);
+            partCategory = getArguments().getParcelable(ARG_PART_CATEGORY);
+            selectedWorkOrder=getArguments().getParcelable(ARG_SELECTED_WORKORDER);
         }
         this.setHasOptionsMenu(true);
     }
@@ -106,10 +110,18 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
-            case R.id.search_for_part:
-               // ((RecyclerView)getView()).setAdapter(new PartListRecyclerViewAdapter(categories,parts,partCategory, mListener,mPartListener));
-                return true;
 
+            case R.id.selectAllItems:
+               // if(parts!=null && !parts.isEmpty()){
+                    mAdapter.selectAll();
+               // }
+
+                return true;
+            case R.id.unselectAllItems:
+                if(parts!=null && !parts.isEmpty()){
+                    mAdapter.unselectAll();
+                }
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -136,8 +148,9 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
             else if(categories==null) {
                 categories = new DBHelper(getActivity()).GetPartCategoryList(-100);
             }
-            mAdapter=new PartListRecyclerViewAdapter(getActivity().getApplicationContext(),categories,parts,partCategory, mListener,mPartListener);
+            mAdapter=new PartListRecyclerViewAdapter(getActivity().getApplicationContext(),categories,parts,partCategory, selectedWorkOrder,mListener,mPartListener);
             recyclerView.setAdapter(mAdapter);
+
         }
         return view;
     }

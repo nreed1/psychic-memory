@@ -31,6 +31,7 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/partPriceTextView"
         android:layout_weight=".5"
+        android:text="$00.00"
         android:gravity="center_vertical|center|right|center_horizontal"
 
         android:layout_gravity="center|right" />
@@ -38,5 +39,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="  "/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/itemIsSelectedCheckBox"
+        android:gravity="center_vertical|center|right|center_horizontal"
+        android:layout_gravity="center|right"/>
 </LinearLayout>
 </LinearLayout>

@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
+import com.example.niki.fieldoutlookandroid.helper.WorkOrderPartHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.WorkOrderPartRecyclerViewAdapter;
 
 import java.util.ArrayList;
@@ -64,6 +66,25 @@ public class WorkOrderPartFragment extends Fragment {
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
             selectedWorkOrder=getArguments().getParcelable(ARG_SELECTED_WORKORDER);
+        }
+        //check if any parts where added by another fragment
+        if(!WorkOrderPartHelper.getInstance().getPartList().isEmpty()){
+            for(Part part: WorkOrderPartHelper.getInstance().getPartList()){
+                boolean exist=false;
+                for (WorkOrderPart workOrderPart:selectedWorkOrder.getPartList()){
+                    if(workOrderPart.getPartId()==part.getPartId()){
+                        workOrderPart.setQuantity(workOrderPart.getQuantity()+1);//if the part is in the list already then increase the quantity
+                        exist=true;
+                        break;
+                    }
+                }
+
+                if(!exist){
+                    selectedWorkOrder.getPartList().add(new WorkOrderPart(part,1));
+                }
+            }
+            //Reset the list
+            WorkOrderPartHelper.getInstance().setPartList(new ArrayList<Part>());
         }
         this.setHasOptionsMenu(true);
     }

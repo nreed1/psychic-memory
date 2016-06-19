@@ -1,17 +1,20 @@
 package com.example.niki.fieldoutlookandroid.businessobjects;
 
 import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
 
 /**
- * Created by Owner on 6/15/2016.
+ * Created by Niki on 6/19/2016.
  */
-public class WorkOrderPart extends Part  {
+public class QuotePart  extends Part {
     private int quantity;
 
-    public WorkOrderPart(){
+    public QuotePart(){
 
     }
-    public WorkOrderPart(Part part, int quantity){
+    public QuotePart(Part part, int quantity){
         this.setPartId(part.getPartId());
         this.setCategoryId(part.getCategoryId());
         this.setManufacturer(part.getManufacturer());
@@ -53,10 +56,10 @@ public class WorkOrderPart extends Part  {
         dest.writeDouble(getPrice());
 
     }
-    public static  final Creator<WorkOrderPart> CREATOR= new Creator<WorkOrderPart>() {
+    public static  final Parcelable.Creator<QuotePart> CREATOR= new Parcelable.Creator<QuotePart>() {
         @Override
-        public WorkOrderPart createFromParcel(Parcel source) {
-            WorkOrderPart part= new WorkOrderPart();
+        public QuotePart createFromParcel(Parcel source) {
+            QuotePart part= new QuotePart();
             part.setPartId(source.readInt());
             part.setPartTypeId(source.readInt());
             part.setPricebookId(source.readInt());
@@ -72,8 +75,8 @@ public class WorkOrderPart extends Part  {
         }
 
         @Override
-        public WorkOrderPart[] newArray(int size) {
-            return new WorkOrderPart[0];
+        public QuotePart[] newArray(int size) {
+            return new QuotePart[0];
         }
     };
 }

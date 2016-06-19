@@ -1,13 +1,17 @@
 package com.example.niki.fieldoutlookandroid;
 
+import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -15,8 +19,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,6 +78,7 @@ public class MainNavigationActivity extends AppCompatActivity
     private Uri fileUri;
     private DBHelper dbHelper;
     ProgressDialog progressDialog;
+    private WorkOrder workOrder;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -243,7 +251,7 @@ public class MainNavigationActivity extends AppCompatActivity
                     progressDialog.setMessage("Downloaded "+workOrders.size()+" Work Orders");
                 }
             });
-            ArrayList<WorkOrder> silly=new ArrayList<>();
+
 
             assignedJobsAsyncTask.execute((String)null);
 
@@ -309,10 +317,33 @@ public class MainNavigationActivity extends AppCompatActivity
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 // Image captured and saved to fileUri specified in the Intent
+                final AlertDialog.Builder customerSearch=new AlertDialog.Builder(this);
+                customerSearch.setCancelable(true);
+                LayoutInflater inflater = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                final View search_View = inflater.inflate(R.layout.customer_search_picture_attach, null);
+                // customerSearch.setContentView(search_View);
+                customerSearch.setView(search_View);
+
+                customerSearch.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //customerSearch.
+                        dialog.cancel();
+                    }
+                }).setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        AutoCompleteTextView autoCompleteTextView=(AutoCompleteTextView) search_View.findViewById(R.id.autoCompleteCustomerTextView);
+                        //autoCompleteTextView.get
+                    }
+                });
+                //customerSearch.set
 
 
-                Toast.makeText(this, "Image saved to:\n" +
-                        data.getData(), Toast.LENGTH_LONG).show();
+                customerSearch.setTitle("Select Customer: ");
+                //customerSearch.create();
+                customerSearch.show();
+               Toast.makeText(this, "Image saved to:\n" +fileUri, Toast.LENGTH_LONG).show();
             } else if (resultCode == RESULT_CANCELED) {
                 // User cancelled the image capture
             } else {
@@ -511,6 +542,7 @@ public class MainNavigationActivity extends AppCompatActivity
         }else{
             b.putParcelableArrayList("categories-given",null);
         }
+        b.putParcelable("selectedworkorder",workOrder);
         partListFragment.setArguments(b);
         fragmentTransaction.replace(R.id.fragment_container, partListFragment, "SubPartList").addToBackStack("SubPartList");
         fragmentTransaction.commit();
@@ -528,12 +560,14 @@ public class MainNavigationActivity extends AppCompatActivity
 
     @Override
     public void onWorkOrderPartMenuItemInteraction(WorkOrder selectedWorkOrder,MenuItem item) {
+        this.workOrder=selectedWorkOrder;
         if(item.getItemId()==R.id.addPartToWorkOrderMenuItem){
             android.app.FragmentManager fragmentManager= getFragmentManager();
             android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
             PartListFragment partListFragment=new PartListFragment();
             Bundle b=new Bundle();
             b.putParcelableArrayList("categories-given",null);
+            b.putParcelable("selectedworkorder", selectedWorkOrder);
             partListFragment.setArguments(b);
             fragmentTransaction.replace(R.id.fragment_container, partListFragment, "PartList").addToBackStack("PartList");
             fragmentTransaction.commit();
@@ -542,6 +576,7 @@ public class MainNavigationActivity extends AppCompatActivity
 
     @Override
     public void onSelectedWorkOrderMenuItemInteraction(WorkOrder selectedWorkorder) {
+        this.workOrder=selectedWorkorder;
         android.app.FragmentManager fragmentManager= getFragmentManager();
         android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
         WorkOrderPartFragment workOrderPartFragment=new WorkOrderPartFragment();

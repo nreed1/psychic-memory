@@ -61,7 +61,7 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
         holder.mQuantity.setMaxValue(1000);
         holder.mQuantity.setFocusableInTouchMode(true);
         holder.mQuantity.setWrapSelectorWheel(true);
-        //holder.mQuantity.sele
+
         holder.mQuantity.setValue(mValues.getPartList().get(position).getQuantity());
         holder.mQuantity.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override

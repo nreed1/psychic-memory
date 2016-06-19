@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.niki.fieldoutlookandroid.businessobjects.CustomerImage;
 import com.example.niki.fieldoutlookandroid.businessobjects.FOException;
 import com.example.niki.fieldoutlookandroid.businessobjects.JobTime;
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
@@ -24,6 +25,7 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.StringTokenizer;
 
 /**
@@ -59,6 +61,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String WORKORDER_JOBID="jobid";
     public static final String WORKORDER_PROJECTEDHOURS="projectedhours";
     public static final String WORKORDER_ACTUALHOURS="actualhours";
+    public static final String WORKORDER_COMPLETEDDATE="completeddate";
 
     public static final String TABLE_OTHERTASKS="othertasks";
     public static final String OTHERTASKS_ID="id";
@@ -136,6 +139,13 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String WORKORDERPART_PARTID="partid";
     public static final String WORKORDERPART_QUANTITY="quantity";
 
+    public static final String TABLE_CUSTOMERIMAGE="customerimage";
+    public static final String CUSTOMERIMAGE_ID="id";
+    public static final String CUSTOMERIMAGE_LOCATION="imagelocation";
+    public static final String CUSTOMERIMAGE_PERSONID="personid";
+    public static final String CUSTOMERIMAGE_IMAGENAME="imagename";
+    public static final String CUSTOMERIMAGE_IMAGE="image";
+
     SQLiteDatabase db;
 
     Context ctx;
@@ -162,7 +172,7 @@ private void create(){
             db.execSQL("create table if not exists workorder (id integer primary key, workorderid integer, companyid integer, personid integer, name text, description text, " +
                     "arrivaltime string, estimatedduration real," +
                     "costofjob real, wherebilled text, notes text, workordertypeid integer, totalhoursalotted integer, hoursworked integer, iscompleted integer, jobid integer, " +
-                    "projectedhours integer, actualhours integer)");
+                    "projectedhours integer, actualhours integer,completeddate text)");
         //#end workorder
 
         //#start other tasks
@@ -193,6 +203,10 @@ private void create(){
         db.execSQL("create table if not exists workorderpart (id integer primary key, workorderid integer, partid integer, quantity integer)");
         //#end workorderpart
 
+        //#start customerimage
+        db.execSQL("create table if not exists customerimage (id integer primary key, imagelocation text, personid integer, imagename text, image blob)");
+        //#end customerimage
+
     }
 
 
@@ -201,6 +215,50 @@ private void create(){
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
+
+
+    public boolean SaveCustomerImage(String imageLocation, int personId, String imageName){
+        try{
+            db=getWritableDatabase();
+            ContentValues contentValues=new ContentValues();
+            contentValues.put(CUSTOMERIMAGE_LOCATION,imageLocation);
+            contentValues.put(CUSTOMERIMAGE_IMAGENAME,imageName);
+            contentValues.put(CUSTOMERIMAGE_PERSONID,personId);
+
+            db.insert(TABLE_CUSTOMERIMAGE,null, contentValues);
+            return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        return false;
+    }
+
+    public List<CustomerImage> GetCustomerImageList(){
+        Cursor res=null;
+        try{
+            List<CustomerImage> customerImages=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_CUSTOMERIMAGE,null);
+            res.moveToFirst();
+            ImageHelper imageHelper=new ImageHelper();
+            while(!res.isAfterLast()){
+
+                CustomerImage customerImage=new CustomerImage(imageHelper.getImageToString(ctx,res.getString(res.getColumnIndex(CUSTOMERIMAGE_LOCATION))),res.getString(res.getColumnIndex(CUSTOMERIMAGE_IMAGENAME)),res.getInt(res.getColumnIndex(CUSTOMERIMAGE_PERSONID)));
+                if(customerImage!=null){
+                    customerImages.add(customerImage);
+                }
+                res.moveToNext();
+            }
+            return customerImages;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null) res.close();
+        }
+        return new ArrayList<>();
+    }
+
     public String GetLastRefreshDate(){
         db=getReadableDatabase();
         Cursor res=db.rawQuery("select * from "+TABLE_REFRESH,null);
@@ -639,6 +697,7 @@ private void create(){
         contentValues.put(WORKORDER_ESTIMATEDDURATION, workOrder.getEstimatedDurationOfWork());
         contentValues.put(WORKORDER_NOTES, workOrder.getNotes());
         contentValues.put(WORKORDER_TYPEID, workOrder.getWorkOrderTypeId());
+        contentValues.put(WORKORDER_COMPLETEDDATE,workOrder.getCompletedDate());
         if(workorderExists){
             db.update(TABLE_WORKORDER,contentValues,WORKORDER_ID+"=?",new String[]{String.valueOf(workOrder.getWorkOrderId())});
         }else {
@@ -668,6 +727,7 @@ private void create(){
             contentValues.put(WORKORDER_ESTIMATEDDURATION,workOrder.getEstimatedDurationOfWork());
             contentValues.put(WORKORDER_NOTES,workOrder.getNotes());
             contentValues.put(WORKORDER_TYPEID, workOrder.getWorkOrderTypeId());
+            contentValues.put(WORKORDER_COMPLETEDDATE,workOrder.getCompletedDate());
             if(workOrder.getJobTime()!=null && workOrder.getJobTime().getJobId()>0){
                 contentValues.put(WORKORDER_ACTUALHOURS,workOrder.getJobTime().getJobId());
                 contentValues.put(WORKORDER_PROJECTEDHOURS,workOrder.getJobTime().getProjectedHours());
@@ -695,6 +755,7 @@ private void create(){
                         res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
                         res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0, res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)),GetWorkOrderPartList(res.getInt(res.getColumnIndex(WORKORDER_ID))),jobTime);
+                newWorkOrder.setCompletedDate(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 workOrders.add(newWorkOrder);
                 res.moveToNext();
@@ -724,6 +785,7 @@ private void create(){
                         res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
                         res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0,res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)),null,jobTime);
+                newWorkOrder.setCompletedDate(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 newWorkOrder.setPartList(GetWorkOrderPartList(newWorkOrder.getWorkOrderId()));
                 workOrders.add(newWorkOrder);

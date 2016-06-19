@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp">
+    <LinearLayout
+        android:layout_width="273dp"
+        android:layout_height="wrap_content" android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/quoteListItemCustomerName"
+            android:text="Mary Sue Walton"
+
+            android:layout_gravity="left"
+            android:gravity="center_vertical|center|left"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/quoteListItemDescription"
+            android:text="Upgrade to electrical panel."/>
+    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="41dp"
+        android:id="@+id/quoteListItemAmount"
+        android:text="$45000.00"
+        android:layout_weight=".05"
+        android:layout_gravity="right"
+        android:gravity="center_vertical|center|right|center_horizontal"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
+
+</LinearLayout>
