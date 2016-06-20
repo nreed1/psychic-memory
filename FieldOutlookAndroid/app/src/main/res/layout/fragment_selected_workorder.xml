@@ -46,12 +46,22 @@
             <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=" "></TextView>
-            <Button
-                style="?android:attr/buttonStyleSmall"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="38dp"
-                android:text="Need Materials?"
-                android:id="@+id/button" />
+                android:layout_height="wrap_content" android:orientation="vertical">
+                <Button
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:text="Need Materials?"
+                    android:id="@+id/button" />
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Work Complete"
+                    android:id="@+id/workorderComplete"/>
+            </LinearLayout>
         </LinearLayout>
         <TextView
             android:layout_width="wrap_content"

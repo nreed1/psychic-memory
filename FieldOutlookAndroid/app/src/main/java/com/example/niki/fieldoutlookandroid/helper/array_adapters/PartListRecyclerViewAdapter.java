@@ -120,6 +120,11 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
+        if(position%2==1){
+            holder.mView.setBackgroundColor(0xFFCBC3C2);
+        }else{
+            holder.mView.setBackgroundColor( 0xFFF0F4F7);
+        }
 
         if(isAllSelected){
             holder.isSelectedCheckbox.setChecked(true);

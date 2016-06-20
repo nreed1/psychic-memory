@@ -123,6 +123,12 @@ public class AssignedJobsAsyncTask extends AsyncTask<String, String, ArrayList<W
                             customer.setPersonId(Integer.parseInt(stringToInt));
                             newWorkOrder.setPersonId(Integer.parseInt(stringToInt));
                         }
+                    }else if(currentTag.equals("a:ApplicationCompanyID")){
+                        Integer id=Integer.parseInt(parser.getText());
+                        newWorkOrder.setCompanyId(id);
+                        customer.setCompanyId(id);
+
+
                     }else if(currentTag.equals("a:FullName")){
                         customer.setFullName(parser.getText());
                     }else if(currentTag.equals("a:ArrivalTime")){

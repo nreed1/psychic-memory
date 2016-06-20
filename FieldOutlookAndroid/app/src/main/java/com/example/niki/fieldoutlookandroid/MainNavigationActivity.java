@@ -49,6 +49,7 @@ import com.example.niki.fieldoutlookandroid.fragment.WorkOrderPartFragment;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.example.niki.fieldoutlookandroid.helper.GetPartListAsyncTask.GetPartsListAsyncTask;
+import com.example.niki.fieldoutlookandroid.helper.SendCompletedWorkOrders.SendCompletedWorkOrdersAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
@@ -242,18 +243,46 @@ public class MainNavigationActivity extends AppCompatActivity
             progressDialog.setMessage("Getting Work Orders");
             progressDialog.show();
 
-            AssignedJobsAsyncTask assignedJobsAsyncTask=new AssignedJobsAsyncTask(new AssignedJobsAsyncTask.AssignedJobsResponse(){
+            ArrayList<WorkOrder> completedWorkOrders=dbHelper.GetCompletedWorkOrders();
+            final AssignedJobsAsyncTask  assignedJobsAsyncTask = new AssignedJobsAsyncTask(new AssignedJobsAsyncTask.AssignedJobsResponse() {
 
                 @Override
                 public void processFinish(ArrayList<WorkOrder> workOrders) {
-                    if(dbHelper==null) dbHelper=new DBHelper(getApplicationContext());
+                    if (dbHelper == null)
+                        dbHelper = new DBHelper(getApplicationContext());
                     dbHelper.SaveWorkOrderList(workOrders);
-                    progressDialog.setMessage("Downloaded "+workOrders.size()+" Work Orders");
+                    progressDialog.setMessage("Downloaded " + workOrders.size() + " Work Orders");
                 }
             });
+            if(completedWorkOrders!=null && !completedWorkOrders.isEmpty()){
+                progressDialog.setMessage("Sending "+completedWorkOrders.size()+" Work Orders");
+                SendCompletedWorkOrdersAsyncTask sendCompletedWorkOrdersAsyncTask=new SendCompletedWorkOrdersAsyncTask(getApplicationContext(), new SendCompletedWorkOrdersAsyncTask.SendCompletedWorkOrdersDelegate() {
+                    @Override
+                    public void processFinish(Boolean success) {
+                        if(success) {
+                            progressDialog.setMessage("Sending Work Orders successful!");
 
 
-            assignedJobsAsyncTask.execute((String)null);
+
+                            assignedJobsAsyncTask.execute((String) null);
+                        }
+                        else{
+                            AlertDialog.Builder alert=new AlertDialog.Builder(getApplicationContext());
+                            alert.setMessage("Unable to upload or download new data. Please try again and if this error persists contact the administrator.");
+                            alert.show();
+                            return;
+                        }
+                    }
+                });
+                sendCompletedWorkOrdersAsyncTask.execute((Void)null);
+            }
+            else{
+
+
+
+                assignedJobsAsyncTask.execute((String) null);
+            }
+
 
             String lastRefreshDateString=dbHelper.GetLastRefreshDate();
             Date lastRefreshDate= new Date();

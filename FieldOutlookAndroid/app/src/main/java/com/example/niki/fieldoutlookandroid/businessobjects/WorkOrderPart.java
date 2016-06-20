@@ -2,6 +2,9 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 
 import android.os.Parcel;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 /**
  * Created by Owner on 6/15/2016.
  */
@@ -32,6 +35,11 @@ public class WorkOrderPart extends Part  {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public String toJson(){
+        final Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        return gson.toJson(this);
     }
 
     @Override

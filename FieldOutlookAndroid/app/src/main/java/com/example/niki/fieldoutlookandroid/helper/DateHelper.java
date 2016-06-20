@@ -37,6 +37,12 @@ public class DateHelper {
         return null;
     }
 
+    public static String DateToJsonString(Date date){
+        long javaMillis=date.getTime();
+        long ticks = 621355968000000000L+javaMillis*10000;
+        return "\\/Date("+ticks+")\\/";
+    }
+
 
     public static String DateToString(Date date){
         try{

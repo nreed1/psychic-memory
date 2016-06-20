@@ -14,6 +14,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -21,9 +23,12 @@ import android.widget.TextView;
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.example.niki.fieldoutlookandroid.helper.NotificationHelper;
 import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.UnassignAsyncTask;
+
+import java.util.Date;
 
 import static com.example.niki.fieldoutlookandroid.R.menu.selected_workorder_menu;
 
@@ -144,9 +149,12 @@ public class SelectedWorkorderFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
+
                 selectedWorkOrder.setNotes(s.toString());
-                DBHelper dbHelper=new DBHelper(getActivity());
-                dbHelper.SaveWorkOrder(selectedWorkOrder);
+                if(!s.toString().trim().equals("")) {
+                    DBHelper dbHelper = new DBHelper(getActivity());
+                    dbHelper.SaveWorkOrder(selectedWorkOrder);
+                }
             }
         });
         workOrderNotes.setText(selectedWorkOrder.getNotes());
@@ -158,6 +166,29 @@ public class SelectedWorkorderFragment extends Fragment {
                 workOrderCustomerAddress.setText(selectedWorkOrder.getPerson().getAddress().getPrintableAddress());
             }
         }
+
+        final CheckBox workOrderCompleted=(CheckBox)view.findViewById(R.id.workorderComplete);
+        if(selectedWorkOrder.getIsReadyForInvoice()==1){//1==true as sqlite can't store booleans for some reason
+            workOrderCompleted.setChecked(true);
+        }else{ workOrderCompleted.setChecked(false);}
+        workOrderCompleted.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    if(selectedWorkOrder.getIsReadyForInvoice()!=1) {
+                        selectedWorkOrder.setIsReadyForInvoice(1);
+                        selectedWorkOrder.setReadyForInvoiceDateTime(DateHelper.GetTodayDateAsString());
+                        DBHelper dbHelper = new DBHelper(getActivity());
+                        dbHelper.SaveWorkOrder(selectedWorkOrder);
+                    }
+                }else{
+                    selectedWorkOrder.setIsReadyForInvoice(0);
+                    selectedWorkOrder.setReadyForInvoiceDateTime(null);
+                    DBHelper dbHelper=new DBHelper(getActivity());
+                    dbHelper.SaveWorkOrder(selectedWorkOrder);
+                }
+            }
+        });
 
         ProgressBar progressBar =(ProgressBar)view.findViewById(R.id.progressBar);
         if(selectedWorkOrder.getJobTime()!=null) {

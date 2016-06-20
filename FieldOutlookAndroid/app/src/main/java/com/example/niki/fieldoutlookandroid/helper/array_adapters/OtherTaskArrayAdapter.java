@@ -61,6 +61,12 @@ public class OtherTaskArrayAdapter extends ArrayAdapter<OtherTask> {
             holder = (ViewHolder) convertView.getTag();
         }
 
+        if(position%2==1){
+            convertView.setBackgroundColor(getContext().getResources().getColor( R.color.lightGray));
+        }else{
+            convertView.setBackgroundColor(getContext().getResources().getColor( R.color.listItemBackground));
+        }
+
         holder.otherTaskName.setText(""+rows.get(position).getName());
         holder.otherTaskDescription.setText(rows.get(position).getDescription());
 

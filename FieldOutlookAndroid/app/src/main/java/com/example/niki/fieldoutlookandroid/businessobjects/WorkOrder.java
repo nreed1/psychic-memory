@@ -2,19 +2,18 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
-import com.google.android.gms.drive.realtime.internal.ParcelableChangeInfo;
-import com.google.android.gms.vision.barcode.Barcode;
-
-import org.json.JSONStringer;
+import com.example.niki.fieldoutlookandroid.helper.DateHelper;
+import com.google.firebase.database.Exclude;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -24,24 +23,35 @@ public class WorkOrder implements Serializable, Parcelable {
     private  int WorkOrderId;
     private int JobId;
     private int WorkOrderTypeId;
+    @SerializedName("ApplicationCompanyID")
     private int CompanyId;
     private int PersonId;
     private String Name;
     private String Description;
+    @Expose
     private String ArrivalTime;
     private String EstimatedDurationOfWork;
     private double CostOfJob;
     private String WhereBilled;
     private String Notes;
     private Person Person;
+    @Expose
     private Date ArrivalTimeDate;
     private int TotalHoursForJob;
     private int HoursWorkedOnJob;
-    private int IsCompleted;
+    private int IsReadyForInvoice;
     private ArrayList<WorkOrderPart> PartList;
     private JobTime JobTime;
-    private String CompletedDate;
+    @Expose
+    private String ReadyForInvoiceDateTime;
+    @SerializedName("ArrivalTime")
+    private String JsonArrivalTime;
+    @SerializedName("ReadyToInvoiceDateTime")
+    private String JsonReadyToInvoiceDateTime;
 
+    public String getJsonReadyToInvoiceDateTime(){return DateHelper.DateToJsonString(DateHelper.StringToDate(this.ReadyForInvoiceDateTime));}
+
+    public String getJsonArrivalTime(){return  DateHelper.DateToJsonString(this.ArrivalTimeDate);};
     public int getJobId() {
         return JobId;
     }
@@ -51,11 +61,11 @@ public class WorkOrder implements Serializable, Parcelable {
     }
 
     public WorkOrder(){
-        IsCompleted=0;
+        IsReadyForInvoice =0;
     }
 
-    public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob, String whereBilled, String notes,
-                     Person person, int totalHoursForJob, int hoursWorkedOnJob, int jobId, int isCompleted, ArrayList<WorkOrderPart> partList, JobTime jobTime){
+    public WorkOrder(int workOrderId, int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob, String whereBilled, String notes,
+                     Person person, int totalHoursForJob, int hoursWorkedOnJob, int jobId, int isReadyForInvoice, ArrayList<WorkOrderPart> partList, JobTime jobTime){
 
         this.setWorkOrderId(workOrderId);
         this.setWorkOrderTypeId(workOrderTypeId);
@@ -72,7 +82,7 @@ public class WorkOrder implements Serializable, Parcelable {
         this.setTotalHoursForJob(totalHoursForJob);
         this.setHoursWorkedOnJob(hoursWorkedOnJob);
         this.setJobId(jobId);
-        this.setIsCompleted(isCompleted);
+        this.setIsReadyForInvoice(isReadyForInvoice);
         this.setPartList(partList);
         this.setJobTime(jobTime);
     }
@@ -207,12 +217,12 @@ public class WorkOrder implements Serializable, Parcelable {
         Notes = notes;
     }
 
-    public int getIsCompleted() {
-        return IsCompleted;
+    public int getIsReadyForInvoice() {
+        return IsReadyForInvoice;
     }
 
-    public void setIsCompleted(int isCompleted) {
-        IsCompleted = isCompleted;
+    public void setIsReadyForInvoice(int isReadyForInvoice) {
+        IsReadyForInvoice = isReadyForInvoice;
     }
 
     public ArrayList<WorkOrderPart> getPartList() {
@@ -232,12 +242,12 @@ public class WorkOrder implements Serializable, Parcelable {
         JobTime = jobTime;
     }
 
-    public String getCompletedDate() {
-        return CompletedDate;
+    public String getReadyForInvoiceDateTime() {
+        return ReadyForInvoiceDateTime;
     }
 
-    public void setCompletedDate(String completedDate) {
-        CompletedDate = completedDate;
+    public void setReadyForInvoiceDateTime(String readyForInvoiceDateTime) {
+        ReadyForInvoiceDateTime = readyForInvoiceDateTime;
     }
 
     public void addWorkOrderPartToList(WorkOrderPart workOrderPart){
@@ -281,23 +291,29 @@ public class WorkOrder implements Serializable, Parcelable {
         }
     }
 
-    public JSONStringer getJSON(){
-        try {
-            JSONStringer jsonStringer = new JSONStringer().object().key("WorkOrder").object().key("WorkOrderTypeId").value(this.WorkOrderTypeId)
-                    .key("CompanyId").value(this.getCompanyId())
-                    .key("PersonId").value(this.PersonId)
-                    .key("Name").value(this.Name)
-                    .key("Description").value(this.getDescription())
-                    .key("Notes").value(getNotes())
-                    .key("ReadyToInvoice").value(getIsCompleted())
+//    public JSONStringer getJSON(){
+//        try {
+//            JSONStringer jsonStringer = new JSONStringer().object().key("WorkOrder").object().key("WorkOrderTypeId").value(this.WorkOrderTypeId)
+//                    .key("CompanyId").value(this.getCompanyId())
+//                    .key("PersonId").value(this.PersonId)
+//                    .key("Name").value(this.Name)
+//                    .key("Description").value(this.getDescription())
+//                    .key("Notes").value(getNotes())
+//                    .key("ReadyToInvoice").value(getIsReadyForInvoice())
+//
+//                    .endObject()
+//                    .endObject();
+//            return jsonStringer;
+//        }catch (Exception ex){
+//            Log.d("Workorder JSON", ex.getMessage());
+//        }
+//        return null;
+//    }
 
-                    .endObject()
-                    .endObject();
-            return jsonStringer;
-        }catch (Exception ex){
-            Log.d("Workorder JSON", ex.getMessage());
-        }
-        return null;
+    public String toJson(){
+        final Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+
+        return gson.toJson(this);
     }
 
     @Override
@@ -319,10 +335,10 @@ public class WorkOrder implements Serializable, Parcelable {
         dest.writeDouble(getCostOfJob());
         dest.writeString(getWhereBilled());
         dest.writeString(getNotes());
-        dest.writeInt(getIsCompleted());
+        dest.writeInt(getIsReadyForInvoice());
         dest.writeList(getPartList());
         dest.writeParcelable(getJobTime(),0);
-        dest.writeString(getCompletedDate());
+        dest.writeString(getReadyForInvoiceDateTime());
     }
     public static  final Creator<WorkOrder> CREATOR= new Creator<WorkOrder>() {
         @Override
@@ -337,10 +353,10 @@ public class WorkOrder implements Serializable, Parcelable {
             workOrder.CostOfJob=source.readDouble();
             workOrder.WhereBilled=source.readString();
             workOrder.Notes=source.readString();
-            workOrder.IsCompleted=source.readInt();
+            workOrder.IsReadyForInvoice =source.readInt();
             workOrder.PartList=source.readArrayList(WorkOrderPart.class.getClassLoader());
             workOrder.JobTime=source.readParcelable(com.example.niki.fieldoutlookandroid.businessobjects.JobTime.class.getClassLoader());
-            workOrder.CompletedDate=source.readString();
+            workOrder.ReadyForInvoiceDateTime =source.readString();
             return workOrder;
         }
 

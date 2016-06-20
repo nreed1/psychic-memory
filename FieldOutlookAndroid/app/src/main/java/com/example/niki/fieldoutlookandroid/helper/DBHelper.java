@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.CustomerImage;
 import com.example.niki.fieldoutlookandroid.businessobjects.FOException;
@@ -20,13 +19,10 @@ import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
-import java.io.File;
 import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.StringTokenizer;
 
 /**
  * Created by Owner on 4/1/2016.
@@ -697,9 +693,10 @@ private void create(){
         contentValues.put(WORKORDER_ESTIMATEDDURATION, workOrder.getEstimatedDurationOfWork());
         contentValues.put(WORKORDER_NOTES, workOrder.getNotes());
         contentValues.put(WORKORDER_TYPEID, workOrder.getWorkOrderTypeId());
-        contentValues.put(WORKORDER_COMPLETEDDATE,workOrder.getCompletedDate());
+        contentValues.put(WORKORDER_COMPLETEDDATE,workOrder.getReadyForInvoiceDateTime());
+        contentValues.put(WORKORDER_ISCOMPLETED, workOrder.getIsReadyForInvoice());
         if(workorderExists){
-            db.update(TABLE_WORKORDER,contentValues,WORKORDER_ID+"=?",new String[]{String.valueOf(workOrder.getWorkOrderId())});
+            int success=db.update(TABLE_WORKORDER,contentValues,WORKORDER_ID+"=?",new String[]{String.valueOf(workOrder.getWorkOrderId())});
         }else {
 
             db.insert(TABLE_WORKORDER, null, contentValues);
@@ -727,7 +724,7 @@ private void create(){
             contentValues.put(WORKORDER_ESTIMATEDDURATION,workOrder.getEstimatedDurationOfWork());
             contentValues.put(WORKORDER_NOTES,workOrder.getNotes());
             contentValues.put(WORKORDER_TYPEID, workOrder.getWorkOrderTypeId());
-            contentValues.put(WORKORDER_COMPLETEDDATE,workOrder.getCompletedDate());
+            contentValues.put(WORKORDER_COMPLETEDDATE,workOrder.getReadyForInvoiceDateTime());
             if(workOrder.getJobTime()!=null && workOrder.getJobTime().getJobId()>0){
                 contentValues.put(WORKORDER_ACTUALHOURS,workOrder.getJobTime().getJobId());
                 contentValues.put(WORKORDER_PROJECTEDHOURS,workOrder.getJobTime().getProjectedHours());
@@ -744,7 +741,7 @@ private void create(){
         try{
             ArrayList<WorkOrder> workOrders=new ArrayList<>();
             SQLiteDatabase db=this.getReadableDatabase();
-            res=db.rawQuery("select * from "+TABLE_WORKORDER + "where iscompleted=1",null);
+            res=db.rawQuery("select * from "+TABLE_WORKORDER + " where iscompleted=1",null);
             res.moveToFirst();
             while(res.isAfterLast()==false){
                 //public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob,
@@ -755,7 +752,7 @@ private void create(){
                         res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
                         res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0, res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)),GetWorkOrderPartList(res.getInt(res.getColumnIndex(WORKORDER_ID))),jobTime);
-                newWorkOrder.setCompletedDate(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
+                newWorkOrder.setReadyForInvoiceDateTime(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 workOrders.add(newWorkOrder);
                 res.moveToNext();
@@ -785,7 +782,7 @@ private void create(){
                         res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
                         res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
                         res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0,res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)),null,jobTime);
-                newWorkOrder.setCompletedDate(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
+                newWorkOrder.setReadyForInvoiceDateTime(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 newWorkOrder.setPartList(GetWorkOrderPartList(newWorkOrder.getWorkOrderId()));
                 workOrders.add(newWorkOrder);

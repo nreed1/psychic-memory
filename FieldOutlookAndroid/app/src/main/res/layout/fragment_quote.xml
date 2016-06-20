@@ -1,48 +1,56 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.niki.fieldoutlookandroid.fragment.QuoteFragment"
     android:orientation="vertical" >
-
-    <AutoCompleteTextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Customer Name" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left|center_vertical"
-        android:padding="5dp"
-        android:text="111 Main St\nApt. A \nNew York, New York 10002"/>
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minLines="3"
-        android:hint="Description"
-        android:elegantTextHeight="true"
-        android:autoText="false" />
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minLines="2"
-        android:hint="Notes"/>
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:orientation="horizontal"
-        android:layout_gravity="center" android:gravity="center"
-       ></LinearLayout>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <AutoCompleteTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Customer Name" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="View/Edit Parts"
-        android:gravity="center"
-        android:elegantTextHeight="false"
-        android:elevation="@dimen/abc_button_padding_horizontal_material"
-        android:layout_gravity="center_horizontal" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left|center_vertical"
+            android:padding="5dp"
+            android:text="111 Main St\nApt. A \nNew York, New York 10002"/>
 
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minLines="3"
+            android:hint="Description"
+            android:elegantTextHeight="true"
+            android:autoText="false" />
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minLines="2"
+            android:hint="Notes"/>
 
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal"
+            android:layout_gravity="center" android:gravity="center"
+           ></LinearLayout>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_gravity="right"
+            android:text="Add Part"
+            android:minHeight="20dp" android:minWidth="20dp"/>
+
+       <ListView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+
+           tools:listitem="@layout/part_list_item"></ListView>
+
+    </LinearLayout>
+
+</ScrollView>

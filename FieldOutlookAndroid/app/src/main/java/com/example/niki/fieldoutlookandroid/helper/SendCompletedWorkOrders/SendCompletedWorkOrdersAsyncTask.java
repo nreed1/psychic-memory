@@ -2,13 +2,22 @@ package com.example.niki.fieldoutlookandroid.helper.SendCompletedWorkOrders;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.TokenHelper;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -23,6 +32,7 @@ public class SendCompletedWorkOrdersAsyncTask extends AsyncTask<Void,Integer,Boo
     private Context context;
     public SendCompletedWorkOrdersAsyncTask(Context context,SendCompletedWorkOrdersDelegate delegate){
         this.delegate=delegate;
+        this.context=context;
     }
 
     public interface SendCompletedWorkOrdersDelegate{
@@ -33,14 +43,29 @@ public class SendCompletedWorkOrdersAsyncTask extends AsyncTask<Void,Integer,Boo
     @Override
     protected Boolean doInBackground(Void... params) {
         try{
-            HttpURLConnection con = (HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveWorkOrderList/Token/" + URLEncoder.encode(TokenHelper.getToken())+"/")).openConnection();
+            DBHelper db=new DBHelper(context);
+            ArrayList<WorkOrder> completed=db.GetCompletedWorkOrders();
+            if(completed!=null && !completed.isEmpty()) {
+                for (WorkOrder workOrder:completed) {
 
-            con.setRequestMethod("POST");
-            con.connect();
+
+                    HttpURLConnection con = (HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveWorkOrder/" + URLEncoder.encode(TokenHelper.getToken()) )).openConnection();
+
+                    con.setRequestMethod("POST");
+                    con.setRequestProperty("Content-Type","application/json; charset=UTF-8");
+                    con.connect();
+                    OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+                    wr.write(workOrder.toJson().toString());
+                    wr.flush();
+
+
+                }
+                return true;
+            }
         }catch (Exception ex){
             ExceptionHelper.LogException(context,ex);
         }
-        return null;
+        return false;
     }
     @Override
     protected void onPostExecute(Boolean result){
