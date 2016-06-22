@@ -3,22 +3,34 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.Expose;
+
 import java.io.Serializable;
 
 /**
  * Created by Niki on 6/7/2016.
  */
 public class Part implements Serializable,Parcelable{
+    @Expose
     private int partId;
+    @Expose
     private int partTypeId;
+    @Expose
     private int pricebookId;
+    @Expose
     private String description;
+    @Expose
     private String partNumber;
+    @Expose
     private int categoryId;
+    @Expose
     private String Model;
+    @Expose
     private String Manufacturer;
+    @Expose
     private String NumberAndDescription;
    // private int quantity;
+   @Expose
     private double price;
 
     public int getPartId() {

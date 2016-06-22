@@ -18,6 +18,19 @@ public class Quote implements Serializable, Parcelable {
     private ArrayList<QuotePart> parts;
     private double amount;
 
+    public Quote(){
+
+    }
+    public Quote(int quoteId,Person customer,String description, String notes, String dateCreated, ArrayList<QuotePart> parts, double amount){
+        this.quoteId=quoteId;
+        this.customer=customer;
+        this.dateCreated=dateCreated;
+        this.description=description;
+        this.parts=parts;
+        this.amount=amount;
+        this.notes=notes;
+    }
+
     public int getQuoteId() {
         return quoteId;
     }

@@ -1,5 +1,8 @@
 package com.example.niki.fieldoutlookandroid.businessobjects;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.io.Serializable;
 
 /**
@@ -52,5 +55,10 @@ public class CustomerImage implements Serializable {
 
     public void setImageString(String imageString) {
         this.imageString = imageString;
+    }
+
+    public String toJson(){
+        Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        return gson.toJson(this);
     }
 }

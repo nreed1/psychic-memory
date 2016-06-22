@@ -13,6 +13,8 @@ import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
+import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
+import com.example.niki.fieldoutlookandroid.businessobjects.QuotePart;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
@@ -58,6 +60,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String WORKORDER_PROJECTEDHOURS="projectedhours";
     public static final String WORKORDER_ACTUALHOURS="actualhours";
     public static final String WORKORDER_COMPLETEDDATE="completeddate";
+    public static final String WORKORDER_SENT="senttocloud";
 
     public static final String TABLE_OTHERTASKS="othertasks";
     public static final String OTHERTASKS_ID="id";
@@ -142,6 +145,22 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String CUSTOMERIMAGE_IMAGENAME="imagename";
     public static final String CUSTOMERIMAGE_IMAGE="image";
 
+    public static final String TABLE_QUOTE="quote";
+    public static final String QUOTE_ID="id";
+    public static final String QUOTE_QUOTEID="quoteid";
+    public static final String QUOTE_CUSTOMERID="customerid";
+    public static final String QUOTE_DESCRIPTION="description";
+    public static final String QUOTE_NOTES="notes";
+    public static final String QUOTE_DATECREATED="datecreated";
+    public static final String QUOTE_AMOUNT="amount";
+
+    public static final String TABLE_QUOTEPART="quotepart";
+    public static final String QUOTEPART_ID="id";
+    public static final String QUOTEPART_QUOTEID="quoteid";
+    public static final String QUOTEPART_PARTID="partid";
+    public static final String QUOTEPART_QUANTITY="quantity";
+
+
     SQLiteDatabase db;
 
     Context ctx;
@@ -168,7 +187,7 @@ private void create(){
             db.execSQL("create table if not exists workorder (id integer primary key, workorderid integer, companyid integer, personid integer, name text, description text, " +
                     "arrivaltime string, estimatedduration real," +
                     "costofjob real, wherebilled text, notes text, workordertypeid integer, totalhoursalotted integer, hoursworked integer, iscompleted integer, jobid integer, " +
-                    "projectedhours integer, actualhours integer,completeddate text)");
+                    "projectedhours integer, actualhours integer,completeddate text, senttocloud integer)");
         //#end workorder
 
         //#start other tasks
@@ -212,6 +231,136 @@ private void create(){
 
     }
 
+    public ArrayList<Quote> GetQuoteList(){
+        Cursor res=null;
+        try{
+            ArrayList<Quote> quotes=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from quote",null);
+            res.moveToFirst();
+            while(!res.isAfterLast()){
+                Quote newQuote=new Quote(res.getInt(res.getColumnIndex(QUOTE_ID)),GetPersonByPersonId(res.getInt(res.getColumnIndex(QUOTE_CUSTOMERID))),res.getString(res.getColumnIndex(QUOTE_DESCRIPTION)),
+                        res.getString(res.getColumnIndex(QUOTE_NOTES)), res.getString(res.getColumnIndex(QUOTE_DATECREATED)),GetQuotePartListByQuote(res.getInt(res.getColumnIndex(QUOTE_ID))),
+                        res.getDouble(res.getColumnIndex(QUOTE_AMOUNT)));
+                quotes.add(newQuote);
+                res.moveToNext();
+            }
+            return quotes;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return new ArrayList<>();
+    }
+    public Quote GetQuoteById(int quoteId){
+        Cursor res=null;
+        try{
+
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from quote",null);
+            res.moveToFirst();
+            if(!res.isAfterLast()){
+                Quote newQuote=new Quote(res.getInt(res.getColumnIndex(QUOTE_ID)),GetPersonByPersonId(res.getInt(res.getColumnIndex(QUOTE_CUSTOMERID))),res.getString(res.getColumnIndex(QUOTE_DESCRIPTION)),
+                        res.getString(res.getColumnIndex(QUOTE_NOTES)), res.getString(res.getColumnIndex(QUOTE_DATECREATED)),GetQuotePartListByQuote(res.getInt(res.getColumnIndex(QUOTE_ID))),
+                        res.getDouble(res.getColumnIndex(QUOTE_AMOUNT)));
+
+                return newQuote;
+
+            }
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return null;
+    }
+
+    /**
+     * This is a HARD delete! (both the quoteparts and the quote)
+     * */
+    public boolean DeleteQuoteById(int quoteId){
+        Cursor res=null;
+        try{
+            db=getWritableDatabase();
+            DeleteAllQuotePartsForQuote(quoteId);
+            res=db.rawQuery("delete from "+TABLE_QUOTE+" where quoteid="+quoteId,null);
+
+            return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return false;
+    }
+
+    public boolean TruncateQuote(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_QUOTE,null);
+        if(res==null) return false;
+        return true;
+    }
+
+    public ArrayList<QuotePart> GetQuotePartListByQuote(int quoteId){
+        Cursor res=null;
+        try{
+            ArrayList<QuotePart> quotePartArrayList=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_QUOTEPART+" where quoteid="+quoteId,null);
+            res.moveToFirst();
+            while(!res.isAfterLast()){
+                QuotePart quotePart=new QuotePart(GetPartById(res.getInt(res.getColumnIndex(QUOTEPART_PARTID))),res.getInt(res.getColumnIndex(QUOTEPART_QUANTITY)));
+                quotePartArrayList.add(quotePart);
+                res.moveToNext();
+            }
+            return quotePartArrayList;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return new ArrayList<>();
+    }
+
+    public boolean SaveQuotePartList(ArrayList<QuotePart> quotePartArrayList,int quoteId){
+        try{
+
+            DeleteAllQuotePartsForQuote(quoteId);
+            db=getWritableDatabase();
+            for (QuotePart quotePart: quotePartArrayList){
+                ContentValues contentValues=new ContentValues();
+                contentValues.put(QUOTEPART_PARTID,quotePart.getPartId());
+                contentValues.put(QUOTEPART_QUOTEID,quoteId);
+                contentValues.put(QUOTEPART_QUANTITY,quotePart.getQuantity());
+
+                db.insert(TABLE_QUOTEPART,null,contentValues);
+
+            }
+            return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        return false;
+    }
+
+    public boolean DeleteAllQuotePartsForQuote(int quoteId){
+        Cursor res=null;
+        try{
+            db=getWritableDatabase();
+            res=db.rawQuery("delete from "+TABLE_QUOTEPART+" where quoteid="+quoteId,null);
+            res.moveToFirst();
+            return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null)res.close();
+        }
+        return false;
+    }
+
 
     public boolean SaveCustomerImage(String imageLocation, int personId, String imageName){
         try{
@@ -229,10 +378,10 @@ private void create(){
         return false;
     }
 
-    public List<CustomerImage> GetCustomerImageList(){
+    public ArrayList<CustomerImage> GetCustomerImageList(){
         Cursor res=null;
         try{
-            List<CustomerImage> customerImages=new ArrayList<>();
+            ArrayList<CustomerImage> customerImages=new ArrayList<>();
             db=getReadableDatabase();
             res=db.rawQuery("select * from "+TABLE_CUSTOMERIMAGE,null);
             res.moveToFirst();
@@ -253,6 +402,28 @@ private void create(){
             if(res!=null) res.close();
         }
         return new ArrayList<>();
+    }
+    public Boolean hasCustomerImages(){
+        Cursor res=null;
+        try{
+            db=getReadableDatabase();
+            res= db.rawQuery("select * from "+TABLE_CUSTOMERIMAGE+" limit 1",null);
+            res.moveToFirst();
+            if(!res.isAfterLast())return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null)res.close();
+        }
+        return false;
+    }
+
+    public boolean TruncateCustomerImage(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_CUSTOMERIMAGE,null);
+        if(res==null) return false;
+        return true;
     }
 
     public String GetLastRefreshDate(){
@@ -695,6 +866,7 @@ private void create(){
         contentValues.put(WORKORDER_TYPEID, workOrder.getWorkOrderTypeId());
         contentValues.put(WORKORDER_COMPLETEDDATE,workOrder.getReadyForInvoiceDateTime());
         contentValues.put(WORKORDER_ISCOMPLETED, workOrder.getIsReadyForInvoice());
+        contentValues.put(WORKORDER_SENT, workOrder.getSentToCloud());
         if(workorderExists){
             int success=db.update(TABLE_WORKORDER,contentValues,WORKORDER_ID+"=?",new String[]{String.valueOf(workOrder.getWorkOrderId())});
         }else {
@@ -703,6 +875,22 @@ private void create(){
             db.close();
         }
 
+    }
+    public void SetWorkOrderToSent(int workOrderId){
+        Cursor res=null;
+        try{
+            db=getWritableDatabase();
+            res = db.rawQuery("update "+TABLE_WORKORDER+" set "+WORKORDER_SENT+"=1",null);
+            res.moveToFirst();
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+    }
+    public void DeleteSentWorkOrders(){
+        db=getWritableDatabase();
+        db.rawQuery("delete from workorder where senttocloud="+1,null);
     }
     public void SaveWorkOrderList(ArrayList<WorkOrder> workOrders){
         db = this.getWritableDatabase();
@@ -754,6 +942,7 @@ private void create(){
                         res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0, res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)),GetWorkOrderPartList(res.getInt(res.getColumnIndex(WORKORDER_ID))),jobTime);
                 newWorkOrder.setReadyForInvoiceDateTime(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
+                newWorkOrder.setSentToCloud(res.getInt(res.getColumnIndex(WORKORDER_SENT)));
                 workOrders.add(newWorkOrder);
                 res.moveToNext();
             }
@@ -785,6 +974,7 @@ private void create(){
                 newWorkOrder.setReadyForInvoiceDateTime(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 newWorkOrder.setPartList(GetWorkOrderPartList(newWorkOrder.getWorkOrderId()));
+                newWorkOrder.setSentToCloud(res.getInt(res.getColumnIndex(WORKORDER_SENT)));
                 workOrders.add(newWorkOrder);
                 res.moveToNext();
             }
@@ -884,6 +1074,31 @@ private void create(){
             db.insert(TABLE_PERSON, null, contentValues);
         }
 
+    }
+    public ArrayList<Person> GetAllPersons(){
+        Cursor res=null;
+        try {
+            ArrayList<Person> personArrayList=new ArrayList<>();
+            db = getReadableDatabase();
+            res = db.rawQuery("select * from " + TABLE_PERSON , null);
+            res.moveToFirst();
+            Person selectedPerson = null;
+            while (res.isAfterLast() == false) {
+                //public OtherTask(int id, int userid, String name, String description)
+                selectedPerson = new Person(res.getInt(res.getColumnIndex(PERSON_PERSONID)), res.getInt(res.getColumnIndex(PERSON_COMPANYID)), 0, res.getString(res.getColumnIndex(PERSON_FIRSTNAME)), res.getString(res.getColumnIndex(PERSON_LASTNAME)),
+                        res.getString(res.getColumnIndex(PERSON_FULLNAME)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE1)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE2)),
+                        res.getString(res.getColumnIndex(PERSON_CITY)), res.getString(res.getColumnIndex(PERSON_STATE)), res.getString(res.getColumnIndex(PERSON_ZIPCODE)));
+                    personArrayList.add(selectedPerson);
+                res.moveToNext();
+            }
+            return personArrayList;
+           // return selectedPerson;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null) res.close();
+        }
+        return new ArrayList<>();
     }
     public Person GetPersonByPersonId(int personId){
         Cursor res=null;

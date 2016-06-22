@@ -10,14 +10,16 @@
         <AutoCompleteTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Customer Name" />
+            android:hint="Customer Name"
+            android:id="@+id/customerNameQuote"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="left|center_vertical"
             android:padding="5dp"
-            android:text="111 Main St\nApt. A \nNew York, New York 10002"/>
+            android:text="111 Main St\nApt. A \nNew York, New York 10002"
+            android:id="@+id/customerAddressQuote"/>
 
         <EditText
             android:layout_width="match_parent"
@@ -25,12 +27,14 @@
             android:minLines="3"
             android:hint="Description"
             android:elegantTextHeight="true"
+            android:id="@+id/descriptionQuote"
             android:autoText="false" />
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minLines="2"
-            android:hint="Notes"/>
+            android:hint="Notes"
+            android:id="@+id/notesQuote"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -48,7 +52,7 @@
        <ListView
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-
+            android:id="@+id/partListQuote"
            tools:listitem="@layout/part_list_item"></ListView>
 
     </LinearLayout>

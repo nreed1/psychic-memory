@@ -23,13 +23,17 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
+import com.example.niki.fieldoutlookandroid.businessobjects.Person;
+import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
@@ -39,6 +43,7 @@ import com.example.niki.fieldoutlookandroid.fragment.OtherTaskListFragment;
 import com.example.niki.fieldoutlookandroid.fragment.PartListFragment;
 import com.example.niki.fieldoutlookandroid.fragment.PricebookFragment;
 import com.example.niki.fieldoutlookandroid.fragment.QuoteFragment;
+import com.example.niki.fieldoutlookandroid.fragment.QuoteListFragment;
 import com.example.niki.fieldoutlookandroid.fragment.SelectedWorkorderFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartDayFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
@@ -49,8 +54,11 @@ import com.example.niki.fieldoutlookandroid.fragment.WorkOrderPartFragment;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.example.niki.fieldoutlookandroid.helper.GetPartListAsyncTask.GetPartsListAsyncTask;
+import com.example.niki.fieldoutlookandroid.helper.NetworkHelper;
 import com.example.niki.fieldoutlookandroid.helper.SendCompletedWorkOrders.SendCompletedWorkOrdersAsyncTask;
+import com.example.niki.fieldoutlookandroid.helper.SendCustomerImage.SendCustomerImageAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
+import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobsAsyncTask;
@@ -73,13 +81,15 @@ public class MainNavigationActivity extends AppCompatActivity
                     NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener,
         SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener, PartListFragment.OnPartListFragmentInteractionListener ,
         PartListFragment.OnPartListPartFragmentInteractionListener, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener,
-        WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener{
+        WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener,
+QuoteListFragment.OnQuoteListFragmentInteractionListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
     private DBHelper dbHelper;
     ProgressDialog progressDialog;
     private WorkOrder workOrder;
+    private NetworkHelper networkHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,7 +97,7 @@ public class MainNavigationActivity extends AppCompatActivity
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         dbHelper=new DBHelper(this.getApplicationContext());
-
+        networkHelper=new NetworkHelper();
 
         //FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -223,8 +233,10 @@ public class MainNavigationActivity extends AppCompatActivity
             toolbar.setTitle("Quote");
             android.app.FragmentManager fragmentManager= getFragmentManager();
             android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-            QuoteFragment quoteFragment=new QuoteFragment();
-            fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "Quote").addToBackStack("Quote");
+            QuoteListFragment quoteListFragment=new QuoteListFragment();
+            Bundle b=new Bundle();
+            b.putParcelableArrayList("quotes", dbHelper.GetQuoteList());
+            fragmentTransaction.replace(R.id.fragment_container, quoteListFragment, "QuoteList").addToBackStack("QuoteList");
             fragmentTransaction.commit();
         }else if(id== R.id.nav_camera){
             // create Intent to take a picture and return control to the calling application
@@ -235,85 +247,95 @@ public class MainNavigationActivity extends AppCompatActivity
 
             // start the image capture Intent
             startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-        }else if(id==R.id.nav_update_data){
-            //Refresh the data //refdata
-            progressDialog=new ProgressDialog(this);
-            progressDialog.setTitle("Refreshing Data");
-            progressDialog.isIndeterminate();
-            progressDialog.setMessage("Getting Work Orders");
-            progressDialog.show();
+        }else if(id==R.id.nav_update_data) {
+            if (networkHelper.isConnectionAvailable(getApplicationContext())) {
 
-            ArrayList<WorkOrder> completedWorkOrders=dbHelper.GetCompletedWorkOrders();
-            final AssignedJobsAsyncTask  assignedJobsAsyncTask = new AssignedJobsAsyncTask(new AssignedJobsAsyncTask.AssignedJobsResponse() {
+                //Refresh the data //refdata
+                progressDialog = new ProgressDialog(this);
+                progressDialog.setTitle("Refreshing Data");
+                progressDialog.isIndeterminate();
+                progressDialog.setMessage("Getting Work Orders");
+                progressDialog.show();
 
-                @Override
-                public void processFinish(ArrayList<WorkOrder> workOrders) {
-                    if (dbHelper == null)
-                        dbHelper = new DBHelper(getApplicationContext());
-                    dbHelper.SaveWorkOrderList(workOrders);
-                    progressDialog.setMessage("Downloaded " + workOrders.size() + " Work Orders");
+                ArrayList<WorkOrder> completedWorkOrders = dbHelper.GetCompletedWorkOrders();
+                final AssignedJobsAsyncTask assignedJobsAsyncTask = new AssignedJobsAsyncTask(new AssignedJobsAsyncTask.AssignedJobsResponse() {
+
+                    @Override
+                    public void processFinish(ArrayList<WorkOrder> workOrders) {
+                        if (dbHelper == null)
+                            dbHelper = new DBHelper(getApplicationContext());
+                        dbHelper.SaveWorkOrderList(workOrders);
+                        progressDialog.setMessage("Downloaded " + workOrders.size() + " Work Orders");
+                    }
+                });
+                if (completedWorkOrders != null && !completedWorkOrders.isEmpty()) {
+                    progressDialog.setMessage("Sending " + completedWorkOrders.size() + " Work Orders");
+                    SendCompletedWorkOrdersAsyncTask sendCompletedWorkOrdersAsyncTask = new SendCompletedWorkOrdersAsyncTask(getApplicationContext(), new SendCompletedWorkOrdersAsyncTask.SendCompletedWorkOrdersDelegate() {
+                        @Override
+                        public void processFinish(Boolean success) {
+                            if (success) {
+                                progressDialog.setMessage("Sending Work Orders successful!");
+
+
+                                assignedJobsAsyncTask.execute((String) null);
+                            } else {
+                                AlertDialog.Builder alert = new AlertDialog.Builder(getApplicationContext());
+                                alert.setMessage("Unable to upload or download new data. Please try again and if this error persists contact the administrator.");
+                                alert.show();
+                                return;
+                            }
+                        }
+                    });
+                    sendCompletedWorkOrdersAsyncTask.execute((Void) null);
+                } else {
+                    assignedJobsAsyncTask.execute((String) null);
                 }
-            });
-            if(completedWorkOrders!=null && !completedWorkOrders.isEmpty()){
-                progressDialog.setMessage("Sending "+completedWorkOrders.size()+" Work Orders");
-                SendCompletedWorkOrdersAsyncTask sendCompletedWorkOrdersAsyncTask=new SendCompletedWorkOrdersAsyncTask(getApplicationContext(), new SendCompletedWorkOrdersAsyncTask.SendCompletedWorkOrdersDelegate() {
-                    @Override
-                    public void processFinish(Boolean success) {
-                        if(success) {
-                            progressDialog.setMessage("Sending Work Orders successful!");
 
-
-
-                            assignedJobsAsyncTask.execute((String) null);
+                //Send Customer Images
+                if (dbHelper.hasCustomerImages()) {
+                    SendCustomerImageAsyncTask sendCustomerImageAsyncTask = new SendCustomerImageAsyncTask(getApplicationContext(), new SendCustomerImageAsyncTask.SendCustomersAsyncTaskDelegate() {
+                        @Override
+                        public void processFinish(Boolean result) {
+                            if (result == true) {
+                                progressDialog.setMessage("Sent Customer Images");
+                            }
                         }
-                        else{
-                            AlertDialog.Builder alert=new AlertDialog.Builder(getApplicationContext());
-                            alert.setMessage("Unable to upload or download new data. Please try again and if this error persists contact the administrator.");
-                            alert.show();
-                            return;
+                    });
+                    sendCustomerImageAsyncTask.execute((String[]) null);
+                }
+                String lastRefreshDateString = dbHelper.GetLastRefreshDate();
+                Date lastRefreshDate = new Date();
+                if (lastRefreshDateString != null) {
+                    lastRefreshDate = DateHelper.StringToDate(lastRefreshDateString);
+                }
+
+                if (true) {// if(lastRefreshDate==null || lastRefreshDate.before(new Date())) {
+                    TimeEntryTypeAsyncTask timeEntryTypeAsyncTask = new TimeEntryTypeAsyncTask(new TimeEntryTypeAsyncTask.TimeEntryTypeResponse() {
+                        @Override
+                        public void processFinish(ArrayList<TimeEntryType> timeEntryTypes) {
+                            progressDialog.setMessage("Saving " + timeEntryTypes.size() + " Time Entry Types");
+                            if (dbHelper == null) dbHelper = new DBHelper(getApplicationContext());
+                            for (TimeEntryType t : timeEntryTypes) {
+                                dbHelper.SaveTimeEntryType(t);
+                            }
+
                         }
-                    }
-                });
-                sendCompletedWorkOrdersAsyncTask.execute((Void)null);
-            }
-            else{
+                    });
+                    timeEntryTypeAsyncTask.execute();
 
-
-
-                assignedJobsAsyncTask.execute((String) null);
-            }
-
-
-            String lastRefreshDateString=dbHelper.GetLastRefreshDate();
-            Date lastRefreshDate= new Date();
-            if(lastRefreshDateString!=null) {
-                lastRefreshDate=DateHelper.StringToDate(lastRefreshDateString);
-            }
-
-           if(true){// if(lastRefreshDate==null || lastRefreshDate.before(new Date())) {
-                TimeEntryTypeAsyncTask timeEntryTypeAsyncTask = new TimeEntryTypeAsyncTask(new TimeEntryTypeAsyncTask.TimeEntryTypeResponse() {
-                    @Override
-                    public void processFinish(ArrayList<TimeEntryType> timeEntryTypes) {
-                        progressDialog.setMessage("Saving "+timeEntryTypes.size()+ " Time Entry Types");
-                        if (dbHelper == null) dbHelper = new DBHelper(getApplicationContext());
-                        for (TimeEntryType t : timeEntryTypes) {
-                            dbHelper.SaveTimeEntryType(t);
+                    GetPartsListAsyncTask getPartsListAsyncTask = new GetPartsListAsyncTask(new GetPartsListAsyncTask.GetPartsListDelegate() {
+                        @Override
+                        public void processFinish(ArrayList<PartCategory> result) {
+                            progressDialog.setMessage("Saving " + result.size() + " Parts List");
+                            progressDialog.dismiss();
                         }
-
-                    }
-                });
-                timeEntryTypeAsyncTask.execute();
-
-                GetPartsListAsyncTask getPartsListAsyncTask=new GetPartsListAsyncTask(new GetPartsListAsyncTask.GetPartsListDelegate() {
-                    @Override
-                    public void processFinish(ArrayList<PartCategory> result) {
-                        progressDialog.setMessage("Saving "+result.size()+" Parts List");
-                        progressDialog.dismiss();
-                    }
-                },getApplicationContext());
-                getPartsListAsyncTask.execute((Void)null);
+                    }, getApplicationContext());
+                    getPartsListAsyncTask.execute((Void) null);
 
 
+                }
+            }else{
+                Toast.makeText(getApplicationContext(),"Network Unavailable. Try again later.", Toast.LENGTH_LONG);
             }
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -339,7 +361,10 @@ public class MainNavigationActivity extends AppCompatActivity
         fragmentTransaction.commit();
     }
 
-
+    private Person customerImagePerson;
+    private void SetPersonForCustomerImage(Person selectedPerson){
+        customerImagePerson=selectedPerson;
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -350,9 +375,25 @@ public class MainNavigationActivity extends AppCompatActivity
                 customerSearch.setCancelable(true);
                 LayoutInflater inflater = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 final View search_View = inflater.inflate(R.layout.customer_search_picture_attach, null);
+                AutoCompleteTextView autoCompleteTextView=(AutoCompleteTextView)search_View.findViewById(R.id.autoCompleteCustomerTextView);
+                CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter=new CustomerAutoCompleteArrayAdapter(this,dbHelper.GetAllPersons());
+                autoCompleteTextView.setAdapter(customerAutoCompleteArrayAdapter);
+                final EditText imageName=(EditText)search_View.findViewById(R.id.customerImageName);
                 // customerSearch.setContentView(search_View);
                 customerSearch.setView(search_View);
+                Person selectedPerson;
+                customerSearch.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        Person selectedPerson=(Person)parent.getItemAtPosition(position);
+                        SetPersonForCustomerImage(selectedPerson);
+                    }
 
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
                 customerSearch.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -362,17 +403,36 @@ public class MainNavigationActivity extends AppCompatActivity
                 }).setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        AutoCompleteTextView autoCompleteTextView=(AutoCompleteTextView) search_View.findViewById(R.id.autoCompleteCustomerTextView);
-                        //autoCompleteTextView.get
+                        if(networkHelper.isConnectionAvailable(getApplicationContext())){
+
+                            /**When starting the task the params expected are
+                             * param[0]==imagename
+                             * param[1]==personid
+                             * param[2]==imagelocation
+                             * */
+                            SendCustomerImageAsyncTask sendCustomerImageAsyncTask=new SendCustomerImageAsyncTask(getApplicationContext(), new SendCustomerImageAsyncTask.SendCustomersAsyncTaskDelegate() {
+                                @Override
+                                public void processFinish(Boolean result) {
+                                    if(result==true) {
+                                        Toast.makeText(getApplicationContext(), "Customer Image Sent Successfully", Toast.LENGTH_LONG);
+                                    }
+                                }
+                            });
+                            sendCustomerImageAsyncTask.execute(imageName.getText().toString(),String.valueOf(customerImagePerson.getPersonId()),fileUri.toString());
+
+                        }else{
+                            dbHelper.SaveCustomerImage(fileUri.toString(),customerImagePerson.getPersonId(), imageName.getText().toString());
+                            Toast.makeText(getApplicationContext(),"Customer Image Saved", Toast.LENGTH_LONG);
+                        }
                     }
                 });
-                //customerSearch.set
+
 
 
                 customerSearch.setTitle("Select Customer: ");
                 //customerSearch.create();
                 customerSearch.show();
-               Toast.makeText(this, "Image saved to:\n" +fileUri, Toast.LENGTH_LONG).show();
+              // Toast.makeText(this, "Image saved to:\n" +fileUri, Toast.LENGTH_LONG).show();
             } else if (resultCode == RESULT_CANCELED) {
                 // User cancelled the image capture
             } else {
@@ -397,7 +457,7 @@ public class MainNavigationActivity extends AppCompatActivity
         // using Environment.getExternalStorageState() before doing this.
 
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "MyCameraApp");
+                Environment.DIRECTORY_PICTURES), "FieldOutlookPics");
         // This location works best if you want the created images to be shared
         // between applications and persist after your app has been uninstalled.
 
@@ -613,6 +673,18 @@ public class MainNavigationActivity extends AppCompatActivity
         b.putParcelable("selectedWorkOrder",selectedWorkorder);
         workOrderPartFragment.setArguments(b);
         fragmentTransaction.replace(R.id.fragment_container, workOrderPartFragment, "WorkOrderPartList").addToBackStack("WorkOrderPartList");
+        fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onQuoteListFragmentInteraction(Quote item) {
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        QuoteFragment quoteFragment=new QuoteFragment();
+        Bundle b=new Bundle();
+        b.putParcelable("selected-quote",item);
+        quoteFragment.setArguments(b);
+        fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "QuoteFragment").addToBackStack("QuoteFragment");
         fragmentTransaction.commit();
     }
 }

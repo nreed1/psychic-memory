@@ -38,8 +38,7 @@ public class SendCompletedWorkOrdersAsyncTask extends AsyncTask<Void,Integer,Boo
     public interface SendCompletedWorkOrdersDelegate{
         void processFinish(Boolean success);
     }
-    /**TODO: Post to webservice
-     * */
+
     @Override
     protected Boolean doInBackground(Void... params) {
         try{
@@ -57,9 +56,10 @@ public class SendCompletedWorkOrdersAsyncTask extends AsyncTask<Void,Integer,Boo
                     OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
                     wr.write(workOrder.toJson().toString());
                     wr.flush();
-
+                    db.SetWorkOrderToSent(workOrder.getWorkOrderId());
 
                 }
+                db.DeleteSentWorkOrders();
                 return true;
             }
         }catch (Exception ex){

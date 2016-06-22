@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -23,10 +24,12 @@ public class QuoteFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_SELECTED_QUOTE="selected-quote";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private Quote selectedQuote;
 
     private OnFragmentInteractionListener mListener;
 
@@ -58,6 +61,7 @@ public class QuoteFragment extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            selectedQuote=getArguments().getParcelable(ARG_SELECTED_QUOTE);
         }
     }
 
@@ -65,7 +69,12 @@ public class QuoteFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_quote, container, false);
+        View view= inflater.inflate(R.layout.fragment_quote, container, false);
+        //TODO attach and provide data to the view
+        if(selectedQuote!=null){
+
+        }
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

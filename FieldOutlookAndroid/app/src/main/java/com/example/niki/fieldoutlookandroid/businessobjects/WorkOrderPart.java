@@ -4,11 +4,13 @@ import android.os.Parcel;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 
 /**
  * Created by Owner on 6/15/2016.
  */
 public class WorkOrderPart extends Part  {
+    @Expose
     private int quantity;
 
     public WorkOrderPart(){

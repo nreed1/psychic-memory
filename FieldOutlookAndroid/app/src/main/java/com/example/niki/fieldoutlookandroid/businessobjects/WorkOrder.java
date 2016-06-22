@@ -20,34 +20,54 @@ import java.util.Date;
  * Created by Owner on 5/16/2016.
  */
 public class WorkOrder implements Serializable, Parcelable {
+    @Expose
     private  int WorkOrderId;
+    @Expose
     private int JobId;
+    @Expose
     private int WorkOrderTypeId;
     @SerializedName("ApplicationCompanyID")
+    @Expose
     private int CompanyId;
+    @Expose
     private int PersonId;
+    @Expose
     private String Name;
+    @Expose
     private String Description;
-    @Expose
+
     private String ArrivalTime;
+    @Expose
     private String EstimatedDurationOfWork;
+    @Expose
     private double CostOfJob;
+    @Expose
     private String WhereBilled;
+    @Expose
     private String Notes;
+    @Expose
     private Person Person;
-    @Expose
     private Date ArrivalTimeDate;
-    private int TotalHoursForJob;
-    private int HoursWorkedOnJob;
-    private int IsReadyForInvoice;
-    private ArrayList<WorkOrderPart> PartList;
-    private JobTime JobTime;
     @Expose
+    private int TotalHoursForJob;
+    @Expose
+    private int HoursWorkedOnJob;
+    @Expose
+    private int IsReadyForInvoice;
+    @Expose
+    private ArrayList<WorkOrderPart> PartList;
+    @Expose
+    private JobTime JobTime;
+
     private String ReadyForInvoiceDateTime;
     @SerializedName("ArrivalTime")
+    @Expose
     private String JsonArrivalTime;
     @SerializedName("ReadyToInvoiceDateTime")
+    @Expose
     private String JsonReadyToInvoiceDateTime;
+
+    private int sentToCloud;
 
     public String getJsonReadyToInvoiceDateTime(){return DateHelper.DateToJsonString(DateHelper.StringToDate(this.ReadyForInvoiceDateTime));}
 
@@ -310,6 +330,15 @@ public class WorkOrder implements Serializable, Parcelable {
 //        return null;
 //    }
 
+
+    public int getSentToCloud() {
+        return sentToCloud;
+    }
+
+    public void setSentToCloud(int sentToCloud) {
+        this.sentToCloud = sentToCloud;
+    }
+
     public String toJson(){
         final Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
@@ -339,6 +368,7 @@ public class WorkOrder implements Serializable, Parcelable {
         dest.writeList(getPartList());
         dest.writeParcelable(getJobTime(),0);
         dest.writeString(getReadyForInvoiceDateTime());
+        dest.writeInt(getSentToCloud());
     }
     public static  final Creator<WorkOrder> CREATOR= new Creator<WorkOrder>() {
         @Override
@@ -357,6 +387,7 @@ public class WorkOrder implements Serializable, Parcelable {
             workOrder.PartList=source.readArrayList(WorkOrderPart.class.getClassLoader());
             workOrder.JobTime=source.readParcelable(com.example.niki.fieldoutlookandroid.businessobjects.JobTime.class.getClassLoader());
             workOrder.ReadyForInvoiceDateTime =source.readString();
+            workOrder.sentToCloud=source.readInt();
             return workOrder;
         }
 
