@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
 
+import com.example.niki.fieldoutlookandroid.businessobjects.FlatRateItem;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
@@ -49,11 +50,15 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
         if(mValues.getPartList().get(position).getNumberAndDescription()!=null && !mValues.getPartList().get(position).getNumberAndDescription().isEmpty()) {
             holder.mNumberandDescription.setText(mValues.getPartList().get(position).getNumberAndDescription());
         }else{
+
             String partNumber=mValues.getPartList().get(position).getPartNumber();
             if(partNumber!=null &&!partNumber.isEmpty()) {
                 holder.mNumberandDescription.setText(mValues.getPartList().get(position).getPartNumber() + "-" + mValues.getPartList().get(position).getDescription());
-            }else{
+            }else if(!mValues.getPartList().get(position).getDescription().isEmpty()){
                 holder.mNumberandDescription.setText( mValues.getPartList().get(position).getDescription());
+            }else if(mValues.getPartList().get(position).getFlatRateItem()!=null){
+                FlatRateItem flatRateItem=mValues.getPartList().get(position).getFlatRateItem();
+                holder.mNumberandDescription.setText(flatRateItem.getFlatRateName()+" - "+flatRateItem.getDescription());
             }
         }
         //holder.mQuantity.setDisplayedValues(null);

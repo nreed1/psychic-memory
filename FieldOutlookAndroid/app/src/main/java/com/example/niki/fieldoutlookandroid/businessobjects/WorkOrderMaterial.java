@@ -2,22 +2,19 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 
 import android.os.Parcel;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 
 /**
- * Created by Owner on 6/15/2016.
+ * Created by Owner on 6/22/2016.
  */
-public class WorkOrderPart extends Part  {
+public class WorkOrderMaterial extends Part {
     @Expose
     private int quantity;
-    private FlatRateItem flatRateItem;
 
-    public WorkOrderPart(){
+    public WorkOrderMaterial(){
 
     }
-    public WorkOrderPart(Part part, int quantity, FlatRateItem flatRateItem){
+    public WorkOrderMaterial(Part part, int quantity){
         this.setPartId(part.getPartId());
         this.setCategoryId(part.getCategoryId());
         this.setManufacturer(part.getManufacturer());
@@ -29,30 +26,14 @@ public class WorkOrderPart extends Part  {
         this.setPricebookId(part.getPricebookId());
         this.setPrice(part.getPrice());
         this.setQuantity(quantity);
-        this.flatRateItem=flatRateItem;
-
     }
 
     public int getQuantity() {
         return quantity;
     }
 
-
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-    }
-
-    public FlatRateItem getFlatRateItem() {
-        return flatRateItem;
-    }
-
-    public void setFlatRateItem(FlatRateItem flatRateItem) {
-        this.flatRateItem = flatRateItem;
-    }
-
-    public String toJson(){
-        final Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        return gson.toJson(this);
     }
 
     @Override
@@ -73,12 +54,11 @@ public class WorkOrderPart extends Part  {
         dest.writeInt(getQuantity());
         dest.writeDouble(getPrice());
 
-
     }
-    public static  final Creator<WorkOrderPart> CREATOR= new Creator<WorkOrderPart>() {
+    public static  final Creator<WorkOrderMaterial> CREATOR= new Creator<WorkOrderMaterial>() {
         @Override
-        public WorkOrderPart createFromParcel(Parcel source) {
-            WorkOrderPart part= new WorkOrderPart();
+        public WorkOrderMaterial createFromParcel(Parcel source) {
+            WorkOrderMaterial part= new WorkOrderMaterial();
             part.setPartId(source.readInt());
             part.setPartTypeId(source.readInt());
             part.setPricebookId(source.readInt());
@@ -90,13 +70,12 @@ public class WorkOrderPart extends Part  {
             part.setNumberAndDescription(source.readString());
             part.setQuantity(source.readInt());
             part.setPrice(source.readDouble());
-
             return part;
         }
 
         @Override
-        public WorkOrderPart[] newArray(int size) {
-            return new WorkOrderPart[0];
+        public WorkOrderMaterial[] newArray(int size) {
+            return new WorkOrderMaterial[0];
         }
     };
 }

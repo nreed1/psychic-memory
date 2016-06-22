@@ -3,13 +3,17 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.Expose;
+
 import java.io.Serializable;
 
 /**
  * Created by Niki on 6/19/2016.
  */
 public class QuotePart  extends Part {
+    @Expose
     private int quantity;
+    private FlatRateItem flatRateItem;
 
     public QuotePart(){
 
@@ -35,6 +39,14 @@ public class QuotePart  extends Part {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public FlatRateItem getFlatRateItem() {
+        return flatRateItem;
+    }
+
+    public void setFlatRateItem(FlatRateItem flatRateItem) {
+        this.flatRateItem = flatRateItem;
     }
 
     @Override

@@ -50,9 +50,11 @@ import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimekeepingFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TimesheetReviewFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TravelToFragment;
+import com.example.niki.fieldoutlookandroid.fragment.WorkOrderMaterialsNeededFragment;
 import com.example.niki.fieldoutlookandroid.fragment.WorkOrderPartFragment;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
+import com.example.niki.fieldoutlookandroid.helper.GetFlatRateItemAsyncTask.GetFlatRateItemAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.GetPartListAsyncTask.GetPartsListAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.NetworkHelper;
 import com.example.niki.fieldoutlookandroid.helper.SendCompletedWorkOrders.SendCompletedWorkOrdersAsyncTask;
@@ -82,7 +84,7 @@ public class MainNavigationActivity extends AppCompatActivity
         SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener, PartListFragment.OnPartListFragmentInteractionListener ,
         PartListFragment.OnPartListPartFragmentInteractionListener, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener,
         WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener,
-QuoteListFragment.OnQuoteListFragmentInteractionListener{
+QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -331,6 +333,9 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener{
                         }
                     }, getApplicationContext());
                     getPartsListAsyncTask.execute((Void) null);
+
+                    GetFlatRateItemAsyncTask flatRateItemAsyncTask=new GetFlatRateItemAsyncTask(getApplicationContext());
+                    flatRateItemAsyncTask.execute();
 
 
                 }
@@ -685,6 +690,16 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener{
         b.putParcelable("selected-quote",item);
         quoteFragment.setArguments(b);
         fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "QuoteFragment").addToBackStack("QuoteFragment");
+        fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onWorkOrderMaterialsClicked() {
+        android.app.FragmentManager fragmentManager= getFragmentManager();
+        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        WorkOrderMaterialsNeededFragment workOrderMaterialsNeededFragment=new WorkOrderMaterialsNeededFragment();
+
+        fragmentTransaction.replace(R.id.fragment_container, workOrderMaterialsNeededFragment, "WorkOrderMaterialsNeeded").addToBackStack("WorkOrderMaterialsNeeded");
         fragmentTransaction.commit();
     }
 }

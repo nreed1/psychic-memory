@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.CustomerImage;
 import com.example.niki.fieldoutlookandroid.businessobjects.FOException;
+import com.example.niki.fieldoutlookandroid.businessobjects.FlatRateItem;
+import com.example.niki.fieldoutlookandroid.businessobjects.FlatRateItemPart;
 import com.example.niki.fieldoutlookandroid.businessobjects.JobTime;
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
@@ -18,6 +20,7 @@ import com.example.niki.fieldoutlookandroid.businessobjects.QuotePart;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderMaterial;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
@@ -137,6 +140,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String WORKORDERPART_WORKORDERID="workorderid";
     public static final String WORKORDERPART_PARTID="partid";
     public static final String WORKORDERPART_QUANTITY="quantity";
+    public static final String WORKORDERPART_FLATRATEITEMID="flatrateitemid";
 
     public static final String TABLE_CUSTOMERIMAGE="customerimage";
     public static final String CUSTOMERIMAGE_ID="id";
@@ -159,7 +163,34 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String QUOTEPART_QUOTEID="quoteid";
     public static final String QUOTEPART_PARTID="partid";
     public static final String QUOTEPART_QUANTITY="quantity";
+    public static final String QUOTEPART_FLATRATEITEMID="flatrateitemid";
 
+    public static final String TABLE_WORKORDERMATERIALSNEEDED="workordermaterialsneeded";
+    public static final String WORKORDERMATERIALSNEEDED_ID="id";
+    public static final String WORKORDERMATERIALSNEEDED_WORKORDERID="workorderid";
+    public static final String WORKORDERMATERIALSNEEDED_PARTID="partid";
+    public static final String WORKORDERMATERIALSNEEDED_QUANTITY="quantity";
+
+    public static final String TABLE_FLATRATEITEM="flatrateitem";
+    public static final String FLATRATEITEM_ID="id";
+    public static final String FLATRATEITEM_FLATRATEITEMID="flaterateitemid";
+    public static final String FLATRATEITEM_NAME="flatratename";
+    public static final String FLATRATEITEM_DESCRIPTION="description";
+    public static final String FLATRATEITEM_LABORHOURS="laborhours";
+    public static final String FLATRATEITEM_LABORRATE="laborrate";
+    public static final String FLATRATEITEM_MARKUPPERCENT="markuppercent";
+    public static final String FLATRATEITEM_CATEGORY="category";
+    public static final String FLATRATEITEM_CATEGORYID="categoryid";
+    public static final String FLATRATEITEM_PRICE="price";
+    public static final String FLATRATEITEM_MEMBERPRICE="memberprice";
+    public static final String FLATRATEITEM_COMPANYID="companyid";
+
+
+    public static final String TABLE_FLATRATEITEMPARTS="flatrateitemparts";
+    public static final String FLATRATEITEMPARTS_ID="id";
+    public static final String FLATRATEITEMPARTS_FLATRATEITEMID="flatrateitemid";
+    public static final String FLATRATEITEMPARTS_PARTID="partid";
+    public static final String FLATRATEITEMPARTS_QUANTITY="quantity";
 
     SQLiteDatabase db;
 
@@ -215,12 +246,34 @@ private void create(){
         //#end partcategoryhierarchy
 
         //#start workorderpart
-        db.execSQL("create table if not exists workorderpart (id integer primary key, workorderid integer, partid integer, quantity integer)");
+        db.execSQL("create table if not exists workorderpart (id integer primary key, workorderid integer, partid integer, quantity integer, flatrateitemid integer)");
         //#end workorderpart
 
         //#start customerimage
         db.execSQL("create table if not exists customerimage (id integer primary key, imagelocation text, personid integer, imagename text, image blob)");
         //#end customerimage
+
+        //#start quotepart
+        db.execSQL("create table if not exists quotepart (id integer primary key, quoteid integer, partid integer, quantity integer, flatrateitemid integer)");
+        //#end quotepart
+
+        //#start quote
+        db.execSQL("create table if not exists quote (id integer primary key, quoteid integer, customerid integer, description text,notes text,datecreated text, amount real)");
+        //#end quote
+
+
+        //#start workordermaterialsneeded
+        db.execSQL("create table if not exists workordermaterialsneeded (id integer primary key, workorderid integer, partid integer, quantity integer)");
+        //#end workordermaterialsneeded
+
+        //#start flatrateitem
+        db.execSQL("create table if not exists flatrateitem (id integer primary key, flatrateitemid integer, flatratename text, description text, laborhours real, laborrate real, markuppercent real, category text, categoryid integer, price real, memberprice real, companyid integer)");
+        //#end flatrateitem
+
+
+        //#start flatrateitempart
+        db.execSQL("create table if not exists flatrateitemparts (id integer primary key, flatrateitemid integer, partid integer, quantity integer)");
+        //#end flatrateitempart
 
     }
 
@@ -230,6 +283,241 @@ private void create(){
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
+//    public static final String TABLE_FLATRATEITEMPARTS="flatrateitemparts";
+//    public static final String FLATRATEITEMPARTS_ID="id";
+//    public static final String FLATRATEITEMPARTS_FLATRATEITEMID="flatrateitemid";
+//    public static final String FLATRATEITEMPARTS_PARTID="partid";
+//    public static final String FLATRATEITEMPARTS_QUANTITY="quantity";
+
+
+    public FlatRateItem GetFlatRateItemById(int flatRateItemId){
+        Cursor res=null;
+        try{
+
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_FLATRATEITEM,null);
+            res.moveToFirst();
+            if(!res.isAfterLast()){
+                FlatRateItem flatRateItem=new FlatRateItem();
+                flatRateItem.setId(res.getInt(res.getColumnIndex(FLATRATEITEM_ID)));
+                flatRateItem.setFlatRateItemId(res.getInt(res.getColumnIndex(FLATRATEITEM_FLATRATEITEMID)));
+                flatRateItem.setFlatRateName(res.getString(res.getColumnIndex(FLATRATEITEM_NAME)));
+                flatRateItem.setDescription(res.getString(res.getColumnIndex(FLATRATEITEM_DESCRIPTION)));
+                flatRateItem.setLaborHours(res.getDouble(res.getColumnIndex(FLATRATEITEM_LABORHOURS)));
+                flatRateItem.setLaborRate(res.getDouble(res.getColumnIndex(FLATRATEITEM_LABORRATE)));
+                flatRateItem.setMarkupPercent(res.getDouble(res.getColumnIndex(FLATRATEITEM_MARKUPPERCENT)));
+                flatRateItem.setCategory(res.getString(res.getColumnIndex(FLATRATEITEM_CATEGORY)));
+                flatRateItem.setFlatRateItemCategoryId(res.getInt(res.getColumnIndex(FLATRATEITEM_CATEGORYID)));
+                flatRateItem.setCompanyId(res.getInt(res.getColumnIndex(FLATRATEITEM_COMPANYID)));
+                flatRateItem.setPrice(res.getDouble(res.getColumnIndex(FLATRATEITEM_PRICE)));
+                flatRateItem.setMemberPrice(res.getDouble(res.getColumnIndex(FLATRATEITEM_MEMBERPRICE)));
+                flatRateItem.setPartList(GetFlatRateItemPartList(flatRateItem.getFlatRateItemId()));
+
+                return flatRateItem;
+            }
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return null;
+    }
+
+    public ArrayList<FlatRateItem> GetFlatRateItems(){
+        Cursor res=null;
+        try{
+            ArrayList<FlatRateItem> flatRateItems=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_FLATRATEITEM,null);
+            res.moveToFirst();
+            while(!res.isAfterLast()){
+                FlatRateItem flatRateItem=new FlatRateItem();
+                flatRateItem.setId(res.getInt(res.getColumnIndex(FLATRATEITEM_ID)));
+                flatRateItem.setFlatRateItemId(res.getInt(res.getColumnIndex(FLATRATEITEM_FLATRATEITEMID)));
+                flatRateItem.setFlatRateName(res.getString(res.getColumnIndex(FLATRATEITEM_NAME)));
+                flatRateItem.setDescription(res.getString(res.getColumnIndex(FLATRATEITEM_DESCRIPTION)));
+                flatRateItem.setLaborHours(res.getDouble(res.getColumnIndex(FLATRATEITEM_LABORHOURS)));
+                flatRateItem.setLaborRate(res.getDouble(res.getColumnIndex(FLATRATEITEM_LABORRATE)));
+                flatRateItem.setMarkupPercent(res.getDouble(res.getColumnIndex(FLATRATEITEM_MARKUPPERCENT)));
+                flatRateItem.setCategory(res.getString(res.getColumnIndex(FLATRATEITEM_CATEGORY)));
+                flatRateItem.setFlatRateItemCategoryId(res.getInt(res.getColumnIndex(FLATRATEITEM_CATEGORYID)));
+                flatRateItem.setCompanyId(res.getInt(res.getColumnIndex(FLATRATEITEM_COMPANYID)));
+                flatRateItem.setPrice(res.getDouble(res.getColumnIndex(FLATRATEITEM_PRICE)));
+                flatRateItem.setMemberPrice(res.getDouble(res.getColumnIndex(FLATRATEITEM_MEMBERPRICE)));
+                flatRateItem.setPartList(GetFlatRateItemPartList(flatRateItem.getFlatRateItemId()));
+
+                flatRateItems.add(flatRateItem);
+                res.moveToNext();
+            }
+
+            return flatRateItems;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return new ArrayList<>();
+    }
+
+    public long SaveFlatRateItem(FlatRateItem flatRateItem){
+        try{
+            db=getWritableDatabase();
+            ContentValues contentValues=new ContentValues();
+            contentValues.put(FLATRATEITEM_FLATRATEITEMID, flatRateItem.getFlatRateItemId());
+            contentValues.put(FLATRATEITEM_NAME, flatRateItem.getFlatRateName());
+            contentValues.put(FLATRATEITEM_DESCRIPTION,flatRateItem.getDescription());
+            contentValues.put(FLATRATEITEM_LABORHOURS,flatRateItem.getLaborHours());
+            contentValues.put(FLATRATEITEM_LABORRATE,flatRateItem.getLaborRate());
+            contentValues.put(FLATRATEITEM_MARKUPPERCENT,flatRateItem.getMarkupPercent());
+            contentValues.put(FLATRATEITEM_CATEGORY,flatRateItem.getCategory());
+            contentValues.put(FLATRATEITEM_CATEGORYID,flatRateItem.getFlatRateItemCategoryId());
+            contentValues.put(FLATRATEITEM_COMPANYID,flatRateItem.getCompanyId());
+            contentValues.put(FLATRATEITEM_PRICE,flatRateItem.getPrice());
+            contentValues.put(FLATRATEITEM_MEMBERPRICE,flatRateItem.getMemberPrice());
+            long pkid=db.insert(TABLE_FLATRATEITEM,null, contentValues);
+            SaveFlatRateItemParts(flatRateItem.getFlatRateItemId(),flatRateItem.getPartList());
+            return pkid;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        return 0;
+    }
+
+
+    public boolean TruncateFlatRateItem(){
+        TruncateFlatRateItemParts();
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_FLATRATEITEM,null);
+        if(res==null) return false;
+        return true;
+    }
+
+
+    public ArrayList<FlatRateItemPart> GetFlatRateItemPartList(int flatRateItemId){
+        Cursor res=null;
+        try{
+            ArrayList<FlatRateItemPart> flatRateItemParts=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_FLATRATEITEMPARTS+ " where flatrateitemid="+flatRateItemId,null);
+            res.moveToFirst();
+            while(!res.isAfterLast()){
+
+                FlatRateItemPart flatRateItemPart=new FlatRateItemPart(GetPartById(res.getInt(res.getColumnIndex(FLATRATEITEMPARTS_PARTID))),res.getInt(res.getColumnIndex(FLATRATEITEMPARTS_QUANTITY)));
+                flatRateItemParts.add(flatRateItemPart);
+                res.moveToNext();
+            }
+            return flatRateItemParts;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null)res.close();
+        }
+        return new ArrayList<>();
+    }
+
+    public void SaveFlatRateItemParts(int flatRateItemId, ArrayList<FlatRateItemPart> flatRateItemParts){
+        try{
+            DeleteFlatRateItemPartsByFlatRateItem(flatRateItemId);
+
+            db=getWritableDatabase();
+            for(FlatRateItemPart flatRateItemPart:flatRateItemParts){
+                ContentValues contentValues=new ContentValues();
+                contentValues.put(FLATRATEITEMPARTS_FLATRATEITEMID,flatRateItemId);
+                contentValues.put(FLATRATEITEMPARTS_PARTID,flatRateItemPart.getPartId());
+                contentValues.put(FLATRATEITEMPARTS_QUANTITY, flatRateItemPart.getQuantity());
+                db.insert(TABLE_FLATRATEITEMPARTS, null, contentValues);
+            }
+
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+    }
+
+
+    public boolean DeleteFlatRateItemPartsByFlatRateItem(int flatRateItemId){
+        Cursor res=null;
+        try{
+            db=getWritableDatabase();
+            res=db.rawQuery("delete from "+TABLE_FLATRATEITEMPARTS+" where flatrateitemid="+flatRateItemId,null);
+
+            return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return false;
+    }
+
+    public boolean TruncateFlatRateItemParts(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_FLATRATEITEMPARTS,null);
+        if(res==null) return false;
+        return true;
+    }
+
+
+    public ArrayList<WorkOrderMaterial> GetWorkOrderMaterialsByWorkOrderId(int workOrderId){
+        Cursor res=null;
+        try{
+            ArrayList<WorkOrderMaterial> workOrderMaterials=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_WORKORDERMATERIALSNEEDED+" where workorderid="+workOrderId,null);
+            res.moveToFirst();
+            while(!res.isAfterLast()){
+                WorkOrderMaterial workOrderMaterial=new WorkOrderMaterial(GetPartById(res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_PARTID))),res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_QUANTITY)));
+                res.moveToNext();
+            }
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null)res.close();
+        }
+        return new ArrayList<>();
+    }
+
+    public void SaveWorkOrderMaterialsNeeded(int workOrderId, ArrayList<WorkOrderMaterial> workOrderMaterials){
+        try{
+            DeleteWorkOrderMaterialsByWorkOrder(workOrderId);
+
+            db=getWritableDatabase();
+            for(WorkOrderMaterial workOrderMaterial:workOrderMaterials) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(WORKORDERMATERIALSNEEDED_PARTID, workOrderMaterial.getPartId());
+                contentValues.put(WORKORDERMATERIALSNEEDED_QUANTITY,workOrderMaterial.getQuantity());
+                contentValues.put(WORKORDERMATERIALSNEEDED_WORKORDERID, workOrderId);
+                db.insert(TABLE_WORKORDERMATERIALSNEEDED,null, contentValues);
+            }
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+    }
+
+    public boolean DeleteWorkOrderMaterialsByWorkOrder(int workOrderId){
+        Cursor res=null;
+        try{
+            db=getWritableDatabase();
+            res=db.rawQuery("delete from "+TABLE_WORKORDERMATERIALSNEEDED+" where workorderid="+workOrderId,null);
+            res.moveToFirst();
+
+            return true;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        return false;
+    }
+
+
+    public boolean TruncateWorkOrderMaterialsNeeded(){
+        db=getReadableDatabase();
+        Cursor res= db.rawQuery("delete from "+TABLE_WORKORDERMATERIALSNEEDED,null);
+        if(res==null) return false;
+        return true;
+    }
+
 
     public ArrayList<Quote> GetQuoteList(){
         Cursor res=null;
@@ -312,6 +600,7 @@ private void create(){
             res.moveToFirst();
             while(!res.isAfterLast()){
                 QuotePart quotePart=new QuotePart(GetPartById(res.getInt(res.getColumnIndex(QUOTEPART_PARTID))),res.getInt(res.getColumnIndex(QUOTEPART_QUANTITY)));
+                quotePart.setFlatRateItem(GetFlatRateItemById(res.getInt(res.getColumnIndex(QUOTEPART_FLATRATEITEMID))));
                 quotePartArrayList.add(quotePart);
                 res.moveToNext();
             }
@@ -334,6 +623,9 @@ private void create(){
                 contentValues.put(QUOTEPART_PARTID,quotePart.getPartId());
                 contentValues.put(QUOTEPART_QUOTEID,quoteId);
                 contentValues.put(QUOTEPART_QUANTITY,quotePart.getQuantity());
+                if(quotePart.getFlatRateItem()!=null) {
+                    contentValues.put(QUOTEPART_FLATRATEITEMID, quotePart.getFlatRateItem().getFlatRateItemId());
+                }else contentValues.put(QUOTEPART_FLATRATEITEMID,0);
 
                 db.insert(TABLE_QUOTEPART,null,contentValues);
 
@@ -615,7 +907,7 @@ private void create(){
                 return part;
 
             }
-            return part;
+
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
         }finally {
@@ -975,6 +1267,7 @@ private void create(){
                 newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
                 newWorkOrder.setPartList(GetWorkOrderPartList(newWorkOrder.getWorkOrderId()));
                 newWorkOrder.setSentToCloud(res.getInt(res.getColumnIndex(WORKORDER_SENT)));
+                newWorkOrder.setWorkOrderMaterials(GetWorkOrderMaterialsByWorkOrderId(newWorkOrder.getWorkOrderId()));
                 workOrders.add(newWorkOrder);
                 res.moveToNext();
             }
@@ -1276,8 +1569,8 @@ private void create(){
                 if(GetPartById(part.getPartId())==null ){
                     SavePart(part);
                 }
-                //int quantity= Collections.frequency(parts,part);
-                SaveWorkOrderPart(workorderId, part.getPartId(),part.getQuantity());
+
+                SaveWorkOrderPart(workorderId, part.getPartId(),part.getQuantity(),part.getFlatRateItem());
 
             }
         }catch (Exception ex){
@@ -1301,13 +1594,16 @@ private void create(){
         }
     }
 
-    public void SaveWorkOrderPart(int workorderId, int partId, int quantity){
+    public void SaveWorkOrderPart(int workorderId, int partId, int quantity, FlatRateItem flatRateItem){
         try{
             db=getReadableDatabase();
             ContentValues contentValues=new ContentValues();
             contentValues.put(WORKORDERPART_WORKORDERID,workorderId);
             contentValues.put(WORKORDERPART_PARTID, partId);
             contentValues.put(WORKORDERPART_QUANTITY,quantity);
+            if(flatRateItem!=null) {
+                contentValues.put(WORKORDERPART_FLATRATEITEMID, flatRateItem.getFlatRateItemId());
+            }else contentValues.put(WORKORDERPART_FLATRATEITEMID,0);
             db.insert(TABLE_WORKORDERPART,null, contentValues);
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
@@ -1321,7 +1617,7 @@ private void create(){
             res= db.rawQuery("select * from "+TABLE_WORKORDERPART+" where workorderid="+workorderid,null);
             res.moveToFirst();
             while(res.isAfterLast()==false){
-                WorkOrderPart newPart=new WorkOrderPart(GetPartById(res.getInt(res.getColumnIndex(WORKORDERPART_PARTID))),res.getInt(res.getColumnIndex(WORKORDERPART_QUANTITY)));
+                WorkOrderPart newPart=new WorkOrderPart(GetPartById(res.getInt(res.getColumnIndex(WORKORDERPART_PARTID))),res.getInt(res.getColumnIndex(WORKORDERPART_QUANTITY)),GetFlatRateItemById(res.getInt(res.getColumnIndex(WORKORDERPART_FLATRATEITEMID))) );
                 if(newPart!=null){
                     partList.add(newPart);
                 }

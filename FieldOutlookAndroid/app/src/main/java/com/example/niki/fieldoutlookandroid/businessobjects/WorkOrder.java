@@ -69,6 +69,8 @@ public class WorkOrder implements Serializable, Parcelable {
 
     private int sentToCloud;
 
+    private ArrayList<WorkOrderMaterial> workOrderMaterials;
+
     public String getJsonReadyToInvoiceDateTime(){return DateHelper.DateToJsonString(DateHelper.StringToDate(this.ReadyForInvoiceDateTime));}
 
     public String getJsonArrivalTime(){return  DateHelper.DateToJsonString(this.ArrivalTimeDate);};
@@ -311,7 +313,14 @@ public class WorkOrder implements Serializable, Parcelable {
         }
     }
 
-//    public JSONStringer getJSON(){
+    public ArrayList<WorkOrderMaterial> getWorkOrderMaterials() {
+        return workOrderMaterials;
+    }
+
+    public void setWorkOrderMaterials(ArrayList<WorkOrderMaterial> workOrderMaterials) {
+        this.workOrderMaterials = workOrderMaterials;
+    }
+    //    public JSONStringer getJSON(){
 //        try {
 //            JSONStringer jsonStringer = new JSONStringer().object().key("WorkOrder").object().key("WorkOrderTypeId").value(this.WorkOrderTypeId)
 //                    .key("CompanyId").value(this.getCompanyId())
@@ -369,6 +378,7 @@ public class WorkOrder implements Serializable, Parcelable {
         dest.writeParcelable(getJobTime(),0);
         dest.writeString(getReadyForInvoiceDateTime());
         dest.writeInt(getSentToCloud());
+        dest.writeList(getWorkOrderMaterials());
     }
     public static  final Creator<WorkOrder> CREATOR= new Creator<WorkOrder>() {
         @Override
@@ -388,6 +398,7 @@ public class WorkOrder implements Serializable, Parcelable {
             workOrder.JobTime=source.readParcelable(com.example.niki.fieldoutlookandroid.businessobjects.JobTime.class.getClassLoader());
             workOrder.ReadyForInvoiceDateTime =source.readString();
             workOrder.sentToCloud=source.readInt();
+            workOrder.workOrderMaterials=source.readArrayList(WorkOrderMaterial.class.getClassLoader());
             return workOrder;
         }
 

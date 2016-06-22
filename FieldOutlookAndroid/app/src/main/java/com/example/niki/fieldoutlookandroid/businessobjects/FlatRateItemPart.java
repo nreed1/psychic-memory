@@ -7,17 +7,17 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 
 /**
- * Created by Owner on 6/15/2016.
+ * Created by Owner on 6/22/2016.
  */
-public class WorkOrderPart extends Part  {
+public class FlatRateItemPart extends Part {
+
     @Expose
     private int quantity;
-    private FlatRateItem flatRateItem;
 
-    public WorkOrderPart(){
+    public FlatRateItemPart(){
 
     }
-    public WorkOrderPart(Part part, int quantity, FlatRateItem flatRateItem){
+    public FlatRateItemPart(Part part, int quantity){
         this.setPartId(part.getPartId());
         this.setCategoryId(part.getCategoryId());
         this.setManufacturer(part.getManufacturer());
@@ -29,7 +29,6 @@ public class WorkOrderPart extends Part  {
         this.setPricebookId(part.getPricebookId());
         this.setPrice(part.getPrice());
         this.setQuantity(quantity);
-        this.flatRateItem=flatRateItem;
 
     }
 
@@ -40,14 +39,6 @@ public class WorkOrderPart extends Part  {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-    }
-
-    public FlatRateItem getFlatRateItem() {
-        return flatRateItem;
-    }
-
-    public void setFlatRateItem(FlatRateItem flatRateItem) {
-        this.flatRateItem = flatRateItem;
     }
 
     public String toJson(){
@@ -75,10 +66,10 @@ public class WorkOrderPart extends Part  {
 
 
     }
-    public static  final Creator<WorkOrderPart> CREATOR= new Creator<WorkOrderPart>() {
+    public static  final Creator<FlatRateItemPart> CREATOR= new Creator<FlatRateItemPart>() {
         @Override
-        public WorkOrderPart createFromParcel(Parcel source) {
-            WorkOrderPart part= new WorkOrderPart();
+        public FlatRateItemPart createFromParcel(Parcel source) {
+            FlatRateItemPart part= new FlatRateItemPart();
             part.setPartId(source.readInt());
             part.setPartTypeId(source.readInt());
             part.setPricebookId(source.readInt());
@@ -95,8 +86,8 @@ public class WorkOrderPart extends Part  {
         }
 
         @Override
-        public WorkOrderPart[] newArray(int size) {
-            return new WorkOrderPart[0];
+        public FlatRateItemPart[] newArray(int size) {
+            return new FlatRateItemPart[0];
         }
     };
 }

@@ -14,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -28,7 +29,6 @@ import com.example.niki.fieldoutlookandroid.helper.NotificationHelper;
 import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.UnassignAsyncTask;
 
-import java.util.Date;
 
 import static com.example.niki.fieldoutlookandroid.R.menu.selected_workorder_menu;
 
@@ -48,6 +48,7 @@ public class SelectedWorkorderFragment extends Fragment {
     private WorkOrder selectedWorkOrder;
     private OnSelectedWorkOrderFragmentInteractionListener mListener;
     private OnSelectedWorkOrderMenuItemInteractionListener menuItemInteractionListener;
+    private OnWorkOrderMaterialsClickedListener materialsClickedListener;
     private Boolean showTimekeepingInformation=false;
 
     public SelectedWorkorderFragment() {
@@ -130,9 +131,21 @@ public class SelectedWorkorderFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view= inflater.inflate(R.layout.fragment_selected_workorder, container, false);
+        //WorkOrder Name
         TextView workOrderName=(TextView)view.findViewById(R.id.workOrderNameTextView);
         workOrderName.setText(selectedWorkOrder.getName());
 
+        //Need Materials? Button
+        Button materialsButton=(Button)view.findViewById(R.id.needMaterialsButton);
+        materialsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO go to work order materials view
+
+            }
+        });
+
+        //Description
         TextView workOrderDescription=(TextView)view.findViewById(R.id.descriptionTextView);
         workOrderDescription.setText(selectedWorkOrder.getDescription());
         EditText workOrderNotes=(EditText) view.findViewById(R.id.notesEditTextView);
@@ -245,6 +258,8 @@ public class SelectedWorkorderFragment extends Fragment {
         }
         if(activity instanceof OnSelectedWorkOrderMenuItemInteractionListener){
             menuItemInteractionListener=(OnSelectedWorkOrderMenuItemInteractionListener)activity;
+        }if(activity instanceof OnWorkOrderMaterialsClickedListener){
+            materialsClickedListener=(OnWorkOrderMaterialsClickedListener)activity;
         }
         else {
             throw new RuntimeException(activity.toString()
@@ -274,5 +289,8 @@ public class SelectedWorkorderFragment extends Fragment {
     }
     public interface OnSelectedWorkOrderMenuItemInteractionListener{
         void onSelectedWorkOrderMenuItemInteraction(WorkOrder selectedWorkorder);
+    }
+    public interface  OnWorkOrderMaterialsClickedListener{
+        void onWorkOrderMaterialsClicked();
     }
 }

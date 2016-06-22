@@ -4,12 +4,22 @@ import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -30,6 +40,12 @@ public class QuoteFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     private Quote selectedQuote;
+    private Quote newQuote=new Quote();
+    private AutoCompleteTextView customerName;
+    private TextView customerAddress;
+    private EditText description;
+    private EditText notes;
+    private ListView partList;
 
     private OnFragmentInteractionListener mListener;
 
@@ -70,10 +86,76 @@ public class QuoteFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view= inflater.inflate(R.layout.fragment_quote, container, false);
+        customerAddress=(TextView)view.findViewById(R.id.customerAddressQuote);
+        description=(EditText)view.findViewById(R.id.descriptionQuote);
+        notes=(EditText)view.findViewById(R.id.notesQuote);
+        partList=(ListView)view.findViewById(R.id.partListQuote);
+        customerName=(AutoCompleteTextView)view.findViewById(R.id.customerNameQuote);
+        CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter=new CustomerAutoCompleteArrayAdapter(getActivity(),new DBHelper(getActivity()).GetAllPersons());
+        customerName.setAdapter(customerAutoCompleteArrayAdapter);
+        customerName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(selectedQuote==null) {
+                    newQuote.setCustomer((Person) parent.getItemAtPosition(position));
+                    customerAddress.setText(newQuote.getCustomer().getAddress().getPrintableAddress());
+                }else {
+                    selectedQuote.setCustomer((Person)parent.getItemAtPosition(position));
+                    customerAddress.setText(selectedQuote.getCustomer().getAddress().getPrintableAddress());
+                }
+            }
+        });
+
+
         //TODO attach and provide data to the view
         if(selectedQuote!=null){
+            customerAddress.setText(selectedQuote.getCustomer().getAddress().getPrintableAddress());
+            description.setText(selectedQuote.getDescription());
+            notes.setText(selectedQuote.getNotes());
 
         }
+        description.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if(selectedQuote==null){
+                    newQuote.setDescription(s.toString());
+                }else{
+                    selectedQuote.setDescription(s.toString());
+                }
+            }
+        });
+
+        notes.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if(selectedQuote==null){
+                    newQuote.setNotes(s.toString());
+                }else{
+                    selectedQuote.setNotes(s.toString());
+                }
+            }
+        });
+
         return view;
     }
 
