@@ -281,13 +281,8 @@ private void create(){
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+                //Do nothing
     }
-//    public static final String TABLE_FLATRATEITEMPARTS="flatrateitemparts";
-//    public static final String FLATRATEITEMPARTS_ID="id";
-//    public static final String FLATRATEITEMPARTS_FLATRATEITEMID="flatrateitemid";
-//    public static final String FLATRATEITEMPARTS_PARTID="partid";
-//    public static final String FLATRATEITEMPARTS_QUANTITY="quantity";
 
 
     public FlatRateItem GetFlatRateItemById(int flatRateItemId){
