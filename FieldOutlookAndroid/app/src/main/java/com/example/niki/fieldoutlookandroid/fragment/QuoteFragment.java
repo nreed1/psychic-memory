@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -30,15 +31,12 @@ import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCo
  * create an instance of this fragment.
  */
 public class QuoteFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
+
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+
     private static final String ARG_SELECTED_QUOTE="selected-quote";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+
     private Quote selectedQuote;
     private Quote newQuote=new Quote();
     private AutoCompleteTextView customerName;
@@ -48,6 +46,7 @@ public class QuoteFragment extends Fragment {
     private ListView partList;
 
     private OnFragmentInteractionListener mListener;
+    private OnAddPartsInteractionListener onAddPartsInteractionListener;
 
     /**
      * Use this factory method to create a new instance of
@@ -61,9 +60,7 @@ public class QuoteFragment extends Fragment {
     public static QuoteFragment newInstance(String param1, String param2) {
         QuoteFragment fragment = new QuoteFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
+
         return fragment;
     }
 
@@ -75,8 +72,7 @@ public class QuoteFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+
             selectedQuote=getArguments().getParcelable(ARG_SELECTED_QUOTE);
         }
     }
@@ -107,7 +103,13 @@ public class QuoteFragment extends Fragment {
         });
 
 
-        //TODO attach and provide data to the view
+        Button addParts=(Button)view.findViewById(R.id.quoteAddPart);
+        addParts.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onAddPartsInteractionListener.onAddPartsInteraction(selectedQuote);
+            }
+        });
         if(selectedQuote!=null){
             customerAddress.setText(selectedQuote.getCustomer().getAddress().getPrintableAddress());
             description.setText(selectedQuote.getDescription());
@@ -171,6 +173,9 @@ public class QuoteFragment extends Fragment {
         super.onAttach(activity);
         try {
             mListener = (OnFragmentInteractionListener) activity;
+            if(activity instanceof OnAddPartsInteractionListener){
+                onAddPartsInteractionListener=(OnAddPartsInteractionListener)activity;
+            }
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnStartDayFragmentInteractionListener");
@@ -196,6 +201,10 @@ public class QuoteFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+    }
+
+    public interface  OnAddPartsInteractionListener{
+        public void onAddPartsInteraction(Quote selectedQuote);
     }
 
 }

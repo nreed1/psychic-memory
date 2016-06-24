@@ -17,4 +17,6 @@
     <string name="StartDay">Timekeeping</string>
     <string name="viewJobs">View Jobs</string>
     <string name="title_activity_maps">Map View</string>
+    <string name="title_activity_part_flat_rate_item_search">Search</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>

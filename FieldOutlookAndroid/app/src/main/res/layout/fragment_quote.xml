@@ -44,7 +44,7 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
+            android:id="@+id/quoteAddPart"
             android:layout_gravity="right"
             android:text="Add Part"
             android:minHeight="20dp" android:minWidth="20dp"/>

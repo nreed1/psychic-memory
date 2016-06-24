@@ -46,6 +46,7 @@ import com.example.niki.fieldoutlookandroid.fragment.PartListFragment;
 import com.example.niki.fieldoutlookandroid.fragment.PricebookFragment;
 import com.example.niki.fieldoutlookandroid.fragment.QuoteFragment;
 import com.example.niki.fieldoutlookandroid.fragment.QuoteListFragment;
+import com.example.niki.fieldoutlookandroid.fragment.SearchPartFlatRateItemFragment;
 import com.example.niki.fieldoutlookandroid.fragment.SelectedWorkorderFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartDayFragment;
 import com.example.niki.fieldoutlookandroid.fragment.StartFragment;
@@ -89,7 +90,7 @@ public class MainNavigationActivity extends AppCompatActivity
         SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener, PartListFragment.OnPartListFragmentInteractionListener,
         PartListFragment.OnPartListPartFragmentInteractionListener, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener,
         WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener,
-        QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener {
+        QuoteListFragment.OnQuoteListFragmentInteractionListener,QuoteFragment.OnAddPartsInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener {
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -759,5 +760,14 @@ public class MainNavigationActivity extends AppCompatActivity
         );
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
+    }
+
+    @Override
+    public void onAddPartsInteraction(Quote selectedQuote) {//Need to pass it along in the next fragment
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        SearchPartFlatRateItemFragment searchPartFlatRateItemFragment=new SearchPartFlatRateItemFragment();
+        fragmentTransaction.replace(R.id.fragment_container, searchPartFlatRateItemFragment, "WorkOrderPartList").addToBackStack("WorkOrderPartList");
+        fragmentTransaction.commit();
     }
 }

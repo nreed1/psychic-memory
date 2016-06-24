@@ -10,16 +10,17 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.helper.array_adapters.MyPagerAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link SearchPartFlatRateItem.OnFragmentInteractionListener} interface
+ * {@link SearchPartFlatRateItemFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link SearchPartFlatRateItem#newInstance} factory method to
+ * Use the {@link SearchPartFlatRateItemFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class SearchPartFlatRateItem extends Fragment {
+public class SearchPartFlatRateItemFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -33,7 +34,7 @@ public class SearchPartFlatRateItem extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    public SearchPartFlatRateItem() {
+    public SearchPartFlatRateItemFragment() {
         // Required empty public constructor
     }
 
@@ -43,11 +44,11 @@ public class SearchPartFlatRateItem extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment SearchPartFlatRateItem.
+     * @return A new instance of fragment SearchPartFlatRateItemFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static SearchPartFlatRateItem newInstance(String param1, String param2) {
-        SearchPartFlatRateItem fragment = new SearchPartFlatRateItem();
+    public static SearchPartFlatRateItemFragment newInstance(String param1, String param2) {
+        SearchPartFlatRateItemFragment fragment = new SearchPartFlatRateItemFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -72,15 +73,7 @@ public class SearchPartFlatRateItem extends Fragment {
         // Inflate the layout for this fragment
        View view= inflater.inflate(R.layout.fragment_search_part_flat_rate_item, container, false);
         mViewPager = (ViewPager) view.findViewById(R.id.pager);
-        mViewPager.setOnPageChangeListener(
-                new ViewPager.SimpleOnPageChangeListener() {
-                    @Override
-                    public void onPageSelected(int position) {
-                        // When swiping between pages, select the
-                        // corresponding tab.
-                        view.getActionBar().setSelectedNavigationItem(position);
-                    }
-                });
+        mViewPager.setAdapter(new MyPagerAdapter(getChildFragmentManager()));
         return view;
 
     }
