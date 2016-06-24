@@ -1,13 +1,16 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.example.niki.fieldoutlookandroid.R;
@@ -75,6 +78,28 @@ public class TimesheetReviewFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view= inflater.inflate(R.layout.fragment_timesheet_review, container, false);
+
+        Button acceptTimeEntriesButton=(Button)view.findViewById(R.id.acceptTimeEntriesButton);
+        acceptTimeEntriesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder warn=new AlertDialog.Builder(getActivity());
+                warn.setMessage("You cannot undo this action. \nAre you sure you wish to accept the time entries?");
+                warn.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dbHelper.AcceptTimeEntryListForToday();
+                    }
+                });
+                warn.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                warn.show();
+            }
+        });
         ListView timeLineList=(ListView)view.findViewById(R.id.timeLineListView);
 
         if(dbHelper==null)dbHelper=new DBHelper(this.getActivity().getApplicationContext());
@@ -84,7 +109,7 @@ public class TimesheetReviewFragment extends Fragment {
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
+
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onTimesheetReviewFragmentInteraction(uri);

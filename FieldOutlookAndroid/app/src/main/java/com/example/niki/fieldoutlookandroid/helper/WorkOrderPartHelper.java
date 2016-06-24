@@ -28,7 +28,7 @@ public class WorkOrderPartHelper {
     public ArrayList<Part> getPartList(){ return parts;}
     public void setPartList(ArrayList<Part> partList){
         for(Part part:partList){
-            WorkOrderPart workOrderPart=new WorkOrderPart(part,1);
+            WorkOrderPart workOrderPart=new WorkOrderPart(part,1,null);
 
 
         }

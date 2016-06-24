@@ -27,7 +27,7 @@ public class SendTimeEntryListAsyncTask extends AsyncTask<ArrayList<TimeEntry>,V
     @Override
     protected Void doInBackground(ArrayList<TimeEntry>... params) {
         try{
-            HttpURLConnection con = (HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveTimeEntry/" + URLEncoder.encode(TokenHelper.getToken()) )).openConnection();
+            HttpURLConnection con = (HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "InsertTimeEntry/" + URLEncoder.encode(TokenHelper.getToken()) )).openConnection();
             for(TimeEntry timeEntry:params[0]) {
                 con.setRequestMethod("POST");
                 con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");

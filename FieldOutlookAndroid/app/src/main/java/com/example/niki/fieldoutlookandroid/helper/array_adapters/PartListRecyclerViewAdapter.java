@@ -86,7 +86,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
 
             //WorkOrderPartHelper.getInstance().addPartList((ArrayList<Part>) mParts);
             for(Part p :mParts){
-                workOrder.addWorkOrderPartToList(new WorkOrderPart(p,1));
+                workOrder.addWorkOrderPartToList(new WorkOrderPart(p,1,null));
             }
             dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(),workOrder.getPartList());
 
@@ -101,7 +101,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         if(mParts!=null && !mParts.isEmpty()) {
            // WorkOrderPartHelper.getInstance().removePartList((ArrayList<Part>) mParts);
             for (Part p :mParts){
-                workOrder.removeWorkOrderPartFromList(new WorkOrderPart(p,1));
+                workOrder.removeWorkOrderPartFromList(new WorkOrderPart(p,1,null));
             }
             dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(),workOrder.getPartList());
 

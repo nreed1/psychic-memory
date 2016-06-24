@@ -5,6 +5,8 @@ import android.os.Parcelable;
 
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,25 +15,39 @@ import java.util.Date;
  * Created by NReed on 4/1/2016.
  */
 public class TimeEntry implements Parcelable,Serializable {
+    @Expose
     private TimeEntryType type;
+    @Expose
     private int timeEntryTypeId;
+    @Expose
     private int timeEntryId;
+    @Expose
     private int employeeId;
+    @Expose
     private Date dateEntered;
+    @Expose
     private Date startDateTime;
+    @Expose
     private Date endDateTime;
+    @Expose
     private int workOrderId;
+    @Expose
     private double startLatitude;
+    @Expose
     private double startLongitude;
+    @Expose
     private double endLatitude;
     private double endLongitude;
+    @Expose
     private String notes;
     private int sqlId;
+    private boolean accepted;
+
     public TimeEntry(){
         sqlId=0;
 
     }
-    public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes, int sqlId, int timeEntryTypeId){
+    public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes, int sqlId, int timeEntryTypeId, boolean isAccepted){
         this.timeEntryId=timeEntryId;
         this.employeeId=employeeId;
         this.dateEntered=dateEntered;
@@ -45,6 +61,7 @@ public class TimeEntry implements Parcelable,Serializable {
         this.timeEntryTypeId=timeEntryTypeId;
         this.notes=notes;
         this.sqlId=sqlId;
+        this.accepted=isAccepted;
     }
 
 
@@ -160,8 +177,16 @@ public class TimeEntry implements Parcelable,Serializable {
         this.timeEntryTypeId = timeEntryTypeId;
     }
 
+    public boolean isAccepted() {
+        return accepted;
+    }
+
+    public void setAccepted(boolean accepted) {
+        this.accepted = accepted;
+    }
+
     public String toJson(){
-        Gson gson=new Gson();
+        Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         return gson.toJson(this);
     }
 
@@ -197,12 +222,13 @@ public class TimeEntry implements Parcelable,Serializable {
         dest.writeString(getNotes());
         dest.writeInt(getSqlId());
         dest.writeInt(getTimeEntryTypeId());
+        dest.writeInt(isAccepted()?1:0);
     }
     public static  final Creator<TimeEntry> CREATOR= new Creator<TimeEntry>() {
         @Override
         public TimeEntry createFromParcel(Parcel source) {
             return new TimeEntry(source.readInt(),source.readInt(),DateHelper.StringToDate(source.readString()),DateHelper.StringToDate(source.readString()),
-                    DateHelper.StringToDate(source.readString()),source.readInt(),source.readDouble(),source.readDouble(),source.readDouble(),source.readDouble(),source.readString(), source.readInt(), source.readInt());
+                    DateHelper.StringToDate(source.readString()),source.readInt(),source.readDouble(),source.readDouble(),source.readDouble(),source.readDouble(),source.readString(), source.readInt(), source.readInt(), source.readInt()==1?true:false);
         }
 
         @Override

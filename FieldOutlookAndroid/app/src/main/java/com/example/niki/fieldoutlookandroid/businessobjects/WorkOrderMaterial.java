@@ -2,7 +2,10 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 
 import android.os.Parcel;
 
+import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.google.gson.annotations.Expose;
+
+import java.util.Date;
 
 /**
  * Created by Owner on 6/22/2016.
@@ -10,6 +13,8 @@ import com.google.gson.annotations.Expose;
 public class WorkOrderMaterial extends Part {
     @Expose
     private int quantity;
+    private int workOrderId;
+    private Date neededBy;
 
     public WorkOrderMaterial(){
 
@@ -36,6 +41,22 @@ public class WorkOrderMaterial extends Part {
         this.quantity = quantity;
     }
 
+    public int getWorkOrderId() {
+        return workOrderId;
+    }
+
+    public void setWorkOrderId(int workOrderId) {
+        this.workOrderId = workOrderId;
+    }
+
+    public Date getNeededBy() {
+        return neededBy;
+    }
+
+    public void setNeededBy(Date neededBy) {
+        this.neededBy = neededBy;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -53,6 +74,8 @@ public class WorkOrderMaterial extends Part {
         dest.writeString(getNumberAndDescription());
         dest.writeInt(getQuantity());
         dest.writeDouble(getPrice());
+        dest.writeInt(getWorkOrderId());
+        dest.writeString(DateHelper.DateToString(getNeededBy()));
 
     }
     public static  final Creator<WorkOrderMaterial> CREATOR= new Creator<WorkOrderMaterial>() {
@@ -70,6 +93,8 @@ public class WorkOrderMaterial extends Part {
             part.setNumberAndDescription(source.readString());
             part.setQuantity(source.readInt());
             part.setPrice(source.readDouble());
+            part.setWorkOrderId(source.readInt());
+            part.setNeededBy(DateHelper.StringToDate(source.readString()));
             return part;
         }
 

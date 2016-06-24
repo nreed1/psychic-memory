@@ -17,5 +17,6 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Accept and Send Data"/>
+        android:id="@+id/acceptTimeEntriesButton"
+        android:text="Accept Day"/>
 </LinearLayout>

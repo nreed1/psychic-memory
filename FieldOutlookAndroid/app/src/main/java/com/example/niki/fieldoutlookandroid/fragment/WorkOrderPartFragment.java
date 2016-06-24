@@ -80,7 +80,7 @@ public class WorkOrderPartFragment extends Fragment {
                 }
 
                 if(!exist){
-                    selectedWorkOrder.getPartList().add(new WorkOrderPart(part,1));
+                    selectedWorkOrder.getPartList().add(new WorkOrderPart(part,1,null));
                 }
             }
             //Reset the list

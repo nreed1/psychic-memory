@@ -8,7 +8,6 @@ import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Created by Niki on 5/25/2016.
@@ -29,7 +28,7 @@ public class TimekeepingHelper {
             newTimeEntry.setStartLongitude(location.getLongitude());
         }
         DBHelper dbHelper=new DBHelper(context);
-        dbHelper.SaveTimeEntry(newTimeEntry);
+        dbHelper.InsertTimeEntry(newTimeEntry);
     }
 
     public void AddTimekeepingEntry(Context context, String entryType){
