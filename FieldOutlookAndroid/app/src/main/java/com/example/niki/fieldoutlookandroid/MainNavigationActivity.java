@@ -2,6 +2,7 @@ package com.example.niki.fieldoutlookandroid;
 
 import android.app.Dialog;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -34,6 +35,7 @@ import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
+import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
@@ -68,6 +70,9 @@ import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeReciever;
 import com.example.niki.fieldoutlookandroid.helper.time_entry_type_service.TimeEntryTypeServiceHelper;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.io.File;
@@ -78,13 +83,13 @@ import java.util.Date;
 public class MainNavigationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, AssignedJobFragment.OnFragmentInteractionListener, AvailableJobFragment.OnFragmentInteractionListener,
         PricebookFragment.OnFragmentInteractionListener, TimekeepingFragment.OnFragmentInteractionListener,
-        QuoteFragment.OnFragmentInteractionListener,StartFragment.OnFragmentInteractionListener,  StartDayFragment.OnStartDayFragmentInteractionListener,
-                    TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener,
-                    NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener,
-        SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener, PartListFragment.OnPartListFragmentInteractionListener ,
+        QuoteFragment.OnFragmentInteractionListener, StartFragment.OnFragmentInteractionListener, StartDayFragment.OnStartDayFragmentInteractionListener,
+        TravelToFragment.OnTravelToFragmentInteractionListener, OtherTaskListFragment.OnOtherTaskListFragmentInteractionListener,
+        NewOtherTaskFragment.OnNewOtherTaskFragmentInteractionListener, TimesheetReviewFragment.OnTimesheetReviewFragmentInteractionListener,
+        SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener, PartListFragment.OnPartListFragmentInteractionListener,
         PartListFragment.OnPartListPartFragmentInteractionListener, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener,
         WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener,
-QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener{
+        QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener {
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -92,14 +97,20 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
     ProgressDialog progressDialog;
     private WorkOrder workOrder;
     private NetworkHelper networkHelper;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_navigation);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        dbHelper=new DBHelper(this.getApplicationContext());
-        networkHelper=new NetworkHelper();
+        dbHelper = new DBHelper(this.getApplicationContext());
+        networkHelper = new NetworkHelper();
 
         //FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -119,18 +130,21 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        TextView name=(TextView)navigationView.getHeaderView(0).findViewById(R.id.userNameText);
-        if(name!=null){
+        TextView name = (TextView) navigationView.getHeaderView(0).findViewById(R.id.userNameText);
+        if (name != null) {
             name.setText(Global.GetInstance().getUser().GetFullName());
         }
         FirebaseMessaging.getInstance().subscribeToTopic("news");
         StartMainFragment();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     private void StartMainFragment() {
-        FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        StartFragment startFragment= new StartFragment();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        StartFragment startFragment = new StartFragment();
         fragmentTransaction.replace(R.id.fragment_container, startFragment, getString(R.string.StartDay));
         fragmentTransaction.commit();
     }
@@ -141,19 +155,19 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            FragmentManager fragmentManager=getFragmentManager();
-            if(fragmentManager.getBackStackEntryCount()>0) {
-                if((fragmentManager.getBackStackEntryCount()-2)>=0) {
+            FragmentManager fragmentManager = getFragmentManager();
+            if (fragmentManager.getBackStackEntryCount() > 0) {
+                if ((fragmentManager.getBackStackEntryCount() - 2) >= 0) {
                     FragmentManager.BackStackEntry entry = fragmentManager.getBackStackEntryAt(fragmentManager.getBackStackEntryCount() - 2);
                     toolbar.setTitle(entry.getName());
-                }else{
+                } else {
                     toolbar.setTitle("Field Outlook");
                 }
 
                 fragmentManager.popBackStack();
 
 
-            }else {
+            } else {
                 //super.onBackPressed();
             }
         }
@@ -187,60 +201,59 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if(id==R.id.nav_assigned_jobs){
+        if (id == R.id.nav_assigned_jobs) {
             toolbar.setTitle("Assigned Jobs");
-            android.app.FragmentManager fragmentManager= getFragmentManager();
-            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-            AssignedJobFragment assignedJobFragment= new AssignedJobFragment();
-            Bundle b =new Bundle();
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            AssignedJobFragment assignedJobFragment = new AssignedJobFragment();
+            Bundle b = new Bundle();
             b.putParcelableArrayList("workOrders", dbHelper.GetWorkOrders());
             assignedJobFragment.setArguments(b);
             fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, getString(R.string.AssignedJobs)).addToBackStack("Assigned Jobs");
             fragmentTransaction.commit();
-        }
-        else if(id==R.id.nav_available_jobs){
+        } else if (id == R.id.nav_available_jobs) {
             toolbar.setTitle("Available Jobs");
-            android.app.FragmentManager fragmentManager= getFragmentManager();
-            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-            AvailableJobFragment availableJobFragment= new AvailableJobFragment();
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            AvailableJobFragment availableJobFragment = new AvailableJobFragment();
             fragmentTransaction.replace(R.id.fragment_container, availableJobFragment, getString(R.string.AvailableJobs)).addToBackStack("Available Jobs");
             fragmentTransaction.commit();
-        }else if(id==R.id.nav_pricebook_view){
+        } else if (id == R.id.nav_pricebook_view) {
 //            toolbar.setTitle("Pricebook");
 //            android.app.FragmentManager fragmentManager= getFragmentManager();
 //            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
 //            PricebookFragment pricebookFragment= new PricebookFragment();
 //            fragmentTransaction.replace(R.id.fragment_container, pricebookFragment, getString(R.string.Pricebook)).addToBackStack("Pricebook");
 //            fragmentTransaction.commit();
-            android.app.FragmentManager fragmentManager= getFragmentManager();
-            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-            PartListFragment partListFragment=new PartListFragment();
-            Bundle b=new Bundle();
-            b.putParcelableArrayList("categories-given",null);
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            PartListFragment partListFragment = new PartListFragment();
+            Bundle b = new Bundle();
+            b.putParcelableArrayList("categories-given", null);
             partListFragment.setArguments(b);
             fragmentTransaction.replace(R.id.fragment_container, partListFragment, "PartList").addToBackStack("PartList");
             fragmentTransaction.commit();
-        }else if(id==R.id.nav_edit_timekeeping){
+        } else if (id == R.id.nav_edit_timekeeping) {
             toolbar.setTitle("Timekeeping");
-            android.app.FragmentManager fragmentManager= getFragmentManager();
-            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             //TimekeepingFragment timekeepingFragment=new TimekeepingFragment();
-            TimesheetReviewFragment timesheetReviewFragment=new TimesheetReviewFragment();
+            TimesheetReviewFragment timesheetReviewFragment = new TimesheetReviewFragment();
             fragmentTransaction.replace(R.id.fragment_container, timesheetReviewFragment, getString(R.string.Timekeeping)).addToBackStack("Timekeeping");
             fragmentTransaction.commit();
-        }else if(id==R.id.nav_logout){
-            Intent intent= new Intent(this, LoginActivity.class);
+        } else if (id == R.id.nav_logout) {
+            Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
-        }else if(id==R.id.nav_quote){
+        } else if (id == R.id.nav_quote) {
             toolbar.setTitle("Quote");
-            android.app.FragmentManager fragmentManager= getFragmentManager();
-            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-            QuoteListFragment quoteListFragment=new QuoteListFragment();
-            Bundle b=new Bundle();
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            QuoteListFragment quoteListFragment = new QuoteListFragment();
+            Bundle b = new Bundle();
             b.putParcelableArrayList("quotes", dbHelper.GetQuoteList());
             fragmentTransaction.replace(R.id.fragment_container, quoteListFragment, "QuoteList").addToBackStack("QuoteList");
             fragmentTransaction.commit();
-        }else if(id== R.id.nav_camera){
+        } else if (id == R.id.nav_camera) {
             // create Intent to take a picture and return control to the calling application
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -249,7 +262,7 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
 
             // start the image capture Intent
             startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-        }else if(id==R.id.nav_update_data) {
+        } else if (id == R.id.nav_update_data) {
             if (networkHelper.isConnectionAvailable(getApplicationContext())) {
 
                 //Refresh the data //refdata
@@ -334,13 +347,13 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
                     }, getApplicationContext());
                     getPartsListAsyncTask.execute((Void) null);
 
-                    GetFlatRateItemAsyncTask flatRateItemAsyncTask=new GetFlatRateItemAsyncTask(getApplicationContext());
+                    GetFlatRateItemAsyncTask flatRateItemAsyncTask = new GetFlatRateItemAsyncTask(getApplicationContext());
                     flatRateItemAsyncTask.execute();
 
 
                 }
-            }else{
-                Toast.makeText(getApplicationContext(),"Network Unavailable. Try again later.", Toast.LENGTH_LONG);
+            } else {
+                Toast.makeText(getApplicationContext(), "Network Unavailable. Try again later.", Toast.LENGTH_LONG);
             }
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -352,23 +365,24 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
     public void onFragmentInteraction(String id) {
         toolbar.setTitle("Selected Work Order");
 
-        int position=Integer.parseInt(id);
+        int position = Integer.parseInt(id);
         WorkOrder selectedWorkOrder = dbHelper.GetWorkOrders().get(position);
 
-        SelectedWorkorderFragment selectedWorkorderFragment=new SelectedWorkorderFragment();
-        Bundle b= new Bundle();
+        SelectedWorkorderFragment selectedWorkorderFragment = new SelectedWorkorderFragment();
+        Bundle b = new Bundle();
         b.putParcelable("workOrder", selectedWorkOrder);
         selectedWorkorderFragment.setArguments(b);
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragmentTransaction.replace(R.id.fragment_container, selectedWorkorderFragment, "Selected Work Order").addToBackStack("Selected Work Order");
         fragmentTransaction.commit();
     }
 
     private Person customerImagePerson;
-    private void SetPersonForCustomerImage(Person selectedPerson){
-        customerImagePerson=selectedPerson;
+
+    private void SetPersonForCustomerImage(Person selectedPerson) {
+        customerImagePerson = selectedPerson;
     }
 
     @Override
@@ -376,21 +390,21 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 // Image captured and saved to fileUri specified in the Intent
-                final AlertDialog.Builder customerSearch=new AlertDialog.Builder(this);
+                final AlertDialog.Builder customerSearch = new AlertDialog.Builder(this);
                 customerSearch.setCancelable(true);
-                LayoutInflater inflater = (LayoutInflater)this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 final View search_View = inflater.inflate(R.layout.customer_search_picture_attach, null);
-                AutoCompleteTextView autoCompleteTextView=(AutoCompleteTextView)search_View.findViewById(R.id.autoCompleteCustomerTextView);
-                CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter=new CustomerAutoCompleteArrayAdapter(this,dbHelper.GetAllPersons());
+                AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) search_View.findViewById(R.id.autoCompleteCustomerTextView);
+                CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter = new CustomerAutoCompleteArrayAdapter(this, dbHelper.GetAllPersons());
                 autoCompleteTextView.setAdapter(customerAutoCompleteArrayAdapter);
-                final EditText imageName=(EditText)search_View.findViewById(R.id.customerImageName);
+                final EditText imageName = (EditText) search_View.findViewById(R.id.customerImageName);
                 // customerSearch.setContentView(search_View);
                 customerSearch.setView(search_View);
                 Person selectedPerson;
                 customerSearch.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        Person selectedPerson=(Person)parent.getItemAtPosition(position);
+                        Person selectedPerson = (Person) parent.getItemAtPosition(position);
                         SetPersonForCustomerImage(selectedPerson);
                     }
 
@@ -408,36 +422,35 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
                 }).setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(networkHelper.isConnectionAvailable(getApplicationContext())){
+                        if (networkHelper.isConnectionAvailable(getApplicationContext())) {
 
                             /**When starting the task the params expected are
                              * param[0]==imagename
                              * param[1]==personid
                              * param[2]==imagelocation
                              * */
-                            SendCustomerImageAsyncTask sendCustomerImageAsyncTask=new SendCustomerImageAsyncTask(getApplicationContext(), new SendCustomerImageAsyncTask.SendCustomersAsyncTaskDelegate() {
+                            SendCustomerImageAsyncTask sendCustomerImageAsyncTask = new SendCustomerImageAsyncTask(getApplicationContext(), new SendCustomerImageAsyncTask.SendCustomersAsyncTaskDelegate() {
                                 @Override
                                 public void processFinish(Boolean result) {
-                                    if(result==true) {
+                                    if (result == true) {
                                         Toast.makeText(getApplicationContext(), "Customer Image Sent Successfully", Toast.LENGTH_LONG);
                                     }
                                 }
                             });
-                            sendCustomerImageAsyncTask.execute(imageName.getText().toString(),String.valueOf(customerImagePerson.getPersonId()),fileUri.toString());
+                            sendCustomerImageAsyncTask.execute(imageName.getText().toString(), String.valueOf(customerImagePerson.getPersonId()), fileUri.toString());
 
-                        }else{
-                            dbHelper.SaveCustomerImage(fileUri.toString(),customerImagePerson.getPersonId(), imageName.getText().toString());
-                            Toast.makeText(getApplicationContext(),"Customer Image Saved", Toast.LENGTH_LONG);
+                        } else {
+                            dbHelper.SaveCustomerImage(fileUri.toString(), customerImagePerson.getPersonId(), imageName.getText().toString());
+                            Toast.makeText(getApplicationContext(), "Customer Image Saved", Toast.LENGTH_LONG);
                         }
                     }
                 });
 
 
-
                 customerSearch.setTitle("Select Customer: ");
                 //customerSearch.create();
                 customerSearch.show();
-              // Toast.makeText(this, "Image saved to:\n" +fileUri, Toast.LENGTH_LONG).show();
+                // Toast.makeText(this, "Image saved to:\n" +fileUri, Toast.LENGTH_LONG).show();
             } else if (resultCode == RESULT_CANCELED) {
                 // User cancelled the image capture
             } else {
@@ -451,13 +464,17 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
     public static final int MEDIA_TYPE_IMAGE = 1;
     public static final int MEDIA_TYPE_VIDEO = 2;
 
-    /** Create a file Uri for saving an image or video */
-    private static Uri getOutputMediaFileUri(int type){
+    /**
+     * Create a file Uri for saving an image or video
+     */
+    private static Uri getOutputMediaFileUri(int type) {
         return Uri.fromFile(getOutputMediaFile(type));
     }
 
-    /** Create a File for saving an image or video */
-    private static File getOutputMediaFile(int type){
+    /**
+     * Create a File for saving an image or video
+     */
+    private static File getOutputMediaFile(int type) {
         // To be safe, you should check that the SDCard is mounted
         // using Environment.getExternalStorageState() before doing this.
 
@@ -467,8 +484,8 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
         // between applications and persist after your app has been uninstalled.
 
         // Create the storage directory if it does not exist
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()){
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
                 Log.d("MyCameraApp", "failed to create directory");
                 return null;
             }
@@ -477,19 +494,20 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
         // Create a media file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE){
+        if (type == MEDIA_TYPE_IMAGE) {
             mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "IMG_"+ timeStamp + ".jpg");
-        } else if(type == MEDIA_TYPE_VIDEO) {
+                    "IMG_" + timeStamp + ".jpg");
+        } else if (type == MEDIA_TYPE_VIDEO) {
             mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "VID_"+ timeStamp + ".mp4");
+                    "VID_" + timeStamp + ".mp4");
         } else {
             return null;
         }
 
         return mediaFile;
     }
-    private ArrayList<WorkOrder> workOrders= new ArrayList<>();
+
+    private ArrayList<WorkOrder> workOrders = new ArrayList<>();
 //    @Override
 //    public void onReceiveResult(int resultCode, Bundle resultData) {
 //        DBHelper dbHelper=new DBHelper(this.getApplicationContext());
@@ -512,56 +530,57 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
 
     @Override
     public void onStartDayFragmentInteraction(String nextFragment) {
-        if(nextFragment.equals("Travel")){
+        if (nextFragment.equals("Travel")) {
             StartTravelToFragment();
-        }else if(nextFragment.equals("Shop")){
+        } else if (nextFragment.equals("Shop")) {
             //Snapshot of time
-        }else if(nextFragment.equals("Other")){
-            if(dbHelper.UserHasOtherTasks(Global.GetInstance().getUser().GetUserId())){
+        } else if (nextFragment.equals("Other")) {
+            if (dbHelper.UserHasOtherTasks(Global.GetInstance().getUser().GetUserId())) {
                 StartOtherTaskListFragment();
 
-            }else{
+            } else {
                 //New Other Task Screen
-               StartNewOtherTaskFragment();
+                StartNewOtherTaskFragment();
             }
-        }else if(nextFragment.equals("End")){
+        } else if (nextFragment.equals("End")) {
             //Review and Send
             StartTimekeepingReviewFragment();
         }
     }
 
-    private void StartTimekeepingReviewFragment(){
+    private void StartTimekeepingReviewFragment() {
         toolbar.setTitle("Review Day");
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        TimesheetReviewFragment timesheetReviewFragment=new TimesheetReviewFragment();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        TimesheetReviewFragment timesheetReviewFragment = new TimesheetReviewFragment();
         fragmentTransaction.replace(R.id.fragment_container, timesheetReviewFragment, "TimesheetReview").addToBackStack("TimesheetReview");
         fragmentTransaction.commit();
     }
-    private void StartNewOtherTaskFragment(){
+
+    private void StartNewOtherTaskFragment() {
         toolbar.setTitle("Other Task");
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        NewOtherTaskFragment newOtherTaskFragment=new NewOtherTaskFragment();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        NewOtherTaskFragment newOtherTaskFragment = new NewOtherTaskFragment();
         fragmentTransaction.replace(R.id.fragment_container, newOtherTaskFragment, "NewOtherTask").addToBackStack("NewOtherTask");
         fragmentTransaction.commit();
     }
 
-    private void StartOtherTaskListFragment(){
+    private void StartOtherTaskListFragment() {
 
         toolbar.setTitle("Other Task");
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        OtherTaskListFragment otherTaskListFragment=new OtherTaskListFragment();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        OtherTaskListFragment otherTaskListFragment = new OtherTaskListFragment();
         fragmentTransaction.replace(R.id.fragment_container, otherTaskListFragment, "OtherTaskListFragment").addToBackStack("OtherTaskListFragment");
         fragmentTransaction.commit();
     }
 
-    private void StartTravelToFragment(){
+    private void StartTravelToFragment() {
         toolbar.setTitle("Travel To");
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        QuoteFragment quoteFragment=new QuoteFragment();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        QuoteFragment quoteFragment = new QuoteFragment();
         fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "TravelTo").addToBackStack("TravelTo");
         fragmentTransaction.commit();
     }
@@ -569,18 +588,18 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
     @Override
     public void onTravelToFragmentInteraction(WorkOrder workOrder) {
         toolbar.setTitle("Selected Work Order");
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        SelectedWorkorderFragment selectedWorkorderFragment= new SelectedWorkorderFragment();
-        Bundle b=new Bundle();
-        b.putParcelable("workOrder",workOrder);
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        SelectedWorkorderFragment selectedWorkorderFragment = new SelectedWorkorderFragment();
+        Bundle b = new Bundle();
+        b.putParcelable("workOrder", workOrder);
         fragmentTransaction.replace(R.id.fragment_container, selectedWorkorderFragment, "SelectedWorkOrder").addToBackStack("SelectedWorkOrder");
         fragmentTransaction.commit();
     }
 
     @Override
     public void onOtherTaskListFragmentInteraction(OtherTask item) {
-        if(item==null){
+        if (item == null) {
             StartNewOtherTaskFragment();
         }
     }
@@ -592,7 +611,7 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
 
     @Override
     public void onNewOtherTaskFragmentInteraction(String whatToDo) {
-        if(whatToDo.toLowerCase().equals("back")){
+        if (whatToDo.toLowerCase().equals("back")) {
             StartMainFragment();
         }
     }
@@ -604,13 +623,13 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
 
     @Override
     public void onSelectedWorkOrderFragmentInteraction(String uri) {
-        switch (uri){
+        switch (uri) {
             case "ViewParts":
-                android.app.FragmentManager fragmentManager= getFragmentManager();
-                android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-                PartListFragment partListFragment=new PartListFragment();
-                Bundle b=new Bundle();
-                b.putParcelableArrayList("categories-given",null);
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                PartListFragment partListFragment = new PartListFragment();
+                Bundle b = new Bundle();
+                b.putParcelableArrayList("categories-given", null);
                 partListFragment.setArguments(b);
                 fragmentTransaction.replace(R.id.fragment_container, partListFragment, "WorkOrderPartList").addToBackStack("WorkOrderPartList");
                 fragmentTransaction.commit();
@@ -622,21 +641,20 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
 
     @Override
     public void onPartListFragmentInteraction(PartCategory item) {
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        PartListFragment partListFragment=new PartListFragment();
-        Bundle b=new Bundle();
-        if(item.getParts()!=null && !item.getParts().isEmpty() && item.getSubCategoryList()!=null &&!item.getSubCategoryList().isEmpty()){
-            b.putParcelable("part-category",item);
-        }
-        else if(item.getSubCategoryList()!=null && !item.getSubCategoryList().isEmpty()) {
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        PartListFragment partListFragment = new PartListFragment();
+        Bundle b = new Bundle();
+        if (item.getParts() != null && !item.getParts().isEmpty() && item.getSubCategoryList() != null && !item.getSubCategoryList().isEmpty()) {
+            b.putParcelable("part-category", item);
+        } else if (item.getSubCategoryList() != null && !item.getSubCategoryList().isEmpty()) {
             b.putParcelableArrayList("categories-given", item.getSubCategoryList());
-        }else if(item.getParts()!=null && !item.getParts().isEmpty()){
-            b.putParcelableArrayList("parts",item.getParts());
-        }else{
-            b.putParcelableArrayList("categories-given",null);
+        } else if (item.getParts() != null && !item.getParts().isEmpty()) {
+            b.putParcelableArrayList("parts", item.getParts());
+        } else {
+            b.putParcelableArrayList("categories-given", null);
         }
-        b.putParcelable("selectedworkorder",workOrder);
+        b.putParcelable("selectedworkorder", workOrder);
         partListFragment.setArguments(b);
         fragmentTransaction.replace(R.id.fragment_container, partListFragment, "SubPartList").addToBackStack("SubPartList");
         fragmentTransaction.commit();
@@ -653,14 +671,14 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
     }
 
     @Override
-    public void onWorkOrderPartMenuItemInteraction(WorkOrder selectedWorkOrder,MenuItem item) {
-        this.workOrder=selectedWorkOrder;
-        if(item.getItemId()==R.id.addPartToWorkOrderMenuItem){
-            android.app.FragmentManager fragmentManager= getFragmentManager();
-            android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-            PartListFragment partListFragment=new PartListFragment();
-            Bundle b=new Bundle();
-            b.putParcelableArrayList("categories-given",null);
+    public void onWorkOrderPartMenuItemInteraction(WorkOrder selectedWorkOrder, MenuItem item) {
+        this.workOrder = selectedWorkOrder;
+        if (item.getItemId() == R.id.addPartToWorkOrderMenuItem) {
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            PartListFragment partListFragment = new PartListFragment();
+            Bundle b = new Bundle();
+            b.putParcelableArrayList("categories-given", null);
             b.putParcelable("selectedworkorder", selectedWorkOrder);
             partListFragment.setArguments(b);
             fragmentTransaction.replace(R.id.fragment_container, partListFragment, "PartList").addToBackStack("PartList");
@@ -670,12 +688,12 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
 
     @Override
     public void onSelectedWorkOrderMenuItemInteraction(WorkOrder selectedWorkorder) {
-        this.workOrder=selectedWorkorder;
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        WorkOrderPartFragment workOrderPartFragment=new WorkOrderPartFragment();
-        Bundle b=new Bundle();
-        b.putParcelable("selectedWorkOrder",selectedWorkorder);
+        this.workOrder = selectedWorkorder;
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        WorkOrderPartFragment workOrderPartFragment = new WorkOrderPartFragment();
+        Bundle b = new Bundle();
+        b.putParcelable("selectedWorkOrder", selectedWorkorder);
         workOrderPartFragment.setArguments(b);
         fragmentTransaction.replace(R.id.fragment_container, workOrderPartFragment, "WorkOrderPartList").addToBackStack("WorkOrderPartList");
         fragmentTransaction.commit();
@@ -683,11 +701,11 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
 
     @Override
     public void onQuoteListFragmentInteraction(Quote item) {
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        QuoteFragment quoteFragment=new QuoteFragment();
-        Bundle b=new Bundle();
-        b.putParcelable("selected-quote",item);
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        QuoteFragment quoteFragment = new QuoteFragment();
+        Bundle b = new Bundle();
+        b.putParcelable("selected-quote", item);
         quoteFragment.setArguments(b);
         fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "QuoteFragment").addToBackStack("QuoteFragment");
         fragmentTransaction.commit();
@@ -695,11 +713,51 @@ QuoteListFragment.OnQuoteListFragmentInteractionListener, SelectedWorkorderFragm
 
     @Override
     public void onWorkOrderMaterialsClicked() {
-        android.app.FragmentManager fragmentManager= getFragmentManager();
-        android.app.FragmentTransaction fragmentTransaction= fragmentManager.beginTransaction();
-        WorkOrderMaterialsNeededFragment workOrderMaterialsNeededFragment=new WorkOrderMaterialsNeededFragment();
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        WorkOrderMaterialsNeededFragment workOrderMaterialsNeededFragment = new WorkOrderMaterialsNeededFragment();
 
         fragmentTransaction.replace(R.id.fragment_container, workOrderMaterialsNeededFragment, "WorkOrderMaterialsNeeded").addToBackStack("WorkOrderMaterialsNeeded");
         fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "MainNavigation Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.example.niki.fieldoutlookandroid/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "MainNavigation Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.example.niki.fieldoutlookandroid/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
     }
 }

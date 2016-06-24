@@ -3,6 +3,8 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.Gson;
+
 import java.io.Serializable;
 
 /**
@@ -35,6 +37,11 @@ public class TimeEntryType implements Parcelable,Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String toJson(){
+        Gson gson=new Gson();
+        return gson.toJson(this);
     }
 
     public TimeEntryType(){

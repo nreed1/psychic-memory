@@ -1418,24 +1418,67 @@ private void create(){
         return true;
     }
 
+    public boolean CheckIfDayStarted(){
+        Cursor res=null;
+        try{
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from timeentry where "+TIMEENTRY_STARTDATE+" like '%"+DateHelper.GetTodayDateAsString()+"%' and "+TIMEENTRY_TIMEENTRYID+"="+GetTimeEntryTypeByName("start").getTimeEntryTypeId(),null);
+            res.moveToFirst();
+            if(!res.isAfterLast()) return true;
+            return false;
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return false;
+    }
+    public boolean CheckIfDayEnded(){
+        Cursor res=null;
+        try{
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from timeentry where "+TIMEENTRY_STARTDATE+" like '%"+DateHelper.GetTodayDateAsString()+"%' and "+TIMEENTRY_TIMEENTRYID+"="+GetTimeEntryTypeByName("end").getTimeEntryTypeId(),null);
+            res.moveToFirst();
+            if(!res.isAfterLast()) return true;
+            return false;
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return false;
+    }
+
+    /**Saves a time entry
+     * Checks for possible duplicate entries on start and end day and prevents them from being added to the table
+     * */
     public void SaveTimeEntry(TimeEntry timeEntry){
         db=getWritableDatabase();
         ContentValues contentValues=new ContentValues();
-        contentValues.put(TIMEENTRY_TIMEENTRYID,timeEntry.getTimeEntryId());
-        contentValues.put(TIMEENTRY_EMPLOYEEID,timeEntry.getEmployeeId());
-        contentValues.put(TIMEENTRY_DATEENTERED, DateHelper.DateToString(timeEntry.getDateEntered()));
-        contentValues.put(TIMEENTRY_STARTDATE, DateHelper.DateToString(timeEntry.getStartDateTime()));
-       // contentValues.put(TIMEENTRY_ENDDATE, DateHelper.DateToString(timeEntry.getEndDateTime()));
-        contentValues.put(TIMEENTRY_WORKORDERID,timeEntry.getWorkOrderId());
-        contentValues.put(TIMEENTRY_STARTLATITUDE,timeEntry.getStartLatitude());
-        contentValues.put(TIMEENTRY_STARTLONGITUDE,timeEntry.getStartLongitude());
-       // contentValues.put(TIMEENTRY_ENDLATITUDE,timeEntry.getEndLatitude());
-        //contentValues.put(TIMEENTRY_ENDLONGITUDE,timeEntry.getEndLongitude());
-        contentValues.put(TIMEENTRY_NOTES,timeEntry.getNotes());
-        contentValues.put(TIMEENTRY_TIMEENTRYTYPEID, timeEntry.getTimeEntryTypeId());
-        db.insert(TABLE_TIMEENTRY,null, contentValues);
+        boolean dayStarted=false;
+        if(timeEntry.getTimeEntryTypeId()==GetTimeEntryTypeByName("start").getTimeEntryTypeId()){
+            dayStarted=CheckIfDayStarted();
+        }
+        if(!dayStarted) {
+            contentValues.put(TIMEENTRY_TIMEENTRYID, timeEntry.getTimeEntryId());
+            contentValues.put(TIMEENTRY_EMPLOYEEID, timeEntry.getEmployeeId());
+            contentValues.put(TIMEENTRY_DATEENTERED, DateHelper.DateToString(timeEntry.getDateEntered()));
+            contentValues.put(TIMEENTRY_STARTDATE, DateHelper.DateToString(timeEntry.getStartDateTime()));
+            // contentValues.put(TIMEENTRY_ENDDATE, DateHelper.DateToString(timeEntry.getEndDateTime()));
+            contentValues.put(TIMEENTRY_WORKORDERID, timeEntry.getWorkOrderId());
+            contentValues.put(TIMEENTRY_STARTLATITUDE, timeEntry.getStartLatitude());
+            contentValues.put(TIMEENTRY_STARTLONGITUDE, timeEntry.getStartLongitude());
+            // contentValues.put(TIMEENTRY_ENDLATITUDE,timeEntry.getEndLatitude());
+            //contentValues.put(TIMEENTRY_ENDLONGITUDE,timeEntry.getEndLongitude());
+            contentValues.put(TIMEENTRY_NOTES, timeEntry.getNotes());
+            contentValues.put(TIMEENTRY_TIMEENTRYTYPEID, timeEntry.getTimeEntryTypeId());
+            db.insert(TABLE_TIMEENTRY, null, contentValues);
+        }
     }
-
+    /**Gets the Time Entry List for current date
+     * */
     public ArrayList<TimeEntry> GetTimeEntryListForToday(){
         Cursor res=null;
         try {
@@ -1477,7 +1520,8 @@ private void create(){
         }
         return new ArrayList<>();
     }
-    /*This gets the TimeEntry by the id assigned by SQLite*/
+    /**
+     * @param id This is the id assigned by SQLite*/
     public TimeEntry GetTimeEntryById(int id){
 
         db=getReadableDatabase();

@@ -3,6 +3,8 @@ package com.example.niki.fieldoutlookandroid.businessobjects;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.Gson;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -85,6 +87,11 @@ public class Quote implements Serializable, Parcelable {
 
     public void setAmount(double amount) {
         this.amount = amount;
+    }
+
+    public String toJson(){
+        Gson gson=new Gson();
+        return  gson.toJson(this);
     }
 
     @Override

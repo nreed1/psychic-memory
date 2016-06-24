@@ -14,7 +14,7 @@
     <string name="Assigned">Assigned</string>
     <string name="AssignedJobs">Assigned Jobs</string>
     <string name="AvailableJobs">Available Jobs</string>
-    <string name="StartDay">Start Day</string>
+    <string name="StartDay">Timekeeping</string>
     <string name="viewJobs">View Jobs</string>
     <string name="title_activity_maps">Map View</string>
 </resources>

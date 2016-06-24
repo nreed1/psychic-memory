@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
+import com.google.gson.Gson;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -157,6 +158,11 @@ public class TimeEntry implements Parcelable,Serializable {
 
     public void setTimeEntryTypeId(int timeEntryTypeId) {
         this.timeEntryTypeId = timeEntryTypeId;
+    }
+
+    public String toJson(){
+        Gson gson=new Gson();
+        return gson.toJson(this);
     }
 
     @Override
