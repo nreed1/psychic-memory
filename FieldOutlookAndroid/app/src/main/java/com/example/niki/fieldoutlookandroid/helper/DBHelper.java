@@ -174,7 +174,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public static final String TABLE_FLATRATEITEM="flatrateitem";
     public static final String FLATRATEITEM_ID="id";
-    public static final String FLATRATEITEM_FLATRATEITEMID="flaterateitemid";
+    public static final String FLATRATEITEM_FLATRATEITEMID="flatrateitemid";
     public static final String FLATRATEITEM_NAME="flatratename";
     public static final String FLATRATEITEM_DESCRIPTION="description";
     public static final String FLATRATEITEM_LABORHOURS="laborhours";
@@ -1085,7 +1085,7 @@ private void create(){
         Cursor res=null;
         try {
             ArrayList<TimeEntryType> timeEntryTypes = new ArrayList<>();
-            SQLiteDatabase db = this.getReadableDatabase();
+            db = this.getReadableDatabase();
             res = db.rawQuery("select * from timeentrytype", null);
             res.moveToFirst();
             while (res.isAfterLast() == false) {
@@ -1097,6 +1097,7 @@ private void create(){
             ExceptionHelper.LogException(ctx,ex);
         }finally {
             if(res!=null)res.close();
+            if(db!=null)db.close();
         }
         return null;
     }

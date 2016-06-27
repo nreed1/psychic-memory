@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.MyPagerAdapter;
 
 /**
@@ -25,12 +26,14 @@ public class SearchPartFlatRateItemFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_SELECTED_QUOTE="selectedquote";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
     private ViewPager mViewPager;
+    private Quote selectedQuote;
 
     private OnFragmentInteractionListener mListener;
 
@@ -63,6 +66,7 @@ public class SearchPartFlatRateItemFragment extends Fragment {
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
+            selectedQuote=getArguments().getParcelable(ARG_SELECTED_QUOTE);
         }
     }
 
@@ -73,11 +77,32 @@ public class SearchPartFlatRateItemFragment extends Fragment {
         // Inflate the layout for this fragment
        View view= inflater.inflate(R.layout.fragment_search_part_flat_rate_item, container, false);
         mViewPager = (ViewPager) view.findViewById(R.id.pager);
-        mViewPager.setAdapter(new MyPagerAdapter(getChildFragmentManager()));
+        final MyPagerAdapter myPagerAdapter=new MyPagerAdapter(getChildFragmentManager());
+        mViewPager.setAdapter(myPagerAdapter);
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                myPagerAdapter.setCurrentPosition(position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+       // mViewPager.setCurrentItem(0);
         return view;
 
     }
 
+    public ViewPager getViewPager(){
+        return mViewPager;
+    }
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {

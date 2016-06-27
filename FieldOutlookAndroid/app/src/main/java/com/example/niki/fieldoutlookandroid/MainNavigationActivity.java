@@ -1,6 +1,7 @@
 package com.example.niki.fieldoutlookandroid;
 
 import android.app.Dialog;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
@@ -12,6 +13,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.support.design.widget.NavigationView;
@@ -55,8 +57,10 @@ import com.example.niki.fieldoutlookandroid.fragment.TimesheetReviewFragment;
 import com.example.niki.fieldoutlookandroid.fragment.TravelToFragment;
 import com.example.niki.fieldoutlookandroid.fragment.WorkOrderMaterialsNeededFragment;
 import com.example.niki.fieldoutlookandroid.fragment.WorkOrderPartFragment;
+import com.example.niki.fieldoutlookandroid.helper.AppUpdateHelper;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
+import com.example.niki.fieldoutlookandroid.helper.GetAvailableVersion.GetAvailableVersionAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.GetFlatRateItemAsyncTask.GetFlatRateItemAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.GetPartListAsyncTask.GetPartsListAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.NetworkHelper;
@@ -64,6 +68,7 @@ import com.example.niki.fieldoutlookandroid.helper.SendCompletedWorkOrders.SendC
 import com.example.niki.fieldoutlookandroid.helper.SendCustomerImage.SendCustomerImageAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
+import com.example.niki.fieldoutlookandroid.helper.array_adapters.MyPagerAdapter;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobsAsyncTask;
@@ -98,6 +103,7 @@ public class MainNavigationActivity extends AppCompatActivity
     ProgressDialog progressDialog;
     private WorkOrder workOrder;
     private NetworkHelper networkHelper;
+    private Quote quote;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -135,6 +141,16 @@ public class MainNavigationActivity extends AppCompatActivity
         if (name != null) {
             name.setText(Global.GetInstance().getUser().GetFullName());
         }
+        GetAvailableVersionAsyncTask getAvailableVersionAsyncTask=new GetAvailableVersionAsyncTask(new GetAvailableVersionAsyncTask.GetAvailableVersionDelegate() {
+            @Override
+            public void processFinish(int result) {
+                if(result> AppUpdateHelper.getVersionCode(getApplicationContext())){
+                    Intent updateIntent = AppUpdateHelper.getUpdateIntent();
+                    startActivity(updateIntent);
+                }
+            }
+        });
+
         FirebaseMessaging.getInstance().subscribeToTopic("news");
         StartMainFragment();
         // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -157,19 +173,41 @@ public class MainNavigationActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             FragmentManager fragmentManager = getFragmentManager();
-            if (fragmentManager.getBackStackEntryCount() > 0) {
-                if ((fragmentManager.getBackStackEntryCount() - 2) >= 0) {
-                    FragmentManager.BackStackEntry entry = fragmentManager.getBackStackEntryAt(fragmentManager.getBackStackEntryCount() - 2);
-                    toolbar.setTitle(entry.getName());
+            Fragment currentFragment=fragmentManager.findFragmentById(R.id.fragment_container);
+            if(currentFragment instanceof SearchPartFlatRateItemFragment) {
+                SearchPartFlatRateItemFragment searchPartFlatRateItemFragment=(SearchPartFlatRateItemFragment)currentFragment;
+                ViewPager viewPager=searchPartFlatRateItemFragment.getViewPager();
+                MyPagerAdapter myPagerAdapter=(MyPagerAdapter) viewPager.getAdapter();
+               if( myPagerAdapter.backPressed()==0){
+                   if (fragmentManager.getBackStackEntryCount() > 0) {
+                       if ((fragmentManager.getBackStackEntryCount() - 2) >= 0) {
+                           FragmentManager.BackStackEntry entry = fragmentManager.getBackStackEntryAt(fragmentManager.getBackStackEntryCount() - 2);
+                           toolbar.setTitle(entry.getName());
+                       } else {
+                           toolbar.setTitle("Field Outlook");
+                       }
+
+                       fragmentManager.popBackStack();
+
+
+                   }
+               }
+            }else {
+
+                if (fragmentManager.getBackStackEntryCount() > 0) {
+                    if ((fragmentManager.getBackStackEntryCount() - 2) >= 0) {
+                        FragmentManager.BackStackEntry entry = fragmentManager.getBackStackEntryAt(fragmentManager.getBackStackEntryCount() - 2);
+                        toolbar.setTitle(entry.getName());
+                    } else {
+                        toolbar.setTitle("Field Outlook");
+                    }
+
+                    fragmentManager.popBackStack();
+
+
                 } else {
-                    toolbar.setTitle("Field Outlook");
+                    //super.onBackPressed();
                 }
-
-                fragmentManager.popBackStack();
-
-
-            } else {
-                //super.onBackPressed();
             }
         }
     }
@@ -343,12 +381,26 @@ public class MainNavigationActivity extends AppCompatActivity
                         @Override
                         public void processFinish(ArrayList<PartCategory> result) {
                             progressDialog.setMessage("Saving " + result.size() + " Parts List");
-                            progressDialog.dismiss();
+                            //progressDialog.dismiss();
                         }
                     }, getApplicationContext());
                     getPartsListAsyncTask.execute((Void) null);
 
-                    GetFlatRateItemAsyncTask flatRateItemAsyncTask = new GetFlatRateItemAsyncTask(getApplicationContext());
+                    GetFlatRateItemAsyncTask flatRateItemAsyncTask = new GetFlatRateItemAsyncTask(getApplicationContext(), new GetFlatRateItemAsyncTask.GetFlatRateItemAsyncTaskDelegate() {
+                        @Override
+                        public void processFinish(Integer result) {
+                            progressDialog.setMessage("Saving " + result + " Flat Rate Item List");
+                            try {
+                                wait(500);
+                                progressDialog.dismiss();
+                            }catch (Exception ex){
+
+                            }finally {
+                                progressDialog.dismiss();
+                            }
+
+                        }
+                    });
                     flatRateItemAsyncTask.execute();
 
 
@@ -581,7 +633,7 @@ public class MainNavigationActivity extends AppCompatActivity
         toolbar.setTitle("Travel To");
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        QuoteFragment quoteFragment = new QuoteFragment();
+        AssignedJobFragment quoteFragment = new AssignedJobFragment();
         fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "TravelTo").addToBackStack("TravelTo");
         fragmentTransaction.commit();
     }
@@ -632,6 +684,7 @@ public class MainNavigationActivity extends AppCompatActivity
                 Bundle b = new Bundle();
                 b.putParcelableArrayList("categories-given", null);
                 partListFragment.setArguments(b);
+
                 fragmentTransaction.replace(R.id.fragment_container, partListFragment, "WorkOrderPartList").addToBackStack("WorkOrderPartList");
                 fragmentTransaction.commit();
                 return;
@@ -643,7 +696,9 @@ public class MainNavigationActivity extends AppCompatActivity
     @Override
     public void onPartListFragmentInteraction(PartCategory item) {
         FragmentManager fragmentManager = getFragmentManager();
+
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        Fragment currentFragment=fragmentManager.findFragmentById(R.id.fragment_container);
         PartListFragment partListFragment = new PartListFragment();
         Bundle b = new Bundle();
         if (item.getParts() != null && !item.getParts().isEmpty() && item.getSubCategoryList() != null && !item.getSubCategoryList().isEmpty()) {
@@ -656,9 +711,22 @@ public class MainNavigationActivity extends AppCompatActivity
             b.putParcelableArrayList("categories-given", null);
         }
         b.putParcelable("selectedworkorder", workOrder);
+      //  b.putParcelable("selectedquote", quote);
         partListFragment.setArguments(b);
-        fragmentTransaction.replace(R.id.fragment_container, partListFragment, "SubPartList").addToBackStack("SubPartList");
-        fragmentTransaction.commit();
+        if(currentFragment instanceof SearchPartFlatRateItemFragment){
+            SearchPartFlatRateItemFragment searchPartFlatRateItemFragment=(SearchPartFlatRateItemFragment)currentFragment;
+
+            ViewPager viewPager=searchPartFlatRateItemFragment.getViewPager();
+            MyPagerAdapter myPagerAdapter=(MyPagerAdapter) viewPager.getAdapter();
+            myPagerAdapter.setFirstPositionFragment(partListFragment);
+
+            myPagerAdapter.notifyDataSetChanged();
+            viewPager.refreshDrawableState();
+        }else {
+
+            fragmentTransaction.replace(R.id.fragment_container, partListFragment, "SubPartList").addToBackStack("SubPartList");
+            fragmentTransaction.commit();
+        }
     }
 
     @Override
@@ -674,6 +742,7 @@ public class MainNavigationActivity extends AppCompatActivity
     @Override
     public void onWorkOrderPartMenuItemInteraction(WorkOrder selectedWorkOrder, MenuItem item) {
         this.workOrder = selectedWorkOrder;
+        this.quote=null;
         if (item.getItemId() == R.id.addPartToWorkOrderMenuItem) {
             FragmentManager fragmentManager = getFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -690,6 +759,7 @@ public class MainNavigationActivity extends AppCompatActivity
     @Override
     public void onSelectedWorkOrderMenuItemInteraction(WorkOrder selectedWorkorder) {
         this.workOrder = selectedWorkorder;
+        this.quote=null;
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         WorkOrderPartFragment workOrderPartFragment = new WorkOrderPartFragment();
@@ -707,6 +777,8 @@ public class MainNavigationActivity extends AppCompatActivity
         QuoteFragment quoteFragment = new QuoteFragment();
         Bundle b = new Bundle();
         b.putParcelable("selected-quote", item);
+        this.quote=item;
+        this.workOrder=null;
         quoteFragment.setArguments(b);
         fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "QuoteFragment").addToBackStack("QuoteFragment");
         fragmentTransaction.commit();
@@ -767,7 +839,11 @@ public class MainNavigationActivity extends AppCompatActivity
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         SearchPartFlatRateItemFragment searchPartFlatRateItemFragment=new SearchPartFlatRateItemFragment();
-        fragmentTransaction.replace(R.id.fragment_container, searchPartFlatRateItemFragment, "WorkOrderPartList").addToBackStack("WorkOrderPartList");
+        Bundle b=new Bundle();
+        b.putParcelable("selectedquote", selectedQuote);
+        searchPartFlatRateItemFragment.setArguments(b);
+        fragmentTransaction.replace(R.id.fragment_container, searchPartFlatRateItemFragment, "QuotePartList").addToBackStack("QuotePartList");
         fragmentTransaction.commit();
+
     }
 }

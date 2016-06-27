@@ -89,6 +89,48 @@ public class Quote implements Serializable, Parcelable {
         this.amount = amount;
     }
 
+
+    public void addWorkOrderPartToList(QuotePart workOrderPart){
+        if(getParts()!=null &&! getParts().isEmpty()){
+            boolean partExistsInList=false;
+            for (QuotePart part:this.parts){
+                if(part.getPartId()==workOrderPart.getPartId()){
+                    partExistsInList=true;
+                    part.setQuantity(part.getQuantity()+1);//Increase quantity if it already exists in the list
+                    break;
+                }
+            }
+            if(!partExistsInList){
+                this.parts.add(workOrderPart);
+            }
+        }else{
+            if(getParts()==null){
+                setParts(new ArrayList<QuotePart>());
+            }
+            (this).parts.add(workOrderPart);
+        }
+    }
+
+    public void removeWorkOrderPartFromList(QuotePart workOrderPart){
+        if(getParts()!=null &&! getParts().isEmpty()){
+            boolean partExistsInList=false;
+            for (QuotePart part:this.parts){
+                if(part.getPartId()==workOrderPart.getPartId()){
+                    partExistsInList=true;
+                    break;
+                }
+            }
+            if(!partExistsInList){
+                this.parts.remove(workOrderPart);
+            }
+        }else{
+            if(getParts()==null){
+                setParts(new ArrayList<QuotePart>());
+            }
+
+        }
+    }
+
     public String toJson(){
         Gson gson=new Gson();
         return  gson.toJson(this);

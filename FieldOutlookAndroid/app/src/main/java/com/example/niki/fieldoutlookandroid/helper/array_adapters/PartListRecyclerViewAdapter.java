@@ -20,6 +20,8 @@ import com.example.niki.fieldoutlookandroid.R;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
+import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
+import com.example.niki.fieldoutlookandroid.businessobjects.QuotePart;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
 import com.example.niki.fieldoutlookandroid.fragment.PartListFragment;
@@ -50,10 +52,11 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
     protected DBHelper dbHelper;
     protected List<Part> filteredList;
     private WorkOrder workOrder;
+    private Quote quote;
     private ArrayList<Integer> partIdsInWorkOrder=new ArrayList<>();
 
 
-    public PartListRecyclerViewAdapter(Context context,List<PartCategory> items, List<Part> parts,PartCategory partCategory, WorkOrder workOrder,PartListFragment.OnPartListFragmentInteractionListener listener, PartListFragment.OnPartListPartFragmentInteractionListener partListener) {
+    public PartListRecyclerViewAdapter(Context context,List<PartCategory> items, List<Part> parts,PartCategory partCategory, WorkOrder workOrder,PartListFragment.OnPartListFragmentInteractionListener listener, PartListFragment.OnPartListPartFragmentInteractionListener partListener,Quote quote) {
         category=partCategory;
         if(category!=null){
             mValues=category.getSubCategoryList();
@@ -69,9 +72,14 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         this.context=context;
         dbHelper=new DBHelper(context);
         this.workOrder=workOrder;
-        if(workOrder.getPartList()!=null && !workOrder.getPartList().isEmpty()){
+        this.quote=quote;
+        if(workOrder!=null &&workOrder.getPartList()!=null && !workOrder.getPartList().isEmpty()){
             for (WorkOrderPart workOrderPart:workOrder.getPartList()){
                 partIdsInWorkOrder.add(workOrderPart.getPartId());
+            }
+        }else if(quote!=null && quote.getParts()!=null && !quote.getParts().isEmpty()){
+            for (QuotePart quotePart:quote.getParts()){
+                partIdsInWorkOrder.add(quotePart.getPartId());
             }
         }
         originalList=dbHelper.GetAllParts();
@@ -86,9 +94,18 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
 
             //WorkOrderPartHelper.getInstance().addPartList((ArrayList<Part>) mParts);
             for(Part p :mParts){
-                workOrder.addWorkOrderPartToList(new WorkOrderPart(p,1,null));
+                if(workOrder!=null) {
+                    workOrder.addWorkOrderPartToList(new WorkOrderPart(p, 1, null));
+                }else if(quote!=null){
+                    if(quote.getParts()==null) quote.setParts(new ArrayList<QuotePart>());
+                    quote.addWorkOrderPartToList(new QuotePart(p,1));
+                }
             }
-            dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(),workOrder.getPartList());
+            if(workOrder!=null) {
+                dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(), workOrder.getPartList());
+            }else if(quote!=null){
+                dbHelper.SaveQuotePartList(quote.getParts(),quote.getQuoteId());
+            }
 
             PartListRecyclerViewAdapter.this.notifyDataSetChanged();
         }
@@ -205,6 +222,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         if(category!=null) return mValues.size()+mParts.size();
         if(mParts!=null && !mParts.isEmpty()) return mParts.size();
 
+        if(mValues==null) return 0;
         return mValues.size();
     }
 
@@ -215,7 +233,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
                // list = (List<Part>) results.values;
-                if(((ArrayList<?>)results.values).get(0) instanceof Part){
+                if(results!=null&&results.values!=null&&((ArrayList<?>)results.values).get(0) instanceof Part){
                     mParts=(ArrayList<Part>)results.values;
                 }else{
                     mParts=null;
@@ -247,7 +265,11 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         List<Part> results = new ArrayList<>();
 
         for (Part item : originalList) {
-            if (item.getNumberAndDescription().toLowerCase().contains(constraint)) {
+            if(item.getNumberAndDescription()==null) {
+                if ((item.getPartNumber()!=null && item.getPartNumber().toLowerCase().contains(constraint)) || (item.getDescription()!=null &&item.getDescription().toLowerCase().contains(constraint))) {
+                    results.add(item);
+                }
+            }else if(item.getNumberAndDescription().toLowerCase().contains(constraint)){
                 results.add(item);
             }
         }

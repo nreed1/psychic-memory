@@ -1,56 +1,56 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.niki.fieldoutlookandroid.R;
-import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
-
-import com.example.niki.fieldoutlookandroid.helper.array_adapters.QuoteRecyclerViewAdapter;
+import com.example.niki.fieldoutlookandroid.businessobjects.FlatRateItem;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.array_adapters.FlatRateItemRecyclerViewAdapter;
 
 import java.util.ArrayList;
 
 /**
  * A fragment representing a list of Items.
  * <p/>
- * Activities containing this fragment MUST implement the {@link OnQuoteListFragmentInteractionListener}
+ * Activities containing this fragment MUST implement the {@link OnFlatRateItemListFragmentInteractionListener}
  * interface.
  */
-public class QuoteListFragment extends Fragment {
+public class FlatRateItemListFragment extends Fragment {
 
-    // TODO: Customize parameter argument names
+
     private static final String ARG_COLUMN_COUNT = "column-count";
-    private static final String ARG_QUOTE_LIST="quotelist";
-    // TODO: Customize parameters
+    private static final String ARG_FLATRATE_LIST="flatratelist";
+
     private int mColumnCount = 1;
-    private OnQuoteListFragmentInteractionListener mListener;
-    private ArrayList<Quote> quotes;
+    private ArrayList<FlatRateItem> flatRateItems=new ArrayList<>();
+    private OnFlatRateItemListFragmentInteractionListener mListener;
+
+    private DBHelper dbHelper;
+
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public QuoteListFragment() {
+    public FlatRateItemListFragment() {
     }
 
-    // TODO: Customize parameter initialization
+
     @SuppressWarnings("unused")
-    public static QuoteListFragment newInstance(int columnCount) {
-        QuoteListFragment fragment = new QuoteListFragment();
+    public static FlatRateItemListFragment newInstance(int columnCount) {
+        FlatRateItemListFragment fragment = new FlatRateItemListFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
+
         fragment.setArguments(args);
         return fragment;
     }
@@ -58,36 +58,22 @@ public class QuoteListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        dbHelper=new DBHelper(getActivity());
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-            quotes=getArguments().getParcelableArrayList(ARG_QUOTE_LIST);
+            flatRateItems=getArguments().getParcelableArrayList(ARG_FLATRATE_LIST);
         }
-        setHasOptionsMenu(true);
-    }
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        if(flatRateItems==null ||flatRateItems.isEmpty()){
 
-        inflater.inflate(R.menu.quote_list_menu, menu);
-
-    }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
-        switch (item.getItemId()) {
-            case R.id.addQuoteMenuItem:
-                mListener.onQuoteListFragmentInteraction(null);
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
+            flatRateItems=dbHelper.GetFlatRateItems();
+            Log.d("FlatRateItems",String.valueOf(flatRateItems.size()));
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_quote_list2, container, false);
+        View view = inflater.inflate(R.layout.fragment_flatrateitem_list, container, false);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -98,7 +84,9 @@ public class QuoteListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new QuoteRecyclerViewAdapter(null, mListener));
+            if(flatRateItems!=null) {
+                recyclerView.setAdapter(new FlatRateItemRecyclerViewAdapter(flatRateItems, mListener));
+            }
         }
         return view;
     }
@@ -107,22 +95,11 @@ public class QuoteListFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnQuoteListFragmentInteractionListener) {
-            mListener = (OnQuoteListFragmentInteractionListener) context;
+        if (context instanceof OnFlatRateItemListFragmentInteractionListener) {
+            mListener = (OnFlatRateItemListFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnQuoteListFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onAttach(Activity context) {
-        super.onAttach(context);
-        if (context instanceof OnQuoteListFragmentInteractionListener) {
-            mListener = (OnQuoteListFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnQuoteListFragmentInteractionListener");
+                    + " must implement OnFlatRateItemListFragmentInteractionListener");
         }
     }
 
@@ -142,8 +119,8 @@ public class QuoteListFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnQuoteListFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onQuoteListFragmentInteraction(Quote item);
+    public interface OnFlatRateItemListFragmentInteractionListener {
+
+        void onFlatRateItemListFragmentInteraction(FlatRateItem item);
     }
 }

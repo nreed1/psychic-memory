@@ -9,6 +9,7 @@ import com.example.niki.fieldoutlookandroid.businessobjects.FlatRateItemPart;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
+import com.example.niki.fieldoutlookandroid.helper.GetAvailableVersion.GetAvailableVersionAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.TokenHelper;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
@@ -25,16 +26,18 @@ import java.util.ArrayList;
 /**
  * Created by Owner on 6/22/2016.
  */
-public class GetFlatRateItemAsyncTask extends AsyncTask<Void, Void, Void> {
+public class GetFlatRateItemAsyncTask extends AsyncTask<Void, Void, Integer> {
 
     private Context context;
+    private GetFlatRateItemAsyncTaskDelegate delegate;
 
-    public GetFlatRateItemAsyncTask(Context context){
+    public GetFlatRateItemAsyncTask(Context context, GetFlatRateItemAsyncTaskDelegate delegate){
         this.context=context;
+        this.delegate=delegate;
     }
 
     @Override
-    protected Void doInBackground(Void... params) {
+    protected Integer doInBackground(Void... params) {
        try{
            HttpURLConnection con = (HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "GetFlatRateItemList/" + URLEncoder.encode(TokenHelper.getToken()))).openConnection();
            con.setRequestMethod("GET");
@@ -87,7 +90,7 @@ public class GetFlatRateItemAsyncTask extends AsyncTask<Void, Void, Void> {
                         Integer id=Integer.parseInt(parser.getText());
                         flatRateItem.setFlatRateItemId(id);
                     }else if(currentTag.equals("a:FlatRateName")){
-                        flatRateItem.setDescription(parser.getText());
+                        flatRateItem.setFlatRateName(parser.getText());
                     }else if(currentTag.equals("a:LaborHours")){
                         Double id=Double.parseDouble(parser.getText());
                         flatRateItem.setLaborHours(id);
@@ -136,10 +139,24 @@ public class GetFlatRateItemAsyncTask extends AsyncTask<Void, Void, Void> {
            }
            DBHelper dbHelper=new DBHelper(context);
            dbHelper.TruncateFlatRateItem();
-
+           for(FlatRateItem flatRateItem1:flatRateItemArrayList){
+               dbHelper.SaveFlatRateItem(flatRateItem1);
+           }
+        return flatRateItemArrayList.size();
        }catch (Exception ex){
            ExceptionHelper.LogException(context,ex);
        }
-        return null;
+        return 0;
+    }
+
+    @Override
+    protected void onPostExecute(Integer result){
+
+        delegate.processFinish(result);
+
+    }
+
+    public interface  GetFlatRateItemAsyncTaskDelegate{
+        void processFinish(Integer result);
     }
 }

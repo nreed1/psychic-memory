@@ -113,18 +113,7 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
                                 category=new PartCategory();
                                 category.setSubCategoryList(new ArrayList<PartCategory>());
                             subCategoryIds=new ArrayList<>();
-                                //subcategories=new ArrayList<>();
 
-//                            }else{
-//                                if(!parts.isEmpty()){
-//                                    subcategory.setParts(parts);
-//                                }
-//                                if(subcategory!=new PartCategory() && subcategory.getPartCategoryId()!=0) {
-//                                    subcategories.add(category);
-//                                }
-//                                subcategory=new PartCategory();
-//
-//                            }
 
                             parts=new ArrayList<>();
                             newPart=new Part();
@@ -134,21 +123,16 @@ public class GetPartsListAsyncTask extends AsyncTask<Void, Void, ArrayList<PartC
                     else if (currentTag.equals("a:Part")) {
                         if(newPart!=new Part() && newPart.getPartId()!=0){
                             //if(newPart.getCategoryId()==0)newPart.setCategoryId(category.getPartCategoryId());
+                            if(newPart.getNumberAndDescription()==null){
+                                newPart.setNumberAndDescription(newPart.getPartNumber()+" : "+newPart.getDescription() );
+                            }
                             parts.add(newPart);
                         }
                         newPart = new Part();
                     }
-//                    else if(currentTag.equals("a:SubCategoryList")){
-//                        if(!parts.isEmpty()){
-//                            category.setParts(parts);
-//                        }
-//                        isSubCategory=true;
-//                        level++;
-//                    }
+
                 } else if (event == XmlPullParser.TEXT) {
                     if (currentTag.equals("a:CategoryName")) {
-//                        if(isSubCategory) subcategory.setName(parser.getText());
-//                        else
 
                             category.setName(parser.getText());
 

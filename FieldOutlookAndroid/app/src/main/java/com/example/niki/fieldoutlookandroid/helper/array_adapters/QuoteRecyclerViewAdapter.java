@@ -57,7 +57,10 @@ public class QuoteRecyclerViewAdapter extends RecyclerView.Adapter<QuoteRecycler
 
     @Override
     public int getItemCount() {
-        return mValues.size();
+        if(mValues!=null && !mValues.isEmpty()) {
+            return mValues.size();
+        }
+        return 0;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
