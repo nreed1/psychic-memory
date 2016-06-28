@@ -4,10 +4,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.Part;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderMaterial;
 import com.example.niki.fieldoutlookandroid.fragment.WorkOrderMaterialsNeededFragment;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
 
@@ -20,10 +23,10 @@ import java.util.List;
  */
 public class WorkOrderMaterialsNeededRecyclerViewAdapter extends RecyclerView.Adapter<WorkOrderMaterialsNeededRecyclerViewAdapter.ViewHolder> {
 
-    private final List<DummyItem> mValues;
+    private final List<WorkOrderMaterial> mValues;
     private final WorkOrderMaterialsNeededFragment.OnListFragmentInteractionListener mListener;
 
-    public WorkOrderMaterialsNeededRecyclerViewAdapter(List<DummyItem> items, WorkOrderMaterialsNeededFragment.OnListFragmentInteractionListener listener) {
+    public WorkOrderMaterialsNeededRecyclerViewAdapter(List<WorkOrderMaterial> items, WorkOrderMaterialsNeededFragment.OnListFragmentInteractionListener listener) {
         mValues = items;
         mListener = listener;
     }
@@ -37,8 +40,9 @@ public class WorkOrderMaterialsNeededRecyclerViewAdapter extends RecyclerView.Ad
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.mIdView.setText(mValues.get(position).id);
-        holder.mContentView.setText(mValues.get(position).content);
+        holder.mMaterialName.setText(mValues.get(position).getNumberAndDescription());
+        holder.mMaterialQuantity.setMinValue(0);
+        holder.mMaterialQuantity.setValue(mValues.get(position).getQuantity());
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,20 +63,20 @@ public class WorkOrderMaterialsNeededRecyclerViewAdapter extends RecyclerView.Ad
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
-        public final TextView mIdView;
-        public final TextView mContentView;
-        public DummyItem mItem;
+        public final TextView mMaterialName;
+        public final NumberPicker mMaterialQuantity;
+        public WorkOrderMaterial mItem;
 
         public ViewHolder(View view) {
             super(view);
             mView = view;
-            mIdView = (TextView) view.findViewById(R.id.id);
-            mContentView = (TextView) view.findViewById(R.id.content);
+            mMaterialName = (TextView) view.findViewById(R.id.material_name);
+            mMaterialQuantity = (NumberPicker) view.findViewById(R.id.material_quantity);
         }
 
         @Override
         public String toString() {
-            return super.toString() + " '" + mContentView.getText() + "'";
+            return super.toString() + " '" + mMaterialName.getText() + "'";
         }
     }
 }

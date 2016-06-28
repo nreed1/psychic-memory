@@ -544,7 +544,7 @@ private void create(){
         try{
 
             db=getReadableDatabase();
-            res=db.rawQuery("select * from quote",null);
+            res=db.rawQuery("select * from quote where id="+quoteId,null);
             res.moveToFirst();
             if(!res.isAfterLast()){
                 Quote newQuote=new Quote(res.getInt(res.getColumnIndex(QUOTE_ID)),GetPersonByPersonId(res.getInt(res.getColumnIndex(QUOTE_CUSTOMERID))),res.getString(res.getColumnIndex(QUOTE_DESCRIPTION)),
@@ -561,6 +561,31 @@ private void create(){
             if(res!=null)res.close();
         }
         return null;
+    }
+
+    public long SaveQuote(Quote quote){
+        try{
+            db=getWritableDatabase();
+            ContentValues contentValues=new ContentValues();
+            contentValues.put(QUOTE_CUSTOMERID,quote.getCustomer().getPersonId());
+            contentValues.put(QUOTE_AMOUNT,quote.getAmount());
+            contentValues.put(QUOTE_DATECREATED,quote.getDateCreated());
+            contentValues.put(QUOTE_DESCRIPTION,quote.getDescription());
+            contentValues.put(QUOTE_NOTES,quote.getNotes());
+            contentValues.put(QUOTE_QUOTEID,quote.getQuoteId());
+            long pkid=0;
+            if(GetQuoteById(quote.getQuoteId())!=null){
+                pkid=db.update(TABLE_QUOTE,contentValues,"id=?",new String[]{String.valueOf(quote.getQuoteId())});
+            }else{
+                pkid=db.insert(TABLE_QUOTE,null, contentValues);
+            }
+            return pkid;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            db.close();
+        }
+        return 0;
     }
 
     /**
@@ -597,7 +622,7 @@ private void create(){
             res=db.rawQuery("select * from "+TABLE_QUOTEPART+" where quoteid="+quoteId,null);
             res.moveToFirst();
             while(!res.isAfterLast()){
-                QuotePart quotePart=new QuotePart(GetPartById(res.getInt(res.getColumnIndex(QUOTEPART_PARTID))),res.getInt(res.getColumnIndex(QUOTEPART_QUANTITY)));
+                QuotePart quotePart=new QuotePart(GetPartById(res.getInt(res.getColumnIndex(QUOTEPART_PARTID))),res.getInt(res.getColumnIndex(QUOTEPART_QUANTITY)),null);
                 quotePart.setFlatRateItem(GetFlatRateItemById(res.getInt(res.getColumnIndex(QUOTEPART_FLATRATEITEMID))));
                 quotePartArrayList.add(quotePart);
                 res.moveToNext();
@@ -1396,6 +1421,30 @@ private void create(){
         }
         return new ArrayList<>();
     }
+    public Person GetPersonByFullName(String fullName){
+        Cursor res=null;
+        try {
+            db = getReadableDatabase();
+            res = db.rawQuery("select * from " + TABLE_PERSON + " where"+PERSON_FULLNAME+" =" + fullName, null);
+            res.moveToFirst();
+            Person selectedPerson = null;
+            while (res.isAfterLast() == false) {
+                //public OtherTask(int id, int userid, String name, String description)
+                selectedPerson = new Person(res.getInt(res.getColumnIndex(PERSON_PERSONID)), res.getInt(res.getColumnIndex(PERSON_COMPANYID)), 0, res.getString(res.getColumnIndex(PERSON_FIRSTNAME)), res.getString(res.getColumnIndex(PERSON_LASTNAME)),
+                        res.getString(res.getColumnIndex(PERSON_FULLNAME)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE1)), res.getString(res.getColumnIndex(PERSON_ADDRESSLINE2)),
+                        res.getString(res.getColumnIndex(PERSON_CITY)), res.getString(res.getColumnIndex(PERSON_STATE)), res.getString(res.getColumnIndex(PERSON_ZIPCODE)));
+
+                res.moveToNext();
+            }
+            return selectedPerson;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null) res.close();
+        }
+        return null;
+    }
+
     public Person GetPersonByPersonId(int personId){
         Cursor res=null;
         try {

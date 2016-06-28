@@ -11,8 +11,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderMaterial;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.WorkOrderMaterialsNeededRecyclerViewAdapter;
 
 /**
@@ -25,10 +28,12 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
+    private static final String ARG_SELECTED_WORKORDER="selectedworkorder";
     // TODO: Customize parameters
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
-
+    private DBHelper db;
+    private WorkOrder selectedWorkOrder;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -36,7 +41,7 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
     public WorkOrderMaterialsNeededFragment() {
     }
 
-    // TODO: Customize parameter initialization
+
     @SuppressWarnings("unused")
     public static WorkOrderMaterialsNeededFragment newInstance(int columnCount) {
         WorkOrderMaterialsNeededFragment fragment = new WorkOrderMaterialsNeededFragment();
@@ -52,7 +57,9 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
 
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
+            selectedWorkOrder=getArguments().getParcelable(ARG_SELECTED_WORKORDER);
         }
+        db=new DBHelper(getActivity());
     }
 
     @Override
@@ -69,7 +76,8 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new WorkOrderMaterialsNeededRecyclerViewAdapter(DummyContent.ITEMS, mListener));
+
+            recyclerView.setAdapter(new WorkOrderMaterialsNeededRecyclerViewAdapter(db.GetWorkOrderMaterialsByWorkOrderId(selectedWorkOrder.getWorkOrderId()), mListener));
         }
         return view;
     }
@@ -104,6 +112,6 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
      */
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+        void onListFragmentInteraction(WorkOrderMaterial item);
     }
 }

@@ -115,9 +115,16 @@ public class Quote implements Serializable, Parcelable {
         if(getParts()!=null &&! getParts().isEmpty()){
             boolean partExistsInList=false;
             for (QuotePart part:this.parts){
-                if(part.getPartId()==workOrderPart.getPartId()){
-                    partExistsInList=true;
-                    break;
+                if(part.getPartId()!=0) {
+                    if (part.getPartId() == workOrderPart.getPartId()) {
+                        partExistsInList = true;
+                        break;
+                    }
+                }else{
+                    if(part.getFlatRateItem().getFlatRateItemId()==workOrderPart.getFlatRateItem().getFlatRateItemId()){
+                        partExistsInList=true;
+                        break;
+                    }
                 }
             }
             if(!partExistsInList){

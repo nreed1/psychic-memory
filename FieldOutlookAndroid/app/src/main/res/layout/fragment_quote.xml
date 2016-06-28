@@ -55,6 +55,12 @@
             android:id="@+id/partListQuote"
            tools:listitem="@layout/part_list_item"></ListView>
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Quote"
+            android:id="@+id/saveQuoteButton"/>
+
     </LinearLayout>
 
 </ScrollView>

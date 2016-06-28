@@ -98,7 +98,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
                     workOrder.addWorkOrderPartToList(new WorkOrderPart(p, 1, null));
                 }else if(quote!=null){
                     if(quote.getParts()==null) quote.setParts(new ArrayList<QuotePart>());
-                    quote.addWorkOrderPartToList(new QuotePart(p,1));
+                    quote.addWorkOrderPartToList(new QuotePart(p,1,null));
                 }
             }
             if(workOrder!=null) {

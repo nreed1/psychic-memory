@@ -28,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -95,7 +96,8 @@ public class MainNavigationActivity extends AppCompatActivity
         SelectedWorkorderFragment.OnSelectedWorkOrderFragmentInteractionListener, PartListFragment.OnPartListFragmentInteractionListener,
         PartListFragment.OnPartListPartFragmentInteractionListener, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener,
         WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener,
-        QuoteListFragment.OnQuoteListFragmentInteractionListener,QuoteFragment.OnAddPartsInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener {
+        QuoteListFragment.OnQuoteListFragmentInteractionListener,QuoteFragment.OnAddPartsInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener,
+QuoteFragment.OnQuoteSaveSuccessfulListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -203,7 +205,7 @@ public class MainNavigationActivity extends AppCompatActivity
                     }
 
                     fragmentManager.popBackStack();
-
+                    fragmentManager.notify();
 
                 } else {
                     //super.onBackPressed();
@@ -785,10 +787,13 @@ public class MainNavigationActivity extends AppCompatActivity
     }
 
     @Override
-    public void onWorkOrderMaterialsClicked() {
+    public void onWorkOrderMaterialsClicked(WorkOrder selectedWorkOrder) {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         WorkOrderMaterialsNeededFragment workOrderMaterialsNeededFragment = new WorkOrderMaterialsNeededFragment();
+        Bundle b=new Bundle();
+        b.putParcelable("selectedworkorder",selectedWorkOrder);
+        workOrderMaterialsNeededFragment.setArguments(b);
 
         fragmentTransaction.replace(R.id.fragment_container, workOrderMaterialsNeededFragment, "WorkOrderMaterialsNeeded").addToBackStack("WorkOrderMaterialsNeeded");
         fragmentTransaction.commit();
@@ -845,5 +850,11 @@ public class MainNavigationActivity extends AppCompatActivity
         fragmentTransaction.replace(R.id.fragment_container, searchPartFlatRateItemFragment, "QuotePartList").addToBackStack("QuotePartList");
         fragmentTransaction.commit();
 
+    }
+
+    @Override
+    public void onQuoteSaveSuccessful() {
+        //Go Back a screen for now that means Quote List
+        onBackPressed();
     }
 }

@@ -15,12 +15,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.DateHelper;
+import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
+
+import java.util.Date;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -47,6 +52,7 @@ public class QuoteFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
     private OnAddPartsInteractionListener onAddPartsInteractionListener;
+    private OnQuoteSaveSuccessfulListener onQuoteSaveSuccessfulListener;
 
     /**
      * Use this factory method to create a new instance of
@@ -158,7 +164,39 @@ public class QuoteFragment extends Fragment {
             }
         });
 
+        Button saveQuoteButton=(Button)view.findViewById(R.id.saveQuoteButton);
+        saveQuoteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                long pkid=SaveQuote();
+                if(pkid>0){
+                    onQuoteSaveSuccessfulListener.onQuoteSaveSuccessful();
+                }
+            }
+        });
+
         return view;
+    }
+
+    private long SaveQuote(){
+        try{
+            DBHelper dbHelper=new DBHelper(getActivity());
+            if(selectedQuote==null){
+                selectedQuote=new Quote();
+            }
+            selectedQuote.setDescription(description.getText().toString());
+            selectedQuote.setCustomer(dbHelper.GetPersonByFullName(customerName.getText().toString()));
+            selectedQuote.setNotes(notes.getText().toString());
+            selectedQuote.setDateCreated(DateHelper.DateToString(new Date()));
+
+           long pkid=dbHelper.SaveQuote(selectedQuote);
+            Toast.makeText(getActivity(),"Quote Saved", Toast.LENGTH_SHORT);
+            return pkid;
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(getActivity(),ex);
+        }
+        return 0;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -175,6 +213,9 @@ public class QuoteFragment extends Fragment {
             mListener = (OnFragmentInteractionListener) activity;
             if(activity instanceof OnAddPartsInteractionListener){
                 onAddPartsInteractionListener=(OnAddPartsInteractionListener)activity;
+            }
+            if(activity instanceof OnQuoteSaveSuccessfulListener){
+                onQuoteSaveSuccessfulListener=(OnQuoteSaveSuccessfulListener)activity;
             }
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
@@ -205,6 +246,9 @@ public class QuoteFragment extends Fragment {
 
     public interface  OnAddPartsInteractionListener{
         public void onAddPartsInteraction(Quote selectedQuote);
+    }
+    public interface OnQuoteSaveSuccessfulListener{
+        void onQuoteSaveSuccessful();
     }
 
 }

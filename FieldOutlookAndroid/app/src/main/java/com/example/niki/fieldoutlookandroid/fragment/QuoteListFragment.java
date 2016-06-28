@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
 
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.QuoteRecyclerViewAdapter;
 
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class QuoteListFragment extends Fragment {
     private int mColumnCount = 1;
     private OnQuoteListFragmentInteractionListener mListener;
     private ArrayList<Quote> quotes;
-
+    private DBHelper dbHelper;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -62,6 +63,10 @@ public class QuoteListFragment extends Fragment {
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
             quotes=getArguments().getParcelableArrayList(ARG_QUOTE_LIST);
+        }
+        dbHelper=new DBHelper(getActivity());
+        if(quotes==null){
+            quotes=dbHelper.GetQuoteList();
         }
         setHasOptionsMenu(true);
     }

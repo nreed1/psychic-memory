@@ -3,11 +3,16 @@ package com.example.niki.fieldoutlookandroid.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -18,13 +23,15 @@ import com.example.niki.fieldoutlookandroid.helper.array_adapters.FlatRateItemRe
 
 import java.util.ArrayList;
 
+import static com.example.niki.fieldoutlookandroid.R.menu.action_searchable_menu;
+
 /**
  * A fragment representing a list of Items.
  * <p/>
  * Activities containing this fragment MUST implement the {@link OnFlatRateItemListFragmentInteractionListener}
  * interface.
  */
-public class FlatRateItemListFragment extends Fragment {
+public class FlatRateItemListFragment extends Fragment implements SearchView.OnQueryTextListener{
 
 
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -33,6 +40,7 @@ public class FlatRateItemListFragment extends Fragment {
     private int mColumnCount = 1;
     private ArrayList<FlatRateItem> flatRateItems=new ArrayList<>();
     private OnFlatRateItemListFragmentInteractionListener mListener;
+    private FlatRateItemRecyclerViewAdapter mAdapter;
 
     private DBHelper dbHelper;
 
@@ -84,13 +92,51 @@ public class FlatRateItemListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
+            mAdapter=new FlatRateItemRecyclerViewAdapter(flatRateItems, mListener,getActivity());
             if(flatRateItems!=null) {
-                recyclerView.setAdapter(new FlatRateItemRecyclerViewAdapter(flatRateItems, mListener));
+                recyclerView.setAdapter(mAdapter);
             }
         }
         return view;
     }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(action_searchable_menu,menu);
+        final MenuItem item = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(item);
+        searchView.setOnQueryTextListener(this);
+    }
+    @Override
+    public boolean onQueryTextChange(String query) {
+        // Here is where we are going to implement our filter logic
+        mAdapter.getFilter().filter(query);
+        return false;
+    }
 
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+
+            case R.id.selectAllItems:
+                // if(parts!=null && !parts.isEmpty()){
+                mAdapter.selectAll();
+                // }
+
+                return true;
+            case R.id.unselectAllItems:
+                //if(parts!=null && !parts.isEmpty()){
+                    mAdapter.unselectAll();
+               // }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     @Override
     public void onAttach(Context context) {

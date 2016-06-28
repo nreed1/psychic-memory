@@ -18,7 +18,7 @@ public class QuotePart  extends Part {
     public QuotePart(){
 
     }
-    public QuotePart(Part part, int quantity){
+    public QuotePart(Part part, int quantity, FlatRateItem flatRateItem){
         this.setPartId(part.getPartId());
         this.setCategoryId(part.getCategoryId());
         this.setManufacturer(part.getManufacturer());
@@ -29,6 +29,7 @@ public class QuotePart  extends Part {
         this.setPartTypeId(part.getPartTypeId());
         this.setPricebookId(part.getPricebookId());
         this.setPrice(part.getPrice());
+        this.setFlatRateItem(flatRateItem);
 
     }
 

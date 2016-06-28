@@ -140,7 +140,8 @@ public class SelectedWorkorderFragment extends Fragment {
         materialsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO go to work order materials view
+
+                materialsClickedListener.onWorkOrderMaterialsClicked(selectedWorkOrder);
 
             }
         });
@@ -291,6 +292,6 @@ public class SelectedWorkorderFragment extends Fragment {
         void onSelectedWorkOrderMenuItemInteraction(WorkOrder selectedWorkorder);
     }
     public interface  OnWorkOrderMaterialsClickedListener{
-        void onWorkOrderMaterialsClicked();
+        void onWorkOrderMaterialsClicked(WorkOrder selectedWorkOrder);
     }
 }
