@@ -1,8 +1,12 @@
 package com.example.niki.fieldoutlookandroid.helper.array_adapters;
 
 import android.content.Context;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.NumberPicker;
@@ -12,11 +16,13 @@ import com.example.niki.fieldoutlookandroid.R;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.FlatRateItem;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
+import com.example.niki.fieldoutlookandroid.businessobjects.QuotePart;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
 import com.example.niki.fieldoutlookandroid.fragment.WorkOrderPartFragment;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
 
 import java.util.ArrayList;
 
@@ -77,16 +83,39 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
             }
         });
 
-        holder.mView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != mListener) {
-                    // Notify the active callbacks interface (the activity, if the
-                    // fragment is attached to one) that an item has been selected.
-                    mListener.onWorkOrderPartListFragmentInteraction(holder.mItem);
-                }
-            }
-        });
+//        holder.mView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (null != mListener) {
+//                    // Notify the active callbacks interface (the activity, if the
+//                    // fragment is attached to one) that an item has been selected.
+//                    //mListener.onWorkOrderPartListFragmentInteraction(holder.mItem);
+//                }
+//            }
+//        });
+    }
+    public void addItem(Part part){
+        try {
+            mValues.getPartList().add(new WorkOrderPart(part,1,null));
+            DBHelper db=new DBHelper(context);
+            db.SaveWorkOrderPartList(mValues.getWorkOrderId(),mValues.getPartList());
+            db=null;
+            WorkOrderPartRecyclerViewAdapter.this.notifyDataSetChanged();
+        }catch (Exception ex){
+            ExceptionHelper.LogException(context,ex);
+        }
+    }
+    public void removeItem(WorkOrderPart part){
+        try {
+            mValues.getPartList().remove(part);
+            DBHelper db=new DBHelper(context);
+            db.SaveWorkOrderPartList(mValues.getWorkOrderId(),mValues.getPartList());
+            db=null;
+            WorkOrderPartRecyclerViewAdapter.this.notifyDataSetChanged();
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(context,ex);
+        }
     }
 
     @Override
@@ -97,7 +126,9 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
         return mValues.getPartList().size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener, View.OnLongClickListener, PopupMenu.OnMenuItemClickListener{
         public final View mView;
         public final TextView mNumberandDescription;
         public final NumberPicker mQuantity;
@@ -107,8 +138,11 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
             super(view);
             mView = view;
 
-            mNumberandDescription=(TextView)view.findViewById(R.id.workOrderPartListNameAndDescription);
-            mQuantity=(NumberPicker)view.findViewById(R.id.workOrderPartListQuantity);
+            mNumberandDescription = (TextView) view.findViewById(R.id.workOrderPartListNameAndDescription);
+            mQuantity = (NumberPicker) view.findViewById(R.id.workOrderPartListQuantity);
+            //view.setOnCreateContextMenuListener(this);
+            view.setOnLongClickListener(this);
+
 
         }
 
@@ -116,5 +150,44 @@ public class WorkOrderPartRecyclerViewAdapter extends RecyclerView.Adapter<WorkO
         public String toString() {
             return super.toString() + " '" + mNumberandDescription.getText() + "'";
         }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            menu.setHeaderTitle("Select The Action");
+            menu.add(0, v.getId(), 0, "Remove");//groupId, itemId, order, title
+            menu.add(0, v.getId(), 0, "SMS");
+        }
+
+
+
+//        @Override
+//    public boolean onContextItemSelected(MenuItem item) {
+//    }
+
+
+
+        @Override
+        public boolean onLongClick(View v) {
+            PopupMenu popupmenu=new PopupMenu(v.getContext(),v);
+            popupmenu.inflate(R.menu.part_list_context_menu);
+            popupmenu.setOnMenuItemClickListener(this);
+            popupmenu.show();
+            return true;
+        }
+
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            removeItem(mItem);
+
+            return true;
+        }
+//        @Override
+//        public void onCreateContextMenu(ContextMenu menu, View v,
+//                                        ContextMenu.ContextMenuInfo menuInfo) {
+//
+//
+
+//
+//        }
     }
 }

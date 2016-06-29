@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.CustomerImage;
 import com.example.niki.fieldoutlookandroid.businessobjects.FOException;
@@ -634,6 +635,7 @@ private void create(){
             if(res!=null)res.close();
         }
         return new ArrayList<>();
+
     }
 
     public boolean SaveQuotePartList(ArrayList<QuotePart> quotePartArrayList,int quoteId){
@@ -1145,7 +1147,9 @@ private void create(){
 
     public void DeleteWorkOrderById(int workOrderId){
         db=getWritableDatabase();
-        db.rawQuery("delete from workorder where workorderid="+workOrderId,null);
+        //db.rawQuery("delete from workorder where workorderid="+workOrderId,null);
+       long id= db.delete(TABLE_WORKORDER,WORKORDER_ID+"=?",new String[]{String.valueOf(workOrderId)});
+        Log.d("DeleteWorkOrder",String.valueOf(id));
     }
 
     private boolean WorkOrderExists(int workOrderId){
@@ -1798,12 +1802,15 @@ private void create(){
     public boolean DeleteAllPartsFromWorkOrder(int workorderid){
         Cursor res=null;
         try{
+            db=getWritableDatabase();
+            db.delete(TABLE_WORKORDERPART,WORKORDERPART_WORKORDERID+"=?",new String[]{String.valueOf(workorderid)});
 
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
         }
         finally {
             if(res!=null) res.close();
+            db.close();
         }
         return false;
     }

@@ -51,7 +51,7 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private ListAdapter mAdapter;
+    private WorkOrderArrayAdapter mAdapter;
 
     // TODO: Rename and change types of parameters
     public static AssignedJobFragment newInstance(String param1, String param2) {
@@ -118,6 +118,8 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
                     }
                 },getActivity());
                 unassignAsyncTask.execute(workOrders.get(info.position).getWorkOrderId());
+                mAdapter.remove(workOrders.get(info.position));
+                mAdapter.notifyDataSetChanged();
                 return true;
 
             default:

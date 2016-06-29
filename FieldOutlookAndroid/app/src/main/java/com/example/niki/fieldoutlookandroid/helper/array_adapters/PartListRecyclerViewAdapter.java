@@ -27,6 +27,7 @@ import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
 import com.example.niki.fieldoutlookandroid.fragment.PartListFragment;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
 import com.example.niki.fieldoutlookandroid.helper.WorkOrderPartHelper;
 
 import java.util.ArrayList;
@@ -210,11 +211,31 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked) {
-                    WorkOrderPartHelper.getInstance().addPart(holder.mPart);
-                }else
-                    WorkOrderPartHelper.getInstance().removePart(holder.mPart);
+                   // WorkOrderPartHelper.getInstance().addPart(holder.mPart);
+                    if(workOrder!=null){
+                        workOrder.addWorkOrderPartToList(new WorkOrderPart(holder.mPart,1,null));
+                    }else if(quote!=null){
+                        quote.addWorkOrderPartToList(new QuotePart(holder.mPart,1,null));
+                    }
+                }else {
+                    //WorkOrderPartHelper.getInstance().removePart(holder.mPart);
+                    if(workOrder!=null){
+                        workOrder.removeWorkOrderPartFromList(new WorkOrderPart(holder.mPart,1,null));
+                    }else if(quote!=null){
+                        quote.removeWorkOrderPartFromList(new QuotePart(holder.mPart,1,null));
+                    }
+                }
             }
         });
+    }
+
+    public void addItem(Part part){
+        try {
+            mParts.add(part);
+            PartListRecyclerViewAdapter.this.notifyDataSetChanged();
+        }catch (Exception ex){
+            ExceptionHelper.LogException(context,ex);
+        }
     }
 
     @Override

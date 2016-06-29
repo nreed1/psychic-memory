@@ -205,7 +205,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener{
                     }
 
                     fragmentManager.popBackStack();
-                    fragmentManager.notify();
+                  //  fragmentManager.notify();
 
                 } else {
                     //super.onBackPressed();

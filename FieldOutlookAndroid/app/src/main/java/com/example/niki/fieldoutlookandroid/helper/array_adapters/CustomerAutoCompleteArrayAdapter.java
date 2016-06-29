@@ -14,6 +14,7 @@ import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +31,14 @@ public class CustomerAutoCompleteArrayAdapter extends ArrayAdapter<Person> imple
     private Activity context;
     private ArrayList<Person> personList;
     private ArrayList<Person> originalList;
+    private DBHelper dbHelper;
     public CustomerAutoCompleteArrayAdapter(Activity context, ArrayList<Person> persons){
         super(context, R.layout.autocomplete_person_item_view,persons);
         this.context=context;
+        dbHelper=new DBHelper(context);
+        if(persons==null){
+            persons=dbHelper.GetAllPersons();
+        }
         personList=persons;
         originalList=persons;
 

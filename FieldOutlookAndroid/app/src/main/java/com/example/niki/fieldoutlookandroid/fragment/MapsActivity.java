@@ -10,11 +10,14 @@ import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
@@ -26,6 +29,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private DBHelper dbHelper;
     private boolean getAllAvailable=false;
     private Boolean isAssigned=false;
+    private ArrayList<MarkerOptions> markers;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +55,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         try {
             mMap = googleMap;
+            markers=new ArrayList<>();
             Geocoder geocoder = new Geocoder(getApplicationContext());
             if (geocoder.isPresent()) {
                 //Log.d("Geocoder", "IsPresent");
@@ -62,12 +67,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Log.d("Address",w.getPerson().getAddress().getPrintableAddress());
                         if(!addresses.isEmpty()){
                             LatLng latLng=new LatLng(addresses.get(0).getLatitude(),addresses.get(0).getLongitude());
-                            mMap.addMarker(new MarkerOptions().position(latLng).title(w.getPerson().getFullName()+"- "+w.getDescription()));
+                            MarkerOptions marker=new MarkerOptions().position(latLng).title(w.getPerson().getFullName()+"- "+w.getDescription());
+                            markers.add(marker);
+                            mMap.addMarker(marker);
 
-                            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                            //mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                         }
+
                     }
                 }
+                LatLngBounds.Builder builder=new LatLngBounds.Builder();
+                for(MarkerOptions marker:markers){
+                    builder.include(marker.getPosition());
+                }
+                LatLngBounds bounds=builder.build();
+                int padding=0;
+                CameraUpdate cameraUpdate=CameraUpdateFactory.newLatLngBounds(bounds,padding);
+                mMap.animateCamera(cameraUpdate);
 
             }
             else throw new Exception("Geocoder unavailable");

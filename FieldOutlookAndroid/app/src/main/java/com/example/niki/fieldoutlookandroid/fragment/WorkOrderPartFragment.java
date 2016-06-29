@@ -1,23 +1,27 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
+import com.example.niki.fieldoutlookandroid.helper.UnassignAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.WorkOrderPartHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.WorkOrderPartRecyclerViewAdapter;
 
@@ -41,6 +45,7 @@ public class WorkOrderPartFragment extends Fragment {
     private OnWorkOrderPartListFragmentInteractionListener mListener;
     private OnWorkOrderPartMenuItemInteractionListener menuItemListener;
     private WorkOrder selectedWorkOrder;
+    private WorkOrderPartRecyclerViewAdapter mAdapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -67,6 +72,7 @@ public class WorkOrderPartFragment extends Fragment {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
             selectedWorkOrder=getArguments().getParcelable(ARG_SELECTED_WORKORDER);
         }
+
         //check if any parts where added by another fragment
         if(!WorkOrderPartHelper.getInstance().getPartList().isEmpty()){
             for(Part part: WorkOrderPartHelper.getInstance().getPartList()){
@@ -81,6 +87,10 @@ public class WorkOrderPartFragment extends Fragment {
 
                 if(!exist){
                     selectedWorkOrder.getPartList().add(new WorkOrderPart(part,1,null));
+                    if(mAdapter!=null) {
+                        mAdapter.addItem(part);
+                    }
+                   // mAdapter.notifyDataSetChanged();
                 }
             }
             //Reset the list
@@ -88,6 +98,33 @@ public class WorkOrderPartFragment extends Fragment {
         }
         this.setHasOptionsMenu(true);
     }
+    int position=0;
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+//        AdapterView.AdapterContextMenuInfo info =
+//                (AdapterView.AdapterContextMenuInfo) menuInfo;
+//        position=info.position;
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.part_list_context_menu, menu);
+    }
+
+//    @Override
+//    public boolean onContextItemSelected(MenuItem item) {
+//        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+//        switch(item.getItemId()) {
+//            case R.id.deletePartFromList:
+//                // add stuff here
+//
+//                mAdapter.removeItem(selectedWorkOrder.getPartList().get(this.position));
+//                selectedWorkOrder.getPartList().remove(info.position);
+//               // mAdapter.removeItem(WorkOrderPartHelper.getInstance().getPartList().get(info.position));
+//
+//
+//            default:
+//                return super.onContextItemSelected(item);
+//        }
+//    }
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(workorder_part_menu,menu);
@@ -106,16 +143,19 @@ public class WorkOrderPartFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_workorder_part_list, container, false);
 
+
         // Set the adapter
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
+            registerForContextMenu(recyclerView);
             if (mColumnCount <= 1) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new WorkOrderPartRecyclerViewAdapter(selectedWorkOrder, mListener,getActivity()));
+            mAdapter=new WorkOrderPartRecyclerViewAdapter(selectedWorkOrder, mListener,getActivity());
+            recyclerView.setAdapter(mAdapter);
         }
         return view;
     }

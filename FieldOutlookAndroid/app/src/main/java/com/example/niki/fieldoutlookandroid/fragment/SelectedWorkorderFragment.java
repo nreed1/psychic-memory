@@ -113,7 +113,7 @@ public class SelectedWorkorderFragment extends Fragment {
                             if (result) {
                                 NotificationHelper.NotifyUser(getActivity(), "Unassign Successful");
                                 DBHelper dbHelper=new DBHelper(getActivity());
-                                dbHelper.DeleteWorkOrderById(selectedWorkOrder.getWorkOrderId());
+                               // dbHelper.DeleteWorkOrderById(selectedWorkOrder.getWorkOrderId());
                             }
                         }
                     }, getActivity());

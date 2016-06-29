@@ -42,8 +42,9 @@ public class UnassignAsyncTask extends AsyncTask<Integer, Void, Boolean> {
 
             con.setRequestMethod("GET");
             con.connect();
-            InputStream is = con.getInputStream();
-
+            //InputStream is = con.getInputStream();
+            DBHelper dbHelper=new DBHelper(context);
+            dbHelper.DeleteWorkOrderById(params[0]);
             return true;
         }catch(Exception ex){
             ExceptionHelper.LogException(context,ex);
