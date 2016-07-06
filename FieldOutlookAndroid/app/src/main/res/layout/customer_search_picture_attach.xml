@@ -8,11 +8,9 @@
         android:layout_height="wrap_content"
         android:hint="Type Customer Name"
         android:id="@+id/autoCompleteCustomerTextView"
-        android:layout_gravity="center_horizontal" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=" "/>
+        android:layout_gravity="center_horizontal"
+        android:dropDownHeight="100px"/>
+
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -18,15 +18,16 @@
     android:layout_height="match_parent"
     android:text="    "/>
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="0dip"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Part Category"
         android:id="@+id/categoryTextView"
-        android:layout_gravity="center" />
+        android:layout_gravity="center"
+        android:layout_weight="1"/>
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="0px"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/partPriceTextView"
@@ -40,10 +41,11 @@
         android:layout_height="wrap_content"
         android:text="  "/>
     <CheckBox
-        android:layout_width="wrap_content"
+        android:layout_width="0px"
         android:layout_height="wrap_content"
         android:id="@+id/itemIsSelectedCheckBox"
         android:gravity="center_vertical|center|right|center_horizontal"
+        android:layout_weight=".25"
         android:layout_gravity="center|right"/>
 </LinearLayout>
 </LinearLayout>

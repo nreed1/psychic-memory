@@ -31,8 +31,13 @@ import java.util.ArrayList;
 public class GetPersonListAsyncTask extends AsyncTask<Void, Void,Boolean> {
 
     private Context context;
-    public GetPersonListAsyncTask(Context context){
+    private GetPersonListDelegate delegate;
+    public interface GetPersonListDelegate{
+        void processFinish(Boolean result);
+    }
+    public GetPersonListAsyncTask(Context context, GetPersonListDelegate delegate){
         this.context=context;
+        this.delegate=delegate;
     }
 
     @Override
@@ -127,5 +132,11 @@ public class GetPersonListAsyncTask extends AsyncTask<Void, Void,Boolean> {
             throw ex;
         }
         //eturn false;
+    }
+    @Override
+    protected void onPostExecute(Boolean result){
+
+        delegate.processFinish(result);
+
     }
 }

@@ -158,11 +158,13 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
                 holder.categoryName.setText(holder.mItem.getName());
                 holder.iconImageView.setImageResource(R.mipmap.ic_add);
                 holder.isSelectedCheckbox.setVisibility(View.INVISIBLE);
+                holder.partPrice.setVisibility(View.INVISIBLE);
             }else{
                 if(mValues!=null && mParts!=null) {
                     holder.mPart = mParts.get(position - mValues.size());
                     holder.categoryName.setText(holder.mPart.getNumberAndDescription());
                     holder.iconImageView.setImageResource(R.mipmap.ic_wrench);
+                    holder.partPrice.setVisibility(View.VISIBLE);
                     holder.partPrice.setText(Currency.getInstance(Locale.getDefault()).getSymbol() + holder.mPart.getPrice());
                     holder.isSelectedCheckbox.setVisibility(View.VISIBLE);
                     if(partIdsInWorkOrder.contains(holder.mPart.getPartId())){
@@ -177,6 +179,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
                 holder.mPart = mParts.get(position);
                 holder.categoryName.setText(holder.mPart.getNumberAndDescription());
                 holder.iconImageView.setImageResource(R.mipmap.ic_wrench);
+                holder.partPrice.setVisibility(View.VISIBLE);
                 holder.partPrice.setText(Currency.getInstance(Locale.getDefault()).getSymbol()+holder.mPart.getPrice());
                 holder.isSelectedCheckbox.setVisibility(View.VISIBLE);
                 if(partIdsInWorkOrder.contains(holder.mPart.getPartId())){
@@ -188,6 +191,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
                 holder.mItem = mValues.get(position);
                 holder.categoryName.setText(holder.mItem.getName());
                 holder.isSelectedCheckbox.setVisibility(View.INVISIBLE);
+                holder.partPrice.setVisibility(View.INVISIBLE);
             }
         }
 

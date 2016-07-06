@@ -119,12 +119,12 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
         // Handle item selection
         switch (item.getItemId()) {
 
-            case R.id.selectAllItems:
-               // if(parts!=null && !parts.isEmpty()){
-                    mAdapter.selectAll();
-               // }
-
-                return true;
+//            case R.id.selectAllItems:
+//               // if(parts!=null && !parts.isEmpty()){
+//                    mAdapter.selectAll();
+//               // }
+//
+//                return true;
             case R.id.unselectAllItems:
                 if(parts!=null && !parts.isEmpty()){
                     mAdapter.unselectAll();

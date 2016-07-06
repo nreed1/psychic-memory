@@ -132,5 +132,10 @@
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true" />
         </RelativeLayout>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/saveWorkOrderChangesButton"
+        android:text="Save Changes"/>
     </LinearLayout>
 </ScrollView>

@@ -42,12 +42,14 @@ public class TimeEntry implements Parcelable,Serializable {
     private String notes;
     private int sqlId;
     private boolean accepted;
+    @Expose
+    private int otherTaskId;
 
     public TimeEntry(){
         sqlId=0;
 
     }
-    public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes, int sqlId, int timeEntryTypeId, boolean isAccepted){
+    public TimeEntry(int timeEntryId,int employeeId,Date dateEntered, Date startDateTime, Date endDateTime, int workOrderId, double startLatitude, double startLongitude, double endLatitude, double endLongitude, String notes, int sqlId, int timeEntryTypeId, boolean isAccepted, int otherTaskId){
         this.timeEntryId=timeEntryId;
         this.employeeId=employeeId;
         this.dateEntered=dateEntered;
@@ -62,6 +64,7 @@ public class TimeEntry implements Parcelable,Serializable {
         this.notes=notes;
         this.sqlId=sqlId;
         this.accepted=isAccepted;
+        this.otherTaskId=otherTaskId;
     }
 
 
@@ -185,6 +188,14 @@ public class TimeEntry implements Parcelable,Serializable {
         this.accepted = accepted;
     }
 
+    public int getOtherTaskId() {
+        return otherTaskId;
+    }
+
+    public void setOtherTaskId(int otherTaskId) {
+        this.otherTaskId = otherTaskId;
+    }
+
     public String toJson(){
         Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         return gson.toJson(this);
@@ -223,12 +234,13 @@ public class TimeEntry implements Parcelable,Serializable {
         dest.writeInt(getSqlId());
         dest.writeInt(getTimeEntryTypeId());
         dest.writeInt(isAccepted()?1:0);
+        dest.writeInt(getOtherTaskId());
     }
     public static  final Creator<TimeEntry> CREATOR= new Creator<TimeEntry>() {
         @Override
         public TimeEntry createFromParcel(Parcel source) {
             return new TimeEntry(source.readInt(),source.readInt(),DateHelper.StringToDate(source.readString()),DateHelper.StringToDate(source.readString()),
-                    DateHelper.StringToDate(source.readString()),source.readInt(),source.readDouble(),source.readDouble(),source.readDouble(),source.readDouble(),source.readString(), source.readInt(), source.readInt(), source.readInt()==1?true:false);
+                    DateHelper.StringToDate(source.readString()),source.readInt(),source.readDouble(),source.readDouble(),source.readDouble(),source.readDouble(),source.readString(), source.readInt(), source.readInt(), source.readInt()==1?true:false,source.readInt());
         }
 
         @Override

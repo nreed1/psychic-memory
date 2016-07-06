@@ -74,7 +74,7 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
      * fragment (e.g. upon screen orientation changes).
      */
     public AvailableJobFragment() {
-        progressDialog=new ProgressDialog(getActivity());
+       // progressDialog=new ProgressDialog(getActivity());
         GetAvailableWorkOrdersAsyncTask getAvailableWorkOrdersAsyncTask=new GetAvailableWorkOrdersAsyncTask(new GetAvailableWorkOrdersAsyncTask.GetAvailableWorkOrdersDelegate() {
             @Override
             public void processFinish(ArrayList<WorkOrder> workOrders) {
@@ -82,13 +82,13 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
                 progressDialog.dismiss();
             }
         });
-        progressDialog.show();
+       // progressDialog.show();
         getAvailableWorkOrdersAsyncTask.execute((Void)null);
-        try {
-            wait(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//           // wait(1000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 
 
@@ -113,7 +113,7 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
         View view = inflater.inflate(R.layout.fragment_job_available, container, false);
 
         // Set the adapter
-        while(mAdapter==null) {
+        while(mAdapter!=null) {
             mListView = (AbsListView) view.findViewById(android.R.id.list);
             ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
         }

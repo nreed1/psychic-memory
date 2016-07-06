@@ -113,10 +113,10 @@ public class StartDayFragment extends Fragment {
 
     public void OnButtonPressed(String buttonPressed){
         if(mListener!=null){
-            DBHelper dbHelper=new DBHelper(getActivity().getApplicationContext());
-            TimeEntryType timeEntryType =dbHelper.GetTimeEntryTypeByName(buttonPressed.toString());
-            TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
-            timekeepingHelper.AddTimekeepingEntry(getActivity().getApplicationContext(),timeEntryType);
+           // DBHelper dbHelper=new DBHelper(getActivity().getApplicationContext());
+           // TimeEntryType timeEntryType =dbHelper.GetTimeEntryTypeByName(buttonPressed.toString());
+            //TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
+           // timekeepingHelper.AddTimekeepingEntry(getActivity().getApplicationContext(),timeEntryType);
             mListener.onStartDayFragmentInteraction(buttonPressed);
         }
     }

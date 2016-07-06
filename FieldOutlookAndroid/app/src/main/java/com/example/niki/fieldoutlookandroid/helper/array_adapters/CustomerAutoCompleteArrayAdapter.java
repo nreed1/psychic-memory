@@ -69,8 +69,10 @@ public class CustomerAutoCompleteArrayAdapter extends ArrayAdapter<Person> imple
         }else{
             convertView.setBackgroundColor(getContext().getResources().getColor( R.color.listItemBackground));
         }
-
-        holder.customerName.setText(""+personList.get(position).getFullName());
+        if(position<personList.size()) {
+            holder.customerName.setMinHeight(10);
+            holder.customerName.setText("" + personList.get(position).getFullName());
+        }
 
 
         return convertView;

@@ -64,10 +64,12 @@ import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.example.niki.fieldoutlookandroid.helper.GetAvailableVersion.GetAvailableVersionAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.GetFlatRateItemAsyncTask.GetFlatRateItemAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.GetPartListAsyncTask.GetPartsListAsyncTask;
+import com.example.niki.fieldoutlookandroid.helper.GetPersonListAsyncTask.GetPersonListAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.NetworkHelper;
 import com.example.niki.fieldoutlookandroid.helper.SendCompletedWorkOrders.SendCompletedWorkOrdersAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.SendCustomerImage.SendCustomerImageAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
+import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.MyPagerAdapter;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
@@ -97,7 +99,7 @@ public class MainNavigationActivity extends AppCompatActivity
         PartListFragment.OnPartListPartFragmentInteractionListener, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener,
         WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener,
         QuoteListFragment.OnQuoteListFragmentInteractionListener,QuoteFragment.OnAddPartsInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener,
-QuoteFragment.OnQuoteSaveSuccessfulListener{
+QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingInteractionListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -310,6 +312,8 @@ QuoteFragment.OnQuoteSaveSuccessfulListener{
                 progressDialog = new ProgressDialog(this);
                 progressDialog.setTitle("Refreshing Data");
                 progressDialog.isIndeterminate();
+                progressDialog.setCanceledOnTouchOutside(false);
+                progressDialog.setCancelable(false);
                 progressDialog.setMessage("Getting Work Orders");
                 progressDialog.show();
 
@@ -392,19 +396,17 @@ QuoteFragment.OnQuoteSaveSuccessfulListener{
                         @Override
                         public void processFinish(Integer result) {
                             progressDialog.setMessage("Saving " + result + " Flat Rate Item List");
-                            try {
-                                wait(500);
-                                progressDialog.dismiss();
-                            }catch (Exception ex){
-
-                            }finally {
-                                progressDialog.dismiss();
-                            }
 
                         }
                     });
                     flatRateItemAsyncTask.execute();
-
+                    GetPersonListAsyncTask getPersonListAsyncTask=new GetPersonListAsyncTask(getApplicationContext(), new GetPersonListAsyncTask.GetPersonListDelegate() {
+                        @Override
+                        public void processFinish(Boolean result) {
+                            progressDialog.dismiss();
+                        }
+                    });
+                    getPersonListAsyncTask.execute((Void)null);
 
                 }
             } else {
@@ -450,24 +452,22 @@ QuoteFragment.OnQuoteSaveSuccessfulListener{
                 LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 final View search_View = inflater.inflate(R.layout.customer_search_picture_attach, null);
                 AutoCompleteTextView autoCompleteTextView = (AutoCompleteTextView) search_View.findViewById(R.id.autoCompleteCustomerTextView);
-                CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter = new CustomerAutoCompleteArrayAdapter(this, dbHelper.GetAllPersons());
+                final CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter = new CustomerAutoCompleteArrayAdapter(this, dbHelper.GetAllPersons());
                 autoCompleteTextView.setAdapter(customerAutoCompleteArrayAdapter);
                 final EditText imageName = (EditText) search_View.findViewById(R.id.customerImageName);
                 // customerSearch.setContentView(search_View);
-                customerSearch.setView(search_View);
+
                 Person selectedPerson;
-                customerSearch.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        Person selectedPerson = (Person) parent.getItemAtPosition(position);
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Person selectedPerson = (Person) customerAutoCompleteArrayAdapter.getItem(position);
                         SetPersonForCustomerImage(selectedPerson);
                     }
 
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
 
-                    }
                 });
+                customerSearch.setView(search_View);
                 customerSearch.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -589,6 +589,9 @@ QuoteFragment.OnQuoteSaveSuccessfulListener{
             StartTravelToFragment();
         } else if (nextFragment.equals("Shop")) {
             //Snapshot of time
+            TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
+            timekeepingHelper.AddTimekeepingEntry(getApplicationContext(),"shop");
+
         } else if (nextFragment.equals("Other")) {
             if (dbHelper.UserHasOtherTasks(Global.GetInstance().getUser().GetUserId())) {
                 StartOtherTaskListFragment();
@@ -635,8 +638,12 @@ QuoteFragment.OnQuoteSaveSuccessfulListener{
         toolbar.setTitle("Travel To");
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        AssignedJobFragment quoteFragment = new AssignedJobFragment();
-        fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "TravelTo").addToBackStack("TravelTo");
+        AssignedJobFragment assignedJobFragment = new AssignedJobFragment();
+        Bundle b=new Bundle();
+        b.putParcelableArrayList("workOrders", dbHelper.GetWorkOrders());
+        b.putBoolean("TravelTo",true);
+        assignedJobFragment.setArguments(b);
+        fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, "Travel To").addToBackStack("Travel To");
         fragmentTransaction.commit();
     }
 
@@ -856,5 +863,15 @@ QuoteFragment.OnQuoteSaveSuccessfulListener{
     public void onQuoteSaveSuccessful() {
         //Go Back a screen for now that means Quote List
         onBackPressed();
+    }
+
+    @Override
+    public void onTimekeepingInteraction(Object o) {
+            if(o instanceof WorkOrder){
+                WorkOrder selectedWorkOrder=(WorkOrder)o;
+                TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
+                timekeepingHelper.AddTimekeepingEntry(getApplicationContext(),"job",selectedWorkOrder.getWorkOrderId());
+                onBackPressed();
+            }
     }
 }

@@ -18,6 +18,7 @@ import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.OtherTask;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
+import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.OtherTaskArrayAdapter;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 
@@ -27,7 +28,7 @@ import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
  * Activities containing this fragment MUST implement the {@link OnOtherTaskListFragmentInteractionListener}
  * interface.
  */
-public class OtherTaskListFragment extends Fragment {
+public class OtherTaskListFragment extends Fragment implements AdapterView.OnItemClickListener{
 
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
@@ -99,7 +100,7 @@ public class OtherTaskListFragment extends Fragment {
         ((AdapterView<ListAdapter>) mListView).setAdapter(otherTaskArrayAdapter);
 
         // Set OnItemClickListener so we can be notified on item clicks
-      //  mListView.setOnItemClickListener(this);
+        mListView.setOnItemClickListener(this);
 
 
         return view;
@@ -121,6 +122,12 @@ public class OtherTaskListFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
+        timekeepingHelper.AddOtherTaskTimekeepingEntry(getActivity(),"other",((OtherTask)parent.getItemAtPosition(position)).getId());
     }
 
     /**

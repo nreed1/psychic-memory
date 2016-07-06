@@ -23,6 +23,7 @@ import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.dummy.DummyContent;
+import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.UnassignAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.WorkOrderArrayAdapter;
 
@@ -41,6 +42,7 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
 
 
     private OnFragmentInteractionListener mListener;
+    private TimekeepingHelper.TimekeepingInteractionListener timekeepingInteractionListener;
 
     /**
      * The fragment's ListView/GridView.
@@ -52,8 +54,7 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
      * Views.
      */
     private WorkOrderArrayAdapter mAdapter;
-
-    // TODO: Rename and change types of parameters
+    private boolean travelTo=false;
     public static AssignedJobFragment newInstance(String param1, String param2) {
         AssignedJobFragment fragment = new AssignedJobFragment();
         Bundle args = new Bundle();
@@ -82,8 +83,10 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
 
         if (getArguments() != null) {
             workOrders=getArguments().getParcelableArrayList("workOrders");
+            travelTo=getArguments().getBoolean("TravelTo");
            // mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
         if(workOrders!=null)
         mAdapter = new WorkOrderArrayAdapter(getActivity(),
                 R.layout.workorder_list_item, workOrders);
@@ -172,6 +175,7 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
         super.onAttach(activity);
         try {
             mListener = (OnFragmentInteractionListener) activity;
+            timekeepingInteractionListener=(TimekeepingHelper.TimekeepingInteractionListener)activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnStartDayFragmentInteractionListener");
@@ -186,10 +190,12 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (null != mListener) {
+        if (null != mListener && travelTo==false) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
             mListener.onFragmentInteraction(Integer.toString( position));
+        }else if(travelTo==true){
+            timekeepingInteractionListener.onTimekeepingInteraction((WorkOrder)parent.getItemAtPosition(position));
         }
     }
 

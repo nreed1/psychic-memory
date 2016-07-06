@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.CustomerImage;
 import com.example.niki.fieldoutlookandroid.businessobjects.FOException;
@@ -104,6 +105,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String TIMEENTRY_NOTES="notes";
     public static final String TIMEENTRY_TIMEENTRYTYPEID="timeentrytypeid";
     public static final String TIMEENTRY_ACCEPTED="accepted";
+    public static final String TIMEENTRY_OTHERTASKID="othertaskid";
 
     public static final String TABLE_EXCEPTION="exceptionlog";
     public static final String EXCEPTION_ID="id";
@@ -214,7 +216,7 @@ private void create(){
         //#start timekeeping
             db.execSQL("create table if not exists timeentrytype (id integer primary key, typeid integer,name text, description text)");
             db.execSQL("create table if not exists timeentry (id integer primary key, timeentryid integer, employeeid integer, dateentered text, startdate text, enddate text, workorderid integer," +
-                    "startlatitude real, startlongitude real, endlatitude real, endlongitude real, notes text, timeentrytypeid integer, accepted integer)");
+                    "startlatitude real, startlongitude real, endlatitude real, endlongitude real, notes text, timeentrytypeid integer, accepted integer, othertaskid integer)");
         //#end timekeeping
         //#start workorder
             db.execSQL("create table if not exists workorder (id integer primary key, workorderid integer, companyid integer, personid integer, name text, description text, " +
@@ -584,7 +586,7 @@ private void create(){
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
         }finally {
-            db.close();
+           // db.close();
         }
         return 0;
     }
@@ -1103,6 +1105,7 @@ private void create(){
             contentValues.put(TIME_ENTRY_TYPE_TYPEID, timeEntryType.getTimeEntryTypeId());
             contentValues.put(TIME_ENTRY_TYPE_NAME, timeEntryType.getName());
             contentValues.put(TIME_ENTRY_TYPE_DESCRIPTION, timeEntryType.getDescription());
+
             db.insert(TABLE_TIME_ENTRY_TYPE, null, contentValues);
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
@@ -1124,7 +1127,7 @@ private void create(){
             ExceptionHelper.LogException(ctx,ex);
         }finally {
             if(res!=null)res.close();
-            if(db!=null)db.close();
+           // if(db!=null)db.close();
         }
         return null;
     }
@@ -1196,7 +1199,7 @@ private void create(){
         }else {
 
             db.insert(TABLE_WORKORDER, null, contentValues);
-            db.close();
+           // db.close();
         }
 
     }
@@ -1217,36 +1220,46 @@ private void create(){
         db.rawQuery("delete from workorder where senttocloud="+1,null);
     }
     public void SaveWorkOrderList(ArrayList<WorkOrder> workOrders){
-        db = this.getWritableDatabase();
-        ContentValues contentValues=new ContentValues();
-        for (WorkOrder workOrder:
-                workOrders) {
-            SavePerson(workOrder.getPerson());
-            if(workOrder.getPartList()!=null && !workOrder.getPartList().isEmpty()) {
-                SaveWorkOrderPartList(workOrder.getWorkOrderId(), workOrder.getPartList());
-            }
-            contentValues.put(WORKORDER_ID,workOrder.getWorkOrderId());
-            contentValues.put(WORKORDER_ARRIVALTIME, workOrder.getArrivalTime());
-            contentValues.put(WORKORDER_COMPANYID,workOrder.getCompanyId());
-            contentValues.put(WORKORDER_COSTOFJOB, workOrder.getCostOfJob());
-            contentValues.put(WORKORDER_DESCRIPTION, workOrder.getDescription());
-            contentValues.put(WORKORDER_NAME, workOrder.getName());
-            contentValues.put(WORKORDER_PERSONID,workOrder.getPerson().getPersonId());
-            contentValues.put(WORKORDER_WHEREBILLED,workOrder.getWhereBilled());
-            contentValues.put(WORKORDER_ESTIMATEDDURATION,workOrder.getEstimatedDurationOfWork());
-            contentValues.put(WORKORDER_NOTES,workOrder.getNotes());
-            contentValues.put(WORKORDER_TYPEID, workOrder.getWorkOrderTypeId());
-            contentValues.put(WORKORDER_COMPLETEDDATE,workOrder.getReadyForInvoiceDateTime());
-            if(workOrder.getJobTime()!=null && workOrder.getJobTime().getJobId()>0){
-                contentValues.put(WORKORDER_ACTUALHOURS,workOrder.getJobTime().getJobId());
-                contentValues.put(WORKORDER_PROJECTEDHOURS,workOrder.getJobTime().getProjectedHours());
-                contentValues.put(WORKORDER_ACTUALHOURS,workOrder.getJobTime().getActualHours());
-            }
-            db.insert(TABLE_WORKORDER,null, contentValues);
 
+        db = this.getWritableDatabase();
+        try {
+            ContentValues contentValues = new ContentValues();
+            for (WorkOrder workOrder :
+                    workOrders) {
+                SavePerson(workOrder.getPerson());
+                if (workOrder.getPartList() != null && !workOrder.getPartList().isEmpty()) {
+                    SaveWorkOrderPartList(workOrder.getWorkOrderId(), workOrder.getPartList());
+                }
+                contentValues.put(WORKORDER_ID, workOrder.getWorkOrderId());
+                contentValues.put(WORKORDER_ARRIVALTIME, workOrder.getArrivalTime());
+                contentValues.put(WORKORDER_COMPANYID, workOrder.getCompanyId());
+                contentValues.put(WORKORDER_COSTOFJOB, workOrder.getCostOfJob());
+                contentValues.put(WORKORDER_DESCRIPTION, workOrder.getDescription());
+                contentValues.put(WORKORDER_NAME, workOrder.getName());
+                contentValues.put(WORKORDER_PERSONID, workOrder.getPerson().getPersonId());
+                contentValues.put(WORKORDER_WHEREBILLED, workOrder.getWhereBilled());
+                contentValues.put(WORKORDER_ESTIMATEDDURATION, workOrder.getEstimatedDurationOfWork());
+                contentValues.put(WORKORDER_NOTES, workOrder.getNotes());
+                contentValues.put(WORKORDER_TYPEID, workOrder.getWorkOrderTypeId());
+                contentValues.put(WORKORDER_COMPLETEDDATE, workOrder.getReadyForInvoiceDateTime());
+                if (workOrder.getJobTime() != null && workOrder.getJobTime().getJobId() > 0) {
+                    contentValues.put(WORKORDER_ACTUALHOURS, workOrder.getJobTime().getJobId());
+                    contentValues.put(WORKORDER_PROJECTEDHOURS, workOrder.getJobTime().getProjectedHours());
+                    contentValues.put(WORKORDER_ACTUALHOURS, workOrder.getJobTime().getActualHours());
+                }
+                db.insert(TABLE_WORKORDER, null, contentValues);
+
+            }
+        }
+        catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+           //
+            // db.close();
         }
         //db.close();
     }
+
 
     public ArrayList<WorkOrder> GetCompletedWorkOrders(){
         Cursor res=null;
@@ -1313,6 +1326,35 @@ private void create(){
         return new ArrayList<WorkOrder>();
 
     }
+    public WorkOrder GetNextWorkOrder(){
+        db=getReadableDatabase();
+        Cursor res=null;
+        try{
+            res=db.rawQuery("select * from "+TABLE_WORKORDER+" where "+WORKORDER_ISCOMPLETED+"=0 or "+WORKORDER_ISCOMPLETED+" is null "+" order by "+WORKORDER_ARRIVALTIME+" limit 1",null);
+            res.moveToFirst();
+            WorkOrder next=null;
+            if(!res.isAfterLast()){
+                JobTime jobTime=new JobTime(res.getInt(res.getColumnIndex(WORKORDER_JOBID)),res.getInt(res.getColumnIndex(WORKORDER_ACTUALHOURS)),res.getInt(res.getColumnIndex(WORKORDER_PROJECTEDHOURS)));
+                next=new WorkOrder(res.getInt(res.getColumnIndex(WORKORDER_ID)), res.getInt(res.getColumnIndex(WORKORDER_TYPEID)),res.getInt(res.getColumnIndex(WORKORDER_COMPANYID)), res.getInt(res.getColumnIndex(WORKORDER_PERSONID)),
+                        res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
+                        res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
+                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0, res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)),GetWorkOrderPartList(res.getInt(res.getColumnIndex(WORKORDER_ID))),jobTime);
+                next.setReadyForInvoiceDateTime(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
+                next.setPerson(GetPersonByPersonId(next.getPersonId()));
+                next.setSentToCloud(res.getInt(res.getColumnIndex(WORKORDER_SENT)));
+            }
+            return next;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null)res.close();
+           // db.close();
+        }
+        return null;
+    }
+
+
     public boolean TruncateWorkOrders(){
         db=getReadableDatabase();
         Cursor res= db.rawQuery("delete from "+TABLE_WORKORDER,null);
@@ -1486,9 +1528,9 @@ private void create(){
         Cursor res=null;
         try{
             db=getReadableDatabase();
-            res=db.rawQuery("select * from timeentry where "+TIMEENTRY_STARTDATE+" like '%"+DateHelper.GetTodayDateAsString()+"%' and "+TIMEENTRY_TIMEENTRYID+"="+GetTimeEntryTypeByName("start").getTimeEntryTypeId(),null);
+            res=db.rawQuery("select * from timeentry where "+TIMEENTRY_STARTDATE+" like '%"+DateHelper.GetTodayDateAsString()+"%' and "+TIMEENTRY_TIMEENTRYTYPEID+"="+GetTimeEntryTypeByName("start").getTimeEntryTypeId(),null);
             res.moveToFirst();
-            if(!res.isAfterLast()) return true;
+            if(res.getCount()>0) return true;
             return false;
 
         }catch (Exception ex){
@@ -1502,7 +1544,7 @@ private void create(){
         Cursor res=null;
         try{
             db=getReadableDatabase();
-            res=db.rawQuery("select * from timeentry where "+TIMEENTRY_STARTDATE+" like '%"+DateHelper.GetTodayDateAsString()+"%' and "+TIMEENTRY_TIMEENTRYID+"="+GetTimeEntryTypeByName("end").getTimeEntryTypeId(),null);
+            res=db.rawQuery("select * from timeentry where "+TIMEENTRY_STARTDATE+" like '%"+DateHelper.GetTodayDateAsString()+"%' and "+TIMEENTRY_TIMEENTRYTYPEID+"="+GetTimeEntryTypeByName("end").getTimeEntryTypeId(),null);
             res.moveToFirst();
             if(!res.isAfterLast()) return true;
             return false;
@@ -1525,6 +1567,8 @@ private void create(){
             boolean dayStarted = false;
             if (timeEntry.getTimeEntryTypeId() == GetTimeEntryTypeByName("start").getTimeEntryTypeId()) {
                 dayStarted = CheckIfDayStarted();
+            }else if(timeEntry.getTimeEntryTypeId()==GetTimeEntryTypeByName("end").getTimeEntryTypeId()){
+                dayStarted=CheckIfDayEnded();
             }
             if (!dayStarted) {
                 contentValues.put(TIMEENTRY_TIMEENTRYID, timeEntry.getTimeEntryId());
@@ -1535,12 +1579,14 @@ private void create(){
                 contentValues.put(TIMEENTRY_WORKORDERID, timeEntry.getWorkOrderId());
                 contentValues.put(TIMEENTRY_STARTLATITUDE, timeEntry.getStartLatitude());
                 contentValues.put(TIMEENTRY_STARTLONGITUDE, timeEntry.getStartLongitude());
+                contentValues.put(TIMEENTRY_OTHERTASKID,timeEntry.getOtherTaskId());
                 // contentValues.put(TIMEENTRY_ENDLATITUDE,timeEntry.getEndLatitude());
                 //contentValues.put(TIMEENTRY_ENDLONGITUDE,timeEntry.getEndLongitude());
                 contentValues.put(TIMEENTRY_NOTES, timeEntry.getNotes());
                 contentValues.put(TIMEENTRY_TIMEENTRYTYPEID, timeEntry.getTimeEntryTypeId());
                 contentValues.put(TIMEENTRY_ACCEPTED, 0);
                 db.insert(TABLE_TIMEENTRY, null, contentValues);
+                Toast.makeText(ctx,"Time Entry Added",Toast.LENGTH_SHORT).show();
             }
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
@@ -1557,6 +1603,7 @@ private void create(){
             contentValues.put(TIMEENTRY_STARTDATE, DateHelper.DateToString(timeEntry.getStartDateTime()));
             // contentValues.put(TIMEENTRY_ENDDATE, DateHelper.DateToString(timeEntry.getEndDateTime()));
             contentValues.put(TIMEENTRY_WORKORDERID, timeEntry.getWorkOrderId());
+            contentValues.put(TIMEENTRY_OTHERTASKID,timeEntry.getOtherTaskId());
             contentValues.put(TIMEENTRY_STARTLATITUDE, timeEntry.getStartLatitude());
             contentValues.put(TIMEENTRY_STARTLONGITUDE, timeEntry.getStartLongitude());
             // contentValues.put(TIMEENTRY_ENDLATITUDE,timeEntry.getEndLatitude());
@@ -1612,7 +1659,7 @@ private void create(){
                         DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),
                         res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)),
                         res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
-                        res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)), res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYTYPEID)),res.getInt(res.getColumnIndex(TIMEENTRY_ACCEPTED))==1?true:false);
+                        res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)), res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYTYPEID)),res.getInt(res.getColumnIndex(TIMEENTRY_ACCEPTED))==1?true:false, res.getInt(res.getColumnIndex(TIMEENTRY_OTHERTASKID)));
                 if (previousTimeEntry.getSqlId() != 0) {
                     long difference = newTimeEntry.getStartDateTime().getTime() - previousTimeEntry.getStartDateTime().getTime();//newer.startTime-older.startTime
                     Time time = new Time(difference);
@@ -1653,7 +1700,7 @@ private void create(){
                     DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_DATEENTERED))),DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_STARTDATE))),
                     DateHelper.StringToDate(res.getString(res.getColumnIndex(TIMEENTRY_ENDDATE))), res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID)),res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLATITUDE)),
                     res.getDouble(res.getColumnIndex(TIMEENTRY_STARTLONGITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLATITUDE)), res.getDouble(res.getColumnIndex(TIMEENTRY_ENDLONGITUDE)),
-                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)), res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYTYPEID)),res.getInt(res.getColumnIndex(TIMEENTRY_ACCEPTED))==1?true:false);
+                    res.getString(res.getColumnIndex(TIMEENTRY_NOTES)), res.getInt(res.getColumnIndex(TIMEENTRY_ID)), res.getInt(res.getColumnIndex(TIMEENTRY_TIMEENTRYTYPEID)),res.getInt(res.getColumnIndex(TIMEENTRY_ACCEPTED))==1?true:false, res.getInt(res.getColumnIndex(TIMEENTRY_OTHERTASKID)));
             break;
             //res.moveToNext();
         }
@@ -1668,17 +1715,24 @@ private void create(){
 
     public TimeEntryType GetTimeEntryTypeByName(String name){
         ArrayList<TimeEntryType> timeEntryTypes=new ArrayList<>();
-        SQLiteDatabase db=this.getReadableDatabase();
-        Cursor res=db.rawQuery("select * from timeentrytype where "+TIME_ENTRY_TYPE_NAME+" like '%"+name+"%'",null);
-        res.moveToFirst();
-        TimeEntryType selectedTimeEntryType=null;
-        while(res.isAfterLast()==false){
-            selectedTimeEntryType= new TimeEntryType(res.getInt(res.getColumnIndex(TIME_ENTRY_TYPE_TYPEID)),res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_NAME)),
-                    res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_DESCRIPTION)));
+        db=this.getReadableDatabase();
+        try {
+            Cursor res = db.rawQuery("select * from timeentrytype where " + TIME_ENTRY_TYPE_NAME + " like '%" + name + "%'", null);
+            res.moveToFirst();
+            TimeEntryType selectedTimeEntryType = null;
+            while (res.isAfterLast() == false) {
+                selectedTimeEntryType = new TimeEntryType(res.getInt(res.getColumnIndex(TIME_ENTRY_TYPE_TYPEID)), res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_NAME)),
+                        res.getString(res.getColumnIndex(TIME_ENTRY_TYPE_DESCRIPTION)));
 
-            res.moveToNext();
+                res.moveToNext();
+            }
+            return selectedTimeEntryType;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+           // db.close();
         }
-        return selectedTimeEntryType;
+        return null;
     }
 
     public void SaveExceptionLog(Exception ex){
@@ -1813,7 +1867,7 @@ private void create(){
         }
         finally {
             if(res!=null) res.close();
-            db.close();
+           // db.close();
         }
         return false;
     }

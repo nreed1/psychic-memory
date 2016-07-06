@@ -25,6 +25,7 @@ import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
+import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
 import com.example.niki.fieldoutlookandroid.helper.NotificationHelper;
 import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.UnassignAsyncTask;
@@ -50,6 +51,8 @@ public class SelectedWorkorderFragment extends Fragment {
     private OnSelectedWorkOrderMenuItemInteractionListener menuItemInteractionListener;
     private OnWorkOrderMaterialsClickedListener materialsClickedListener;
     private Boolean showTimekeepingInformation=false;
+    CheckBox workOrderCompleted;
+    EditText workOrderNotes;
 
     public SelectedWorkorderFragment() {
         // Required empty public constructor
@@ -149,28 +152,28 @@ public class SelectedWorkorderFragment extends Fragment {
         //Description
         TextView workOrderDescription=(TextView)view.findViewById(R.id.descriptionTextView);
         workOrderDescription.setText(selectedWorkOrder.getDescription());
-        EditText workOrderNotes=(EditText) view.findViewById(R.id.notesEditTextView);
-        workOrderNotes.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-                selectedWorkOrder.setNotes(s.toString());
-                if(!s.toString().trim().equals("")) {
-                    DBHelper dbHelper = new DBHelper(getActivity());
-                    dbHelper.SaveWorkOrder(selectedWorkOrder);
-                }
-            }
-        });
+        workOrderNotes=(EditText) view.findViewById(R.id.notesEditTextView);
+//        workOrderNotes.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable s) {
+//
+//                selectedWorkOrder.setNotes(s.toString());
+//                if(!s.toString().trim().equals("")) {
+//                    DBHelper dbHelper = new DBHelper(getActivity());
+//                    dbHelper.SaveWorkOrder(selectedWorkOrder);
+//                }
+//            }
+//        });
         workOrderNotes.setText(selectedWorkOrder.getNotes());
         if(selectedWorkOrder.getPerson()!=null) {
             TextView workOrderCustomer = (TextView) view.findViewById(R.id.customerNameTextView);
@@ -181,28 +184,28 @@ public class SelectedWorkorderFragment extends Fragment {
             }
         }
 
-        final CheckBox workOrderCompleted=(CheckBox)view.findViewById(R.id.workorderComplete);
+        workOrderCompleted=(CheckBox)view.findViewById(R.id.workorderComplete);
         if(selectedWorkOrder.getIsReadyForInvoice()==1){//1==true as sqlite can't store booleans for some reason
             workOrderCompleted.setChecked(true);
         }else{ workOrderCompleted.setChecked(false);}
-        workOrderCompleted.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    if(selectedWorkOrder.getIsReadyForInvoice()!=1) {
-                        selectedWorkOrder.setIsReadyForInvoice(1);
-                        selectedWorkOrder.setReadyForInvoiceDateTime(DateHelper.GetTodayDateAsString());
-                        DBHelper dbHelper = new DBHelper(getActivity());
-                        dbHelper.SaveWorkOrder(selectedWorkOrder);
-                    }
-                }else{
-                    selectedWorkOrder.setIsReadyForInvoice(0);
-                    selectedWorkOrder.setReadyForInvoiceDateTime(null);
-                    DBHelper dbHelper=new DBHelper(getActivity());
-                    dbHelper.SaveWorkOrder(selectedWorkOrder);
-                }
-            }
-        });
+//        workOrderCompleted.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if(isChecked){
+//                    if(selectedWorkOrder.getIsReadyForInvoice()!=1) {
+//                        selectedWorkOrder.setIsReadyForInvoice(1);
+//                        selectedWorkOrder.setReadyForInvoiceDateTime(DateHelper.GetTodayDateAsString());
+//                        DBHelper dbHelper = new DBHelper(getActivity());
+//                        dbHelper.SaveWorkOrder(selectedWorkOrder);
+//                    }
+//                }else{
+//                    selectedWorkOrder.setIsReadyForInvoice(0);
+//                    selectedWorkOrder.setReadyForInvoiceDateTime(null);
+//                    DBHelper dbHelper=new DBHelper(getActivity());
+//                    dbHelper.SaveWorkOrder(selectedWorkOrder);
+//                }
+//            }
+//        });
 
         ProgressBar progressBar =(ProgressBar)view.findViewById(R.id.progressBar);
         if(selectedWorkOrder.getJobTime()!=null) {
@@ -231,7 +234,35 @@ public class SelectedWorkorderFragment extends Fragment {
                 progressBar.getProgressDrawable().setColorFilter(Color.argb(255, 154, 219, 233), PorterDuff.Mode.ADD);
             }
         }
+        Button saveChanges=(Button)view.findViewById(R.id.saveWorkOrderChangesButton);
+        saveChanges.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveWorkOrder();
+            }
+        });
         return view;
+    }
+    private void saveWorkOrder(){
+        try{
+            DBHelper dbHelper=new DBHelper(getActivity());
+            boolean isChecked=workOrderCompleted.isChecked();
+            if(isChecked){
+                if(selectedWorkOrder.getIsReadyForInvoice()!=1) {
+                    selectedWorkOrder.setIsReadyForInvoice(1);
+                    selectedWorkOrder.setReadyForInvoiceDateTime(DateHelper.GetTodayDateAsString());
+
+                }
+            }else{
+                selectedWorkOrder.setIsReadyForInvoice(0);
+                selectedWorkOrder.setReadyForInvoiceDateTime(null);
+
+            }
+            selectedWorkOrder.setNotes(workOrderNotes.getText().toString());
+            dbHelper.SaveWorkOrder(selectedWorkOrder);
+        }catch (Exception ex){
+            ExceptionHelper.LogException(getActivity(),ex);
+        }
     }
 
 

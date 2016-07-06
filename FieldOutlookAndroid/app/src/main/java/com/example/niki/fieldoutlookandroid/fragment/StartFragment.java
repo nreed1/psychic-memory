@@ -2,6 +2,7 @@ package com.example.niki.fieldoutlookandroid.fragment;
 
 import android.app.FragmentManager;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -10,9 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.support.v7.widget.Toolbar;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
@@ -28,6 +32,7 @@ import com.example.niki.fieldoutlookandroid.helper.singleton.Global;
 public class StartFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
+    WorkOrder nextWorkOrder;
 
     public StartFragment() {
         // Required empty public constructor
@@ -62,9 +67,29 @@ public class StartFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-
-
         View view= inflater.inflate(R.layout.fragment_start, container, false);
+        nextWorkOrder=new DBHelper(getActivity()).GetNextWorkOrder();
+        LinearLayout nextWorkOrderLayout=(LinearLayout)view.findViewById(R.id.nextWorkOrderLayout);
+        if(nextWorkOrder==null){
+            nextWorkOrderLayout.setVisibility(View.INVISIBLE);
+        }else{
+            TextView customerName=(TextView)view.findViewById(R.id.nextName);
+            customerName.setText(nextWorkOrder.getPerson().getFullName());
+            final TextView customerAddress=(TextView)view.findViewById(R.id.nextAddress);
+            customerAddress.setText(nextWorkOrder.getPerson().getAddress().getPrintableAddress());
+            TextView description=(TextView)view.findViewById(R.id.nextDescription);
+            description.setText(nextWorkOrder.getDescription());
+            Button navigateTo=(Button)view.findViewById(R.id.nextNavTo);
+            navigateTo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Uri gmmIntentUri=Uri.parse("google.navigation:q="+customerAddress.getText().toString().replace(' ','+'));
+                    Intent mapIntent=new Intent(Intent.ACTION_VIEW,gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    startActivity(mapIntent);
+                }
+            });
+        }
         Button startDayButton=(Button)view.findViewById(R.id.start_day_button);
         if(Global.GetInstance().getIsDayStarted()==true){
             startDayButton.setText("Continue Day");
