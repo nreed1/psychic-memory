@@ -1380,23 +1380,26 @@ private void create(){
 
     public void SavePerson(Person person){
         Person p=GetPersonByPersonId(person.getPersonId());//if person does not already exist based on the personid
+        db = getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(PERSON_PERSONID, person.getPersonId());
+        contentValues.put(PERSON_FIRSTNAME, person.getFirstName());
+        contentValues.put(PERSON_LASTNAME, person.getLastName());
+        contentValues.put(PERSON_FULLNAME, person.getFullName());
+        if (person.getAddress() != null) {
+            contentValues.put(PERSON_ADDRESSLINE1, person.getAddress().getStreetAddress1());
+            contentValues.put(PERSON_ADDRESSLINE2, person.getAddress().getStreetAddress2());
+            contentValues.put(PERSON_CITY, person.getAddress().getCity());
+            contentValues.put(PERSON_STATE, person.getAddress().getState());
+            contentValues.put(PERSON_ZIPCODE, person.getAddress().getZipCode());
+        }
+        contentValues.put(PERSON_COMPANYID, person.getCompanyId());
         if(p==null) {
-            db = getWritableDatabase();
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(PERSON_PERSONID, person.getPersonId());
-            contentValues.put(PERSON_FIRSTNAME, person.getFirstName());
-            contentValues.put(PERSON_LASTNAME, person.getLastName());
-            contentValues.put(PERSON_FULLNAME, person.getFullName());
-            if (person.getAddress() != null) {
-                contentValues.put(PERSON_ADDRESSLINE1, person.getAddress().getStreetAddress1());
-                contentValues.put(PERSON_ADDRESSLINE2, person.getAddress().getStreetAddress2());
-                contentValues.put(PERSON_CITY, person.getAddress().getCity());
-                contentValues.put(PERSON_STATE, person.getAddress().getState());
-                contentValues.put(PERSON_ZIPCODE, person.getAddress().getZipCode());
-            }
-            contentValues.put(PERSON_COMPANYID, person.getCompanyId());
+
 
             db.insert(TABLE_PERSON, null, contentValues);
+        }else{
+            db.update(TABLE_PERSON,contentValues,PERSON_PERSONID+"=?",new String[]{String.valueOf(person.getPersonId())});
         }
 
     }

@@ -87,6 +87,10 @@ public class CustomerAutoCompleteArrayAdapter extends ArrayAdapter<Person> imple
 
                 CustomerAutoCompleteArrayAdapter.this.notifyDataSetChanged();
             }
+            @Override
+            public CharSequence convertResultToString(Object resultValue) {
+                return ((Person) resultValue).getFullName();
+            }
 
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
@@ -117,5 +121,6 @@ public class CustomerAutoCompleteArrayAdapter extends ArrayAdapter<Person> imple
         }
         return results;
     }
+
 
 }
