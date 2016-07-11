@@ -78,6 +78,12 @@ public class CustomerAutoCompleteArrayAdapter extends ArrayAdapter<Person> imple
         return convertView;
     }
     @Override
+    public Person getItem(int position){
+        if(personList.size()>position)
+            return personList.get(position);
+        return new Person();
+    }
+    @Override
     public Filter getFilter() {
         return new Filter() {
             @SuppressWarnings("unchecked")
