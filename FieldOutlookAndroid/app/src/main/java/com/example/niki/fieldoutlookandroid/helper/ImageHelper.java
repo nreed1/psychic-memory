@@ -40,6 +40,22 @@ public class ImageHelper {
 
             FileInputStream fileInputStream =new FileInputStream(imageFile);
             Bitmap bitmap= BitmapFactory.decodeStream(fileInputStream);
+            fileInputStream.close();
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            int IMAGE_MAX_SIZE=50;
+
+            int scale = 1;
+            if (o.outHeight > IMAGE_MAX_SIZE || o.outWidth > IMAGE_MAX_SIZE) {
+                scale = (int)Math.pow(2, (int) Math.ceil(Math.log(IMAGE_MAX_SIZE /
+                        (double) Math.max(o.outHeight, o.outWidth)) / Math.log(0.5)));
+            }
+
+            //Decode with inSampleSize
+            BitmapFactory.Options o2 = new BitmapFactory.Options();
+            o2.inSampleSize = scale;
+            fileInputStream = new FileInputStream(imageFile);
+            bitmap = BitmapFactory.decodeStream(fileInputStream, null, o2);
+            fileInputStream.close();
             return getBytesFromBitmap(bitmap);
         }catch (Exception ex){
             //ExceptionHelper.LogException();

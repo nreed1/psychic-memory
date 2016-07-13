@@ -2,20 +2,14 @@ package com.example.niki.fieldoutlookandroid.helper.SendCustomerImage;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.CustomerImage;
+import com.example.niki.fieldoutlookandroid.businessobjects.UploadImageRequest;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
 import com.example.niki.fieldoutlookandroid.helper.ImageHelper;
-import com.example.niki.fieldoutlookandroid.helper.SendCompletedWorkOrders.SendCompletedWorkOrdersAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.TokenHelper;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
@@ -54,31 +48,35 @@ public class SendCustomerImageAsyncTask extends AsyncTask<String,Void,Boolean> {
             ArrayList<CustomerImage> customerImageArrayList=null;
             HttpURLConnection con=null;
             ImageHelper imageHelper=new ImageHelper();
+            UploadImageRequest uploadImageRequest =new UploadImageRequest();
             if(params!=null){
                 customerImage=new CustomerImage();
                 customerImage.setImageName(params[0]);
                 customerImage.setPersonId(Integer.parseInt(params[1]));
+                uploadImageRequest.filePath=params[0];
+                uploadImageRequest.objectId=Integer.parseInt(params[1]);
+                uploadImageRequest.bytes=imageHelper.getImageToBytes(params[2]);
                 //customerImage.setImageString(imageHelper.getImageToString(context,params[2]));
                // customerImage.setImage(imageHelper.getImageToByteArray());
             }else{
                 customerImageArrayList=dbHelper.GetCustomerImageList();
             }
             if(customerImage!=null){
-              //  con=(HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveCustomerImage")).openConnection();
-            //    con.setRequestMethod("POST");
+                con=(HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveCustomerImage")).openConnection();
+                con.setRequestMethod("POST");
 //                con.setRequestMethod("POST");
-                DefaultHttpClient client=new DefaultHttpClient();
-                HttpPost post=new HttpPost(ServiceHelper.GetServiceURL()+"SaveCustomerImage");
-                post.setEntity(new ByteArrayEntity(imageHelper.getImageToBytes(params[2])));
-                HttpResponse response=client.execute(post);
-                Log.d("response",String.valueOf(response.getStatusLine().getStatusCode()));
+//                DefaultHttpClient client=new DefaultHttpClient();
+//                HttpPost post=new HttpPost(ServiceHelper.GetServiceURL()+"SaveCustomerImage");
+//                post.setEntity(new ByteArrayEntity(imageHelper.getImageToBytes(params[2])));
+//                HttpResponse response=client.execute(post);
+//                Log.d("response",String.valueOf(response.getStatusLine().getStatusCode()));
                 //con.setRequestProperty("Content-Type","application/json; charset=UTF-8");
-              //  con.connect();
+                con.connect();
                 //?storageType=CustomerFileStorage&personId="+customerImage.getPersonId()
                // +"&imageName="+customerImage.getImageName()+"&Token="+ URLEncoder.encode(TokenHelper.getToken()) )
-//                OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
-//                wr.write(TokenHelper.getToken()+","+"CustomerFileStorage,"+String.valueOf(customerImage.getPersonId())+","+customerImage.getImageName()+","+customerImage.getImageString());
-//                wr.flush();
+               OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+                wr.write(uploadImageRequest.toJson());
+                wr.flush();
             }else {
                 for(CustomerImage customerImage1:customerImageArrayList) {
                     con=(HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveCustomerImage?storageType=CustomerFileStorage&personId="+customerImage.getPersonId()
