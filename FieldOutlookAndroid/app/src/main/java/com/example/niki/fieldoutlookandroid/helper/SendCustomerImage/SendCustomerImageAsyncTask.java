@@ -2,6 +2,7 @@ package com.example.niki.fieldoutlookandroid.helper.SendCustomerImage;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.example.niki.fieldoutlookandroid.businessobjects.CustomerImage;
 import com.example.niki.fieldoutlookandroid.businessobjects.UploadImageRequest;
@@ -62,7 +63,7 @@ public class SendCustomerImageAsyncTask extends AsyncTask<String,Void,Boolean> {
                 customerImageArrayList=dbHelper.GetCustomerImageList();
             }
             if(customerImage!=null){
-                con=(HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveCustomerImage")).openConnection();
+                con=(HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveCustomerImage/")).openConnection();
                 con.setRequestMethod("POST");
                 con.setRequestProperty("Content-Type","application/json; charset=UTF-8");
 //                con.setRequestMethod("POST");
@@ -78,6 +79,8 @@ public class SendCustomerImageAsyncTask extends AsyncTask<String,Void,Boolean> {
                OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
                 wr.write(uploadImageRequest.toJson());
                 wr.flush();
+                int responseCode=con.getResponseCode();
+                Log.d("responseCode",String.valueOf(responseCode));
             }else {
                 for(CustomerImage customerImage1:customerImageArrayList) {
                     con=(HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveCustomerImage?storageType=CustomerFileStorage&personId="+customerImage.getPersonId()
