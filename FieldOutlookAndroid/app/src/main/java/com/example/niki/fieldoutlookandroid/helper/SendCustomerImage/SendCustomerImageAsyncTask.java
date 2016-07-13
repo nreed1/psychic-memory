@@ -64,13 +64,14 @@ public class SendCustomerImageAsyncTask extends AsyncTask<String,Void,Boolean> {
             if(customerImage!=null){
                 con=(HttpURLConnection) (new URL(ServiceHelper.GetServiceURL() + "SaveCustomerImage")).openConnection();
                 con.setRequestMethod("POST");
+                con.setRequestProperty("Content-Type","application/json; charset=UTF-8");
 //                con.setRequestMethod("POST");
 //                DefaultHttpClient client=new DefaultHttpClient();
 //                HttpPost post=new HttpPost(ServiceHelper.GetServiceURL()+"SaveCustomerImage");
 //                post.setEntity(new ByteArrayEntity(imageHelper.getImageToBytes(params[2])));
 //                HttpResponse response=client.execute(post);
 //                Log.d("response",String.valueOf(response.getStatusLine().getStatusCode()));
-                //con.setRequestProperty("Content-Type","application/json; charset=UTF-8");
+              //  con.setRequestProperty("Content-Type","application/json; charset=UTF-8");
                 con.connect();
                 //?storageType=CustomerFileStorage&personId="+customerImage.getPersonId()
                // +"&imageName="+customerImage.getImageName()+"&Token="+ URLEncoder.encode(TokenHelper.getToken()) )
