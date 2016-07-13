@@ -63,11 +63,13 @@ import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.example.niki.fieldoutlookandroid.helper.GetAvailableVersion.GetAvailableVersionAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.GetFlatRateItemAsyncTask.GetFlatRateItemAsyncTask;
+import com.example.niki.fieldoutlookandroid.helper.GetOtherTasksForUser.GetOtherTasksForUserAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.GetPartListAsyncTask.GetPartsListAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.GetPersonListAsyncTask.GetPersonListAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.NetworkHelper;
 import com.example.niki.fieldoutlookandroid.helper.SendCompletedWorkOrders.SendCompletedWorkOrdersAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.SendCustomerImage.SendCustomerImageAsyncTask;
+import com.example.niki.fieldoutlookandroid.helper.SendOtherTaskList.SendOtherTaskListAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
@@ -350,6 +352,13 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
                 } else {
                     assignedJobsAsyncTask.execute((String) null);
                 }
+                SendOtherTaskListAsyncTask sendOtherTaskListAsyncTask=new SendOtherTaskListAsyncTask(getApplicationContext(), new SendOtherTaskListAsyncTask.SendOtherTaskListDelegate() {
+                    @Override
+                    public void processFinish() {
+
+                    }
+                });
+                sendOtherTaskListAsyncTask.execute((Void)null);
 
                 //Send Customer Images
                 if (dbHelper.hasCustomerImages()) {
@@ -363,6 +372,13 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
                     });
                     sendCustomerImageAsyncTask.execute((String[]) null);
                 }
+                GetOtherTasksForUserAsyncTask getOtherTasksForUserAsyncTask=new GetOtherTasksForUserAsyncTask(getApplicationContext(), new GetOtherTasksForUserAsyncTask.GetOtherTasksForUserDelegate() {
+                    @Override
+                    public void processFinish() {
+                        progressDialog.setMessage("Downloaded User's Other tasks");
+                    }
+                });
+                getOtherTasksForUserAsyncTask.execute((Void)null);
                 String lastRefreshDateString = dbHelper.GetLastRefreshDate();
                 Date lastRefreshDate = new Date();
                 if (lastRefreshDateString != null) {
@@ -603,6 +619,9 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
         } else if (nextFragment.equals("End")) {
             //Review and Send
             StartTimekeepingReviewFragment();
+        }else if(nextFragment.equals("arrived")){
+            TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
+            timekeepingHelper.AddTimekeepingEntry(getApplicationContext(),"job");
         }
     }
 
@@ -673,8 +692,9 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
 
     @Override
     public void onNewOtherTaskFragmentInteraction(String whatToDo) {
-        if (whatToDo.toLowerCase().equals("back")) {
-            StartMainFragment();
+        if (whatToDo.trim().equals("Back")) {
+           // StartMainFragment();
+            onBackPressed();
         }
     }
 

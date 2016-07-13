@@ -72,6 +72,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String OTHERTASKS_USERID="userid";
     public static final String OTHERTASKS_TASKNAME="taskname";
     public static final String OTHERTASKS_TASKDESCRIPTION="description";
+    public static final String OTHERTASKS_SQLID="sqlid";
+    public static final String OTHERTASKS_ISDIRTY="isdirty";
 //"create table if not exists person (id integer primary key, personid integer, firstname text, lastname text, fullname text, addressline1 text, addressline2 text, city text, state text, zipcode text," +
     //"phonenumber text)"
     public static final String TABLE_PERSON="person";
@@ -226,7 +228,7 @@ private void create(){
         //#end workorder
 
         //#start other tasks
-            db.execSQL("create table if not exists othertasks(id integer primary key, taskname text, userid integer, description text)");
+            db.execSQL("create table if not exists othertasks(id integer primary key, taskname text, userid integer, description text, sqlid integer, isdirty integer)");
         //#end other tasks
         //#start person
             db.execSQL("create table if not exists person (id integer primary key, personid integer, companyid integer,firstname text, lastname text, fullname text, addressline1 text, addressline2 text, city text, state text, zipcode text," +
@@ -1370,9 +1372,15 @@ private void create(){
             contentValues.put(OTHERTASKS_USERID, otherTask.getUserid());
             contentValues.put(OTHERTASKS_TASKNAME, otherTask.getName());
             contentValues.put(OTHERTASKS_TASKDESCRIPTION, otherTask.getDescription());
-            db.insert(TABLE_OTHERTASKS, null, contentValues);
+            contentValues.put(OTHERTASKS_ISDIRTY,otherTask.isDirty?1:0);
+            contentValues.put(OTHERTASKS_SQLID,otherTask.getSqlid());
+            if(otherTask.getId()>0){
+                db.update(TABLE_OTHERTASKS,contentValues,"id=?",new String[]{String.valueOf(otherTask.getId())});
+            }else {
+                db.insert(TABLE_OTHERTASKS, null, contentValues);
+            }
         }catch (Exception ex){
-
+            ExceptionHelper.LogException(ctx,ex);
         }finally {
            // db.close();
         }
@@ -1405,8 +1413,13 @@ private void create(){
             res.moveToFirst();
             while(res.isAfterLast()==false){
                 //public OtherTask(int id, int userid, String name, String description)
-                otherTasks.add(new OtherTask(res.getInt(res.getColumnIndex(OTHERTASKS_ID)),res.getInt(res.getColumnIndex(OTHERTASKS_USERID)),
-                        res.getString(res.getColumnIndex(OTHERTASKS_TASKNAME)), res.getString(res.getColumnIndex(OTHERTASKS_TASKDESCRIPTION))));
+                OtherTask otherTask=new OtherTask(res.getInt(res.getColumnIndex(OTHERTASKS_ID)),res.getInt(res.getColumnIndex(OTHERTASKS_USERID)),
+                        res.getString(res.getColumnIndex(OTHERTASKS_TASKNAME)), res.getString(res.getColumnIndex(OTHERTASKS_TASKDESCRIPTION)));
+                otherTask.setSqlid(res.getInt(res.getColumnIndex(OTHERTASKS_SQLID)));
+                if(res.getInt(res.getColumnIndex(OTHERTASKS_ISDIRTY))==1){
+                    otherTask.isDirty=true;
+                }else otherTask.isDirty=false;
+                otherTasks.add(otherTask);
 
                 res.moveToNext();
             }
@@ -1419,6 +1432,35 @@ private void create(){
         }
         return new ArrayList<OtherTask>();
     }
+    public ArrayList<OtherTask> GetDirtyOtherTaskListByUserId(int userId){
+        Cursor res=null;
+        try{
+            ArrayList<OtherTask> otherTasks=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_OTHERTASKS+" where userid="+userId+" and isdirty=1",null);
+            res.moveToFirst();
+            while(res.isAfterLast()==false){
+                //public OtherTask(int id, int userid, String name, String description)
+                OtherTask otherTask=new OtherTask(res.getInt(res.getColumnIndex(OTHERTASKS_ID)),res.getInt(res.getColumnIndex(OTHERTASKS_USERID)),
+                        res.getString(res.getColumnIndex(OTHERTASKS_TASKNAME)), res.getString(res.getColumnIndex(OTHERTASKS_TASKDESCRIPTION)));
+                otherTask.setSqlid(res.getInt(res.getColumnIndex(OTHERTASKS_SQLID)));
+                if(res.getInt(res.getColumnIndex(OTHERTASKS_ISDIRTY))==1){
+                    otherTask.isDirty=true;
+                }else otherTask.isDirty=false;
+                otherTasks.add(otherTask);
+
+                res.moveToNext();
+            }
+            return otherTasks;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null) res.close();
+        }
+        return new ArrayList<OtherTask>();
+    }
+
 
     public void SavePerson(Person person){
         Person p=GetPersonByPersonId(person.getPersonId());//if person does not already exist based on the personid
@@ -1557,6 +1599,24 @@ private void create(){
         return false;
     }
 
+    private int getWorkOrderArrivedAt(String date){
+        Cursor res=null;
+        try{
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_TIMEENTRY+" where workorderid!=0 and startdate like '%"+date+"%' order by startdate desc limit 1",null);
+            res.moveToFirst();
+            if(!res.isAfterLast()){
+                return res.getInt(res.getColumnIndex(TIMEENTRY_WORKORDERID));
+            }
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return 0;
+    }
+
     /**Inserts a time entry
      * Checks for possible duplicate entries on start and end day and prevents them from being added to the table
      * */
@@ -1569,6 +1629,9 @@ private void create(){
                 dayStarted = CheckIfDayStarted();
             }else if(timeEntry.getTimeEntryTypeId()==GetTimeEntryTypeByName("end").getTimeEntryTypeId()){
                 dayStarted=CheckIfDayEnded();
+            }else if(timeEntry.getTimeEntryTypeId()==GetTimeEntryTypeByName("job").getTimeEntryTypeId()) {
+                int workorder = getWorkOrderArrivedAt(DateHelper.DateToString(new Date(timeEntry.getStartDateTime().getDate())));
+                if(workorder!=0) timeEntry.setWorkOrderId(workorder);
             }
             if (!dayStarted) {
                 contentValues.put(TIMEENTRY_TIMEENTRYID, timeEntry.getTimeEntryId());

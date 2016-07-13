@@ -108,6 +108,13 @@ public class StartDayFragment extends Fragment {
             }
         });
 
+        Button arrivedAtJob=(Button)view.findViewById(R.id.arrivedAtJob);
+        arrivedAtJob.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                OnButtonPressed("job");
+            }
+        });
         return view;
     }
 
