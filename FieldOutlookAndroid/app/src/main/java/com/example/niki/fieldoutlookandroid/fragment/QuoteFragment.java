@@ -92,6 +92,7 @@ public class QuoteFragment extends Fragment {
         description=(EditText)view.findViewById(R.id.descriptionQuote);
         notes=(EditText)view.findViewById(R.id.notesQuote);
         partList=(ListView)view.findViewById(R.id.partListQuote);
+
         customerName=(AutoCompleteTextView)view.findViewById(R.id.customerNameQuote);
         final CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter=new CustomerAutoCompleteArrayAdapter(getActivity(),new DBHelper(getActivity()).GetAllPersons());
         customerName.setAdapter(customerAutoCompleteArrayAdapter);

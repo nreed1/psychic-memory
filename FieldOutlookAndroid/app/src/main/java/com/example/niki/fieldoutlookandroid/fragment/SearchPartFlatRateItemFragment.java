@@ -49,7 +49,7 @@ public class SearchPartFlatRateItemFragment extends Fragment {
      * @param param2 Parameter 2.
      * @return A new instance of fragment SearchPartFlatRateItemFragment.
      */
-    // TODO: Rename and change types and number of parameters
+
     public static SearchPartFlatRateItemFragment newInstance(String param1, String param2) {
         SearchPartFlatRateItemFragment fragment = new SearchPartFlatRateItemFragment();
         Bundle args = new Bundle();
@@ -78,7 +78,9 @@ public class SearchPartFlatRateItemFragment extends Fragment {
        View view= inflater.inflate(R.layout.fragment_search_part_flat_rate_item, container, false);
         mViewPager = (ViewPager) view.findViewById(R.id.pager);
         final MyPagerAdapter myPagerAdapter=new MyPagerAdapter(getChildFragmentManager());
+        myPagerAdapter.setSelectedQuote(selectedQuote);
         mViewPager.setAdapter(myPagerAdapter);
+
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -103,7 +105,7 @@ public class SearchPartFlatRateItemFragment extends Fragment {
     public ViewPager getViewPager(){
         return mViewPager;
     }
-    // TODO: Rename method, update argument and hook method into UI event
+
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);

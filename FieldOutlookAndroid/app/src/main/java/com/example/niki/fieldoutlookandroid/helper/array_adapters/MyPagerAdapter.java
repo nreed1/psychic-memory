@@ -22,6 +22,7 @@ public class MyPagerAdapter extends FragmentStatePagerAdapter {
     public MyPagerAdapter(FragmentManager fragmentManager) {
         super(fragmentManager);
     }
+    Bundle b =new Bundle();
     public Fragment firstPositionFragment=new PartListFragment();
     public Fragment secondPositionFragment=new FlatRateItemListFragment();
 
@@ -49,6 +50,7 @@ public class MyPagerAdapter extends FragmentStatePagerAdapter {
 
     public void setFirstPositionFragment(Fragment firstPositionFragment) {
         this.firstPositionFragment = firstPositionFragment;
+
         firstFragmentStack.push(this.firstPositionFragment);
         notifyDataSetChanged();
        // this.notifyDataSetChanged();

@@ -388,6 +388,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
                             for (TimeEntryType t : timeEntryTypes) {
                                 dbHelper.SaveTimeEntryType(t);
                             }
+                            progressDialog.setMessage("Getting Parts List");
 
                         }
                     });
@@ -396,8 +397,9 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
                     GetPartsListAsyncTask getPartsListAsyncTask = new GetPartsListAsyncTask(new GetPartsListAsyncTask.GetPartsListDelegate() {
                         @Override
                         public void processFinish(ArrayList<PartCategory> result) {
-                            progressDialog.setMessage("Saving " + result.size() + " Parts List");
+                            progressDialog.setMessage("Saving " + result.size() + " Parts List and Getting Flat Rate Items");
                             //progressDialog.dismiss();
+
                         }
                     }, getApplicationContext());
                     getPartsListAsyncTask.execute((Void) null);
@@ -405,7 +407,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
                     GetFlatRateItemAsyncTask flatRateItemAsyncTask = new GetFlatRateItemAsyncTask(getApplicationContext(), new GetFlatRateItemAsyncTask.GetFlatRateItemAsyncTaskDelegate() {
                         @Override
                         public void processFinish(Integer result) {
-                            progressDialog.setMessage("Saving " + result + " Flat Rate Item List");
+                            progressDialog.setMessage("Saving " + result + " Flat Rate Item List and Getting Customer Data");
 
                         }
                     });
@@ -744,7 +746,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
             b.putParcelableArrayList("categories-given", null);
         }
         b.putParcelable("selectedworkorder", workOrder);
-      //  b.putParcelable("selectedquote", quote);
+        b.putParcelable("selectedquote", quote);
         partListFragment.setArguments(b);
         if(currentFragment instanceof SearchPartFlatRateItemFragment){
             SearchPartFlatRateItemFragment searchPartFlatRateItemFragment=(SearchPartFlatRateItemFragment)currentFragment;
