@@ -20,6 +20,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
@@ -188,39 +189,13 @@ public class SelectedWorkorderFragment extends Fragment {
         if(selectedWorkOrder.getIsReadyForInvoice()==1){//1==true as sqlite can't store booleans for some reason
             workOrderCompleted.setChecked(true);
         }else{ workOrderCompleted.setChecked(false);}
-//        workOrderCompleted.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                if(isChecked){
-//                    if(selectedWorkOrder.getIsReadyForInvoice()!=1) {
-//                        selectedWorkOrder.setIsReadyForInvoice(1);
-//                        selectedWorkOrder.setReadyForInvoiceDateTime(DateHelper.GetTodayDateAsString());
-//                        DBHelper dbHelper = new DBHelper(getActivity());
-//                        dbHelper.SaveWorkOrder(selectedWorkOrder);
-//                    }
-//                }else{
-//                    selectedWorkOrder.setIsReadyForInvoice(0);
-//                    selectedWorkOrder.setReadyForInvoiceDateTime(null);
-//                    DBHelper dbHelper=new DBHelper(getActivity());
-//                    dbHelper.SaveWorkOrder(selectedWorkOrder);
-//                }
-//            }
-//        });
+
 
         ProgressBar progressBar =(ProgressBar)view.findViewById(R.id.progressBar);
         if(selectedWorkOrder.getJobTime()!=null) {
             progressBar.setMax(selectedWorkOrder.getJobTime().getProjectedHours());
             progressBar.setProgress(selectedWorkOrder.getJobTime().getActualHours());
 
-//        if(selectedWorkOrder.getTotalHoursForJob()==0){
-//            selectedWorkOrder.setTotalHoursForJob(100);
-//        }
-//        progressBar.setMax(selectedWorkOrder.getTotalHoursForJob());
-
-//        if(selectedWorkOrder.getHoursWorkedOnJob()==0){
-//            selectedWorkOrder.setHoursWorkedOnJob(40);
-//        }
-//        progressBar.setProgress(selectedWorkOrder.getHoursWorkedOnJob());
 
             TextView progressBarTextView = (TextView) view.findViewById(R.id.progressBarTextView);
             progressBarTextView.setText(selectedWorkOrder.getJobTime().getActualHours() + " hours / " + selectedWorkOrder.getJobTime().getProjectedHours() + " hours");
@@ -260,6 +235,7 @@ public class SelectedWorkorderFragment extends Fragment {
             }
             selectedWorkOrder.setNotes(workOrderNotes.getText().toString());
             dbHelper.SaveWorkOrder(selectedWorkOrder);
+            Toast.makeText(getActivity(),"Saved Changes", Toast.LENGTH_LONG).show();
         }catch (Exception ex){
             ExceptionHelper.LogException(getActivity(),ex);
         }

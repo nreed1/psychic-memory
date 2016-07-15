@@ -1294,6 +1294,40 @@ private void create(){
         return new ArrayList<WorkOrder>();
     }
 
+    public WorkOrder GetWorkOrderById(int workOrderId){
+        Cursor res=null;
+        try{
+            ArrayList<WorkOrder> workOrders=new ArrayList<>();
+            SQLiteDatabase db=this.getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_WORKORDER +" where workorderid="+workOrderId,null);
+            res.moveToFirst();
+            if(res.isAfterLast()==false){
+                //public WorkOrder(int workOrderId,int workOrderTypeId, int companyId, int personId, String name, String description, String arrivalTime, String estimatedDurationOfWork, double costOfJob,
+                // String whereBilled, String notes,
+                //      Person person, int totalHoursForJob, int hoursWorkedOnJob)
+                JobTime jobTime=new JobTime(res.getInt(res.getColumnIndex(WORKORDER_JOBID)),res.getInt(res.getColumnIndex(WORKORDER_ACTUALHOURS)),res.getInt(res.getColumnIndex(WORKORDER_PROJECTEDHOURS)));
+                WorkOrder newWorkOrder=new WorkOrder(res.getInt(res.getColumnIndex(WORKORDER_ID)), res.getInt(res.getColumnIndex(WORKORDER_TYPEID)),res.getInt(res.getColumnIndex(WORKORDER_COMPANYID)), res.getInt(res.getColumnIndex(WORKORDER_PERSONID)),
+                        res.getString(res.getColumnIndex(WORKORDER_NAME)), res.getString(res.getColumnIndex(WORKORDER_DESCRIPTION)),res.getString(res.getColumnIndex(WORKORDER_ARRIVALTIME)),res.getString(res.getColumnIndex(WORKORDER_ESTIMATEDDURATION)),
+                        res.getDouble(res.getColumnIndex(WORKORDER_COSTOFJOB)),res.getString(res.getColumnIndex(WORKORDER_WHEREBILLED)), res.getString(res.getColumnIndex(WORKORDER_NOTES)), null,res.getInt(res.getColumnIndex(WORKORDER_TOTALHOURSFORJOB)),
+                        res.getInt(res.getColumnIndex(WORKORDER_HOURSWORKED)),0,res.getInt(res.getColumnIndex(WORKORDER_ISCOMPLETED)),null,jobTime);
+                newWorkOrder.setReadyForInvoiceDateTime(res.getString(res.getColumnIndex(WORKORDER_COMPLETEDDATE)));
+                newWorkOrder.setPerson(GetPersonByPersonId(newWorkOrder.getPersonId()));
+                newWorkOrder.setPartList(GetWorkOrderPartList(newWorkOrder.getWorkOrderId()));
+                newWorkOrder.setSentToCloud(res.getInt(res.getColumnIndex(WORKORDER_SENT)));
+                newWorkOrder.setWorkOrderMaterials(GetWorkOrderMaterialsByWorkOrderId(newWorkOrder.getWorkOrderId()));
+               // workOrders.add(newWorkOrder);
+                return newWorkOrder;
+                //res.moveToNext();
+            }
+
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null)res.close();
+        }
+        return null;
+    }
     public ArrayList<WorkOrder> GetWorkOrders(){
         Cursor res=null;
         try{
@@ -1378,6 +1412,7 @@ private void create(){
                 db.update(TABLE_OTHERTASKS,contentValues,"id=?",new String[]{String.valueOf(otherTask.getId())});
             }else {
                 db.insert(TABLE_OTHERTASKS, null, contentValues);
+                Toast.makeText(ctx,"New Task Saved", Toast.LENGTH_LONG).show();
             }
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
@@ -1404,6 +1439,35 @@ private void create(){
         return false;
     }
 
+    public OtherTask GetOtherTaskById(int otherTaskId){
+        Cursor res=null;
+        try{
+            ArrayList<OtherTask> otherTasks=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_OTHERTASKS+" where id="+otherTaskId,null);
+            res.moveToFirst();
+            if(res.isAfterLast()==false){
+                //public OtherTask(int id, int userid, String name, String description)
+                OtherTask otherTask=new OtherTask(res.getInt(res.getColumnIndex(OTHERTASKS_ID)),res.getInt(res.getColumnIndex(OTHERTASKS_USERID)),
+                        res.getString(res.getColumnIndex(OTHERTASKS_TASKNAME)), res.getString(res.getColumnIndex(OTHERTASKS_TASKDESCRIPTION)));
+                otherTask.setSqlid(res.getInt(res.getColumnIndex(OTHERTASKS_SQLID)));
+                if(res.getInt(res.getColumnIndex(OTHERTASKS_ISDIRTY))==1){
+                    otherTask.isDirty=true;
+                }else otherTask.isDirty=false;
+               // otherTasks.add(otherTask);
+                return otherTask;
+
+                //res.moveToNext();
+            }
+           // return otherTasks;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+        finally {
+            if(res!=null) res.close();
+        }
+        return null;
+    }
     public ArrayList<OtherTask> GetOtherTaskListByUserId(int userId){
         Cursor res=null;
         try{

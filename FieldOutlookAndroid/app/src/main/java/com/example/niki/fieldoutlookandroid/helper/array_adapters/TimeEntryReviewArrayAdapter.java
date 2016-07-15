@@ -12,6 +12,8 @@ import android.widget.TextView;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
+import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 
 import java.util.ArrayList;
@@ -70,7 +72,15 @@ public class TimeEntryReviewArrayAdapter extends ArrayAdapter<TimeEntry> {
            // if(holder.timeTextView!=null)
                 holder.timeTextView.setText("" + DateHelper.GetStringTimeFromDate(rows.get(position).getStartDateTime()));
             if(rows.get(position).getType()!=null) {
-                holder.descriptionTimeline.setText(String.valueOf(rows.get(position).getType().getName()));
+                TimeEntryType timeEntryType=rows.get(position).getType();
+                DBHelper dbHelper=new DBHelper(_context);
+                holder.descriptionTimeline.setText(String.valueOf(timeEntryType.getName()));
+                if(timeEntryType.getName().contains("Job")){
+                    holder.descriptionTimeline.setText(holder.descriptionTimeline.getText()+" - "+dbHelper.GetWorkOrderById(rows.get(position).getWorkOrderId()).getPerson().getFullName());
+                }else if(timeEntryType.getName().contains("Other")){
+                    holder.descriptionTimeline.setText(holder.descriptionTimeline.getText()+" - "+dbHelper.GetOtherTaskById(rows.get(position).getOtherTaskId()).getName());
+                }
+
             }
         }
         return convertView;

@@ -104,7 +104,9 @@ public class CustomerAutoCompleteArrayAdapter extends ArrayAdapter<Person> imple
             protected FilterResults performFiltering(CharSequence constraint) {
 
                 FilterResults results = new FilterResults();
-                if (constraint.length() == 0) {
+                if(constraint==null) results.values=originalList;
+                else if(constraint.toString().isEmpty())results.values=originalList;
+                else if (constraint.length() == 0) {
                   //  filteredList=null;
                     results.values = originalList;
                 } else {

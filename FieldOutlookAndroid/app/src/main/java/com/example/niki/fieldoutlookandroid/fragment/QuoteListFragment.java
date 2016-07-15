@@ -31,10 +31,10 @@ import java.util.ArrayList;
  */
 public class QuoteListFragment extends Fragment {
 
-    // TODO: Customize parameter argument names
+
     private static final String ARG_COLUMN_COUNT = "column-count";
     private static final String ARG_QUOTE_LIST="quotelist";
-    // TODO: Customize parameters
+
     private int mColumnCount = 1;
     private OnQuoteListFragmentInteractionListener mListener;
     private ArrayList<Quote> quotes;
@@ -46,7 +46,7 @@ public class QuoteListFragment extends Fragment {
     public QuoteListFragment() {
     }
 
-    // TODO: Customize parameter initialization
+
     @SuppressWarnings("unused")
     public static QuoteListFragment newInstance(int columnCount) {
         QuoteListFragment fragment = new QuoteListFragment();
@@ -103,7 +103,7 @@ public class QuoteListFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new QuoteRecyclerViewAdapter(null, mListener));
+            recyclerView.setAdapter(new QuoteRecyclerViewAdapter(quotes, mListener));
         }
         return view;
     }
@@ -148,7 +148,7 @@ public class QuoteListFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnQuoteListFragmentInteractionListener {
-        // TODO: Update argument type and name
+
         void onQuoteListFragmentInteraction(Quote item);
     }
 }

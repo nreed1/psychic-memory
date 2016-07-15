@@ -79,7 +79,8 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
             @Override
             public void processFinish(ArrayList<WorkOrder> workOrders) {
                 mAdapter=new WorkOrderArrayAdapter(getActivity(),R.layout.workorder_list_item,workOrders);
-                progressDialog.dismiss();
+
+             //   progressDialog.dismiss();
             }
         });
        // progressDialog.show();
@@ -119,7 +120,7 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
         }
 
         // Set OnItemClickListener so we can be notified on item clicks
-        mListView.setOnItemClickListener(this);
+      //  mListView.setOnItemClickListener(this);
 
         return view;
     }

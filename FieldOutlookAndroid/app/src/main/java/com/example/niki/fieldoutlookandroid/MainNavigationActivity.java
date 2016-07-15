@@ -291,13 +291,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
             startActivity(intent);
         } else if (id == R.id.nav_quote) {
             toolbar.setTitle("Quote");
-            FragmentManager fragmentManager = getFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            QuoteListFragment quoteListFragment = new QuoteListFragment();
-            Bundle b = new Bundle();
-            b.putParcelableArrayList("quotes", dbHelper.GetQuoteList());
-            fragmentTransaction.replace(R.id.fragment_container, quoteListFragment, "QuoteList").addToBackStack("QuoteList");
-            fragmentTransaction.commit();
+            StartQuoteListFragment();
         } else if (id == R.id.nav_camera) {
             // create Intent to take a picture and return control to the calling application
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -432,6 +426,16 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void StartQuoteListFragment() {
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        QuoteListFragment quoteListFragment = new QuoteListFragment();
+        Bundle b = new Bundle();
+        b.putParcelableArrayList("quotes", dbHelper.GetQuoteList());
+        fragmentTransaction.replace(R.id.fragment_container, quoteListFragment, "Quote List").addToBackStack("Quote List");
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -809,7 +813,8 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
         this.quote=item;
         this.workOrder=null;
         quoteFragment.setArguments(b);
-        fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "QuoteFragment").addToBackStack("QuoteFragment");
+        setTitle("Quote");
+        fragmentTransaction.replace(R.id.fragment_container, quoteFragment, "Quote").addToBackStack("Quote");
         fragmentTransaction.commit();
     }
 
@@ -822,7 +827,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
         b.putParcelable("selectedworkorder",selectedWorkOrder);
         workOrderMaterialsNeededFragment.setArguments(b);
 
-        fragmentTransaction.replace(R.id.fragment_container, workOrderMaterialsNeededFragment, "WorkOrderMaterialsNeeded").addToBackStack("WorkOrderMaterialsNeeded");
+        fragmentTransaction.replace(R.id.fragment_container, workOrderMaterialsNeededFragment, "Work Order Materials Needed").addToBackStack("Work Order Materials Needed");
         fragmentTransaction.commit();
     }
 
@@ -882,7 +887,11 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
     @Override
     public void onQuoteSaveSuccessful() {
         //Go Back a screen for now that means Quote List
-        onBackPressed();
+        super.onBackPressed();//get back to stale quote list
+        super.onBackPressed();//get back to whatever was before it
+        StartQuoteListFragment();//push fresh quote list fragment onto the screen and stack-- you will likely live to regret this
+
+
     }
 
     @Override

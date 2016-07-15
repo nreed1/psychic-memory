@@ -93,16 +93,17 @@ public class QuoteFragment extends Fragment {
         notes=(EditText)view.findViewById(R.id.notesQuote);
         partList=(ListView)view.findViewById(R.id.partListQuote);
         customerName=(AutoCompleteTextView)view.findViewById(R.id.customerNameQuote);
-        CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter=new CustomerAutoCompleteArrayAdapter(getActivity(),new DBHelper(getActivity()).GetAllPersons());
+        final CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter=new CustomerAutoCompleteArrayAdapter(getActivity(),new DBHelper(getActivity()).GetAllPersons());
         customerName.setAdapter(customerAutoCompleteArrayAdapter);
         customerName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if(selectedQuote==null) {
-                    newQuote.setCustomer((Person) parent.getItemAtPosition(position));
+
+                    newQuote.setCustomer((Person) customerAutoCompleteArrayAdapter.getItem(position));
                     customerAddress.setText(newQuote.getCustomer().getAddress().getPrintableAddress());
                 }else {
-                    selectedQuote.setCustomer((Person)parent.getItemAtPosition(position));
+                    selectedQuote.setCustomer((Person)customerAutoCompleteArrayAdapter.getItem(position));
                     customerAddress.setText(selectedQuote.getCustomer().getAddress().getPrintableAddress());
                 }
             }
@@ -117,6 +118,7 @@ public class QuoteFragment extends Fragment {
             }
         });
         if(selectedQuote!=null){
+            customerName.setText(selectedQuote.getCustomer().getFullName());
             customerAddress.setText(selectedQuote.getCustomer().getAddress().getPrintableAddress());
             description.setText(selectedQuote.getDescription());
             notes.setText(selectedQuote.getNotes());
@@ -181,15 +183,18 @@ public class QuoteFragment extends Fragment {
     private long SaveQuote(){
         try{
             DBHelper dbHelper=new DBHelper(getActivity());
-            if(selectedQuote==null){
-                selectedQuote=new Quote();
+            long pkid=0;
+            if(selectedQuote!=null){
+                //selectedQuote=new Quote();
+                selectedQuote.setDescription(description.getText().toString());
+                // selectedQuote.setCustomer(dbHelper.GetPersonByFullName(customerName.getText().toString()));
+                selectedQuote.setNotes(notes.getText().toString());
+                //selectedQuote.setDateCreated(DateHelper.DateToString(new Date()));
+               pkid=dbHelper.SaveQuote(selectedQuote);
+            }else {
+                newQuote.setDateCreated(DateHelper.DateToString(new Date()));
+                pkid=dbHelper.SaveQuote(newQuote);
             }
-            selectedQuote.setDescription(description.getText().toString());
-            selectedQuote.setCustomer(dbHelper.GetPersonByFullName(customerName.getText().toString()));
-            selectedQuote.setNotes(notes.getText().toString());
-            selectedQuote.setDateCreated(DateHelper.DateToString(new Date()));
-
-           long pkid=dbHelper.SaveQuote(selectedQuote);
             Toast.makeText(getActivity(),"Quote Saved", Toast.LENGTH_SHORT);
             return pkid;
 
