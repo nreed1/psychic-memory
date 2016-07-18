@@ -91,20 +91,20 @@ public class QuotePartListArrayAdapter extends RecyclerView.Adapter<QuotePartLis
     }
     public void addItem(Part part){
         try {
-            mValues.getParts().add(new WorkOrderPart(part,1,null));
+            mValues.getParts().add(new QuotePart(part,1,null));
             DBHelper db=new DBHelper(context);
-            db.SaveWorkOrderPartList(mValues.getWorkOrderId(),mValues.getParts());
+            db.SaveQuotePartList(mValues.getParts(),mValues.getQuoteId());
             db=null;
             QuotePartListArrayAdapter.this.notifyDataSetChanged();
         }catch (Exception ex){
             ExceptionHelper.LogException(context,ex);
         }
     }
-    public void removeItem(WorkOrderPart part){
+    public void removeItem(QuotePart part){
         try {
             mValues.getParts().remove(part);
             DBHelper db=new DBHelper(context);
-            db.SaveWorkOrderPartList(mValues.getWorkOrderId(),mValues.getParts());
+            db.SaveQuotePartList(mValues.getParts(),mValues.getQuoteId());
             db=null;
             QuotePartListArrayAdapter.this.notifyDataSetChanged();
 
@@ -127,7 +127,7 @@ public class QuotePartListArrayAdapter extends RecyclerView.Adapter<QuotePartLis
         public final View mView;
         public final TextView mNumberandDescription;
         public final NumberPicker mQuantity;
-        public WorkOrderPart mItem;
+        public QuotePart mItem;
 
         public ViewHolder(View view) {
             super(view);
