@@ -101,7 +101,7 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
 
-            recyclerView.setAdapter(new WorkOrderMaterialsNeededRecyclerViewAdapter(db.GetWorkOrderMaterialsByWorkOrderId(selectedWorkOrder.getWorkOrderId()), mListener));
+            recyclerView.setAdapter(new WorkOrderMaterialsNeededRecyclerViewAdapter(getActivity(),db.GetWorkOrderMaterialsByWorkOrderId(selectedWorkOrder.getWorkOrderId()), mListener));
         }
         return view;
     }

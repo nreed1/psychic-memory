@@ -41,6 +41,7 @@ import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntryType;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderMaterial;
 import com.example.niki.fieldoutlookandroid.fragment.AssignedJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.AvailableJobFragment;
 import com.example.niki.fieldoutlookandroid.fragment.NewOtherTaskFragment;
@@ -70,6 +71,7 @@ import com.example.niki.fieldoutlookandroid.helper.NetworkHelper;
 import com.example.niki.fieldoutlookandroid.helper.SendCompletedWorkOrders.SendCompletedWorkOrdersAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.SendCustomerImage.SendCustomerImageAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.SendOtherTaskList.SendOtherTaskListAsyncTask;
+import com.example.niki.fieldoutlookandroid.helper.SendWorkOrderMaterialList.SendWorkOrderMaterialListAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
@@ -101,7 +103,7 @@ public class MainNavigationActivity extends AppCompatActivity
         PartListFragment.OnPartListPartFragmentInteractionListener, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener,
         WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener,
         QuoteListFragment.OnQuoteListFragmentInteractionListener,QuoteFragment.OnAddPartsInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener,
-QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingInteractionListener, WorkOrderMaterialsNeededFragment.OnAddWorkOrderMaterialInteractionListener{
+QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingInteractionListener, WorkOrderMaterialsNeededFragment.OnAddWorkOrderMaterialInteractionListener, PartListFragment.OnPartListFragmentFinishListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -110,6 +112,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
     private WorkOrder workOrder;
     private NetworkHelper networkHelper;
     private Quote quote;
+    private boolean isWorkOrderMaterial=false;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -310,10 +313,20 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
                 progressDialog.isIndeterminate();
                 progressDialog.setCanceledOnTouchOutside(false);
                 progressDialog.setCancelable(false);
-                progressDialog.setMessage("Getting Work Orders");
+
                 progressDialog.show();
 
                 ArrayList<WorkOrder> completedWorkOrders = dbHelper.GetCompletedWorkOrders();
+                ArrayList<WorkOrderMaterial> materials=dbHelper.GetWorkOrderMaterialsUnfulfilled();
+            progressDialog.setMessage("Sending Work Order Materials");
+                SendWorkOrderMaterialListAsyncTask sendWorkOrderMaterialListAsyncTask=new SendWorkOrderMaterialListAsyncTask(getApplicationContext(), new SendWorkOrderMaterialListAsyncTask.SendWorkOrderMaterialsDelegate() {
+                    @Override
+                    public void processFinish() {
+                        progressDialog.setMessage("Getting Work Orders");
+                    }
+                });
+                sendWorkOrderMaterialListAsyncTask.execute(materials);
+
                 final AssignedJobsAsyncTask assignedJobsAsyncTask = new AssignedJobsAsyncTask(new AssignedJobsAsyncTask.AssignedJobsResponse() {
 
                     @Override
@@ -678,7 +691,9 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
        PartListFragment partListFragment=new PartListFragment();
         Bundle b=new Bundle();
         b.putParcelable("selectedworkorder", selectedWorkOrder);
-        b.putBoolean("isworkordermaterial",true);
+        workOrder=selectedWorkOrder;
+        isWorkOrderMaterial=true;
+        b.putBoolean("isworkordermaterial",isWorkOrderMaterial);
         partListFragment.setArguments(b);
         fragmentTransaction.replace(R.id.fragment_container, partListFragment, "Work Order Material Search").addToBackStack("Work Order Material Search");
         fragmentTransaction.commit();
@@ -723,6 +738,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
 
     @Override
     public void onSelectedWorkOrderFragmentInteraction(String uri) {
+        isWorkOrderMaterial=false;
         switch (uri) {
             case "ViewParts":
                 FragmentManager fragmentManager = getFragmentManager();
@@ -759,6 +775,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
         }
         b.putParcelable("selectedworkorder", workOrder);
         b.putParcelable("selectedquote", quote);
+        b.putBoolean("isworkordermaterial",isWorkOrderMaterial );
         partListFragment.setArguments(b);
         if(currentFragment instanceof SearchPartFlatRateItemFragment){
             SearchPartFlatRateItemFragment searchPartFlatRateItemFragment=(SearchPartFlatRateItemFragment)currentFragment;
@@ -789,6 +806,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
     @Override
     public void onWorkOrderPartMenuItemInteraction(WorkOrder selectedWorkOrder, MenuItem item) {
         this.workOrder = selectedWorkOrder;
+        isWorkOrderMaterial=false;
         this.quote=null;
         if (item.getItemId() == R.id.addPartToWorkOrderMenuItem) {
             FragmentManager fragmentManager = getFragmentManager();
@@ -797,6 +815,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
             Bundle b = new Bundle();
             b.putParcelableArrayList("categories-given", null);
             b.putParcelable("selectedworkorder", selectedWorkOrder);
+            workOrder=selectedWorkOrder;
             partListFragment.setArguments(b);
             fragmentTransaction.replace(R.id.fragment_container, partListFragment, "PartList").addToBackStack("PartList");
             fragmentTransaction.commit();
@@ -806,6 +825,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
     @Override
     public void onSelectedWorkOrderMenuItemInteraction(WorkOrder selectedWorkorder) {
         this.workOrder = selectedWorkorder;
+        this.isWorkOrderMaterial=false;
         this.quote=null;
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -834,6 +854,11 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
 
     @Override
     public void onWorkOrderMaterialsClicked(WorkOrder selectedWorkOrder) {
+        StartWorkOrderMaterialsList(selectedWorkOrder);
+    }
+
+    private void StartWorkOrderMaterialsList(WorkOrder selectedWorkOrder) {
+        setTitle("Work Order Materials");
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         WorkOrderMaterialsNeededFragment workOrderMaterialsNeededFragment = new WorkOrderMaterialsNeededFragment();
@@ -921,5 +946,17 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
     @Override
     public void onAddWorkOrderMaterialInteraction(WorkOrder selectedWorkOrder) {
         StartAddWorkOrderMaterials(selectedWorkOrder);
+    }
+
+    @Override
+    public void onPartListFinish() {
+        FragmentManager fragmentManager = getFragmentManager();
+        Fragment currentFragment=fragmentManager.findFragmentById(R.id.fragment_container);
+        while(currentFragment instanceof WorkOrderMaterialsNeededFragment ==false){
+            super.onBackPressed();
+            currentFragment=fragmentManager.findFragmentById(R.id.fragment_container);
+        }
+        super.onBackPressed();
+        StartWorkOrderMaterialsList(workOrder);
     }
 }

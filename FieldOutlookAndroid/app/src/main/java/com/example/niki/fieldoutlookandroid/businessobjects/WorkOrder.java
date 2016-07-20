@@ -324,12 +324,14 @@ public class WorkOrder implements Serializable, Parcelable {
                 }
             }
             if(!partExistsInList){
+                workOrderMaterial.setQuantity(1);
                 this.workOrderMaterials.add(workOrderMaterial);
             }
         }else{
             if(getWorkOrderMaterials()==null){
                 setWorkOrderMaterials(new ArrayList<WorkOrderMaterial>());
             }
+            workOrderMaterial.setQuantity(1);
             this.workOrderMaterials.add(workOrderMaterial);
         }
     }

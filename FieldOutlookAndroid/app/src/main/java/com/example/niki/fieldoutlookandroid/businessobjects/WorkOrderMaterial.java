@@ -15,6 +15,7 @@ public class WorkOrderMaterial extends Part {
     private int quantity;
     private int workOrderId;
     private Date neededBy;
+    private boolean fulfilled;
 
     public WorkOrderMaterial(){
 
@@ -57,6 +58,14 @@ public class WorkOrderMaterial extends Part {
         this.neededBy = neededBy;
     }
 
+    public boolean isFulfilled() {
+        return fulfilled;
+    }
+
+    public void setFulfilled(boolean fulfilled) {
+        this.fulfilled = fulfilled;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -76,6 +85,7 @@ public class WorkOrderMaterial extends Part {
         dest.writeDouble(getPrice());
         dest.writeInt(getWorkOrderId());
         dest.writeString(DateHelper.DateToString(getNeededBy()));
+        dest.writeInt(fulfilled?1:0);
 
     }
     public static  final Creator<WorkOrderMaterial> CREATOR= new Creator<WorkOrderMaterial>() {
@@ -95,6 +105,7 @@ public class WorkOrderMaterial extends Part {
             part.setPrice(source.readDouble());
             part.setWorkOrderId(source.readInt());
             part.setNeededBy(DateHelper.StringToDate(source.readString()));
+            part.setFulfilled(source.readInt()==1?true:false);
             return part;
         }
 

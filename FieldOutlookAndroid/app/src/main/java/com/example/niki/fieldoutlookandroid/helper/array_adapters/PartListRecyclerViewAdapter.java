@@ -83,14 +83,17 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
             for (WorkOrderPart workOrderPart:workOrder.getPartList()){
                 partIdsInWorkOrder.add(workOrderPart.getPartId());
             }
+            SelectedPartsSingleton.getInstance().addAll(workOrder.getPartList());
         }else if(workOrder!=null &&workOrder.getWorkOrderMaterials()!=null && !workOrder.getWorkOrderMaterials().isEmpty()&& isWorkOrderMaterial==true){
             for(WorkOrderMaterial workOrderMaterial: workOrder.getWorkOrderMaterials()){
                 partIdsInWorkOrder.add(workOrderMaterial.getPartId());
             }
+            SelectedPartsSingleton.getInstance().addAll(workOrder.getWorkOrderMaterials());
         }else if(quote!=null && quote.getParts()!=null && !quote.getParts().isEmpty()){
             for (QuotePart quotePart:quote.getParts()){
                 partIdsInWorkOrder.add(quotePart.getPartId());
             }
+            SelectedPartsSingleton.getInstance().addAll(quote.getParts());
         }
         originalList=dbHelper.GetAllParts();
 
@@ -236,7 +239,16 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked) {
-                    selectedParts.add(holder.mPart);
+                    //selectedParts.add(holder.mPart);
+                    boolean exists=false;
+                    for(Part p :SelectedPartsSingleton.getInstance()) {
+                        if(p.getPartId()==holder.mPart.getPartId()){
+                            exists=true;
+                            break;
+                        }
+                    }
+                    if(!exists)
+                        SelectedPartsSingleton.getInstance().add(holder.mPart);
                    // WorkOrderPartHelper.getInstance().addPart(holder.mPart);
 //                    if(workOrder!=null && isWorkOrderMaterial==false){
 //                        workOrder.addWorkOrderPartToList(new WorkOrderPart(holder.mPart,1,null));
@@ -246,7 +258,8 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
 //                        quote.addWorkOrderPartToList(new QuotePart(holder.mPart,1,null));
 //                    }
                 }else {
-                    selectedParts.remove(holder.mPart);
+                    //selectedParts.remove(holder.mPart);
+                    SelectedPartsSingleton.getInstance().remove(holder.mPart);
                     //WorkOrderPartHelper.getInstance().removePart(holder.mPart);
 //                    if(workOrder!=null && isWorkOrderMaterial==false){
 //                        workOrder.removeWorkOrderPartFromList(new WorkOrderPart(holder.mPart,1,null));
@@ -262,17 +275,17 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
 
     public void SaveSelection(){
         if(workOrder!=null && isWorkOrderMaterial==false){
-            for (Part mPart:selectedParts) {
+            for (Part mPart:SelectedPartsSingleton.getInstance()) {
                 workOrder.addWorkOrderPartToList(new WorkOrderPart(mPart, 1, null));
             }
            dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(),workOrder.getPartList());
         }else if(workOrder!=null && isWorkOrderMaterial==true){
-            for (Part mPart:selectedParts) {
+            for (Part mPart:SelectedPartsSingleton.getInstance()) {
                 workOrder.addWorkOrderMaterialFromList(new WorkOrderMaterial(mPart, 1));
             }
             dbHelper.SaveWorkOrderMaterialsNeeded(workOrder.getWorkOrderId(),workOrder.getWorkOrderMaterials());
         }else if(quote!=null){
-            for (Part mPart:selectedParts) {
+            for (Part mPart:SelectedPartsSingleton.getInstance()) {
                 quote.addWorkOrderPartToList(new QuotePart(mPart, 1, null));
             }
             dbHelper.SaveQuotePartList(quote.getParts(),quote.getQuoteId());

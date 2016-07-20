@@ -150,7 +150,7 @@ public class QuotePartListArrayAdapter extends RecyclerView.Adapter<QuotePartLis
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
             menu.setHeaderTitle("Select The Action");
             menu.add(0, v.getId(), 0, "Remove");//groupId, itemId, order, title
-            menu.add(0, v.getId(), 0, "SMS");
+
         }
 
 

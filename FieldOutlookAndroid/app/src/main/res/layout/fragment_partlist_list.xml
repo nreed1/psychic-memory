@@ -11,4 +11,6 @@
     app:layoutManager="LinearLayoutManager"
     tools:context="com.example.niki.fieldoutlookandroid.fragment.PartListFragment"
     tools:listitem="@layout/fragment_partlist"
-    />
+    >
+
+</android.support.v7.widget.RecyclerView>

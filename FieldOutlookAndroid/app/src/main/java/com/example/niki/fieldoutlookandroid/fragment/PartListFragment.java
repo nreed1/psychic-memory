@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
@@ -54,6 +55,7 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
     private int mColumnCount = 1;
     private OnPartListFragmentInteractionListener mListener;
     private OnPartListPartFragmentInteractionListener mPartListener;
+    private OnPartListFragmentFinishListener partListFragmentFinishListener;
     private ArrayList<PartCategory> categories;
     private ArrayList<Part> parts;
     private PartCategory partCategory;
@@ -129,6 +131,12 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
 //               // }
 //
 //                return true;
+            case R.id.saveSelectedPartsButton:
+                mAdapter.SaveSelection();
+                Toast.makeText(getActivity(),"Selection Saved", Toast.LENGTH_LONG).show();
+                if(partListFragmentFinishListener!=null)
+                    partListFragmentFinishListener.onPartListFinish();
+                return true;
             case R.id.unselectAllItems:
                 if(parts!=null && !parts.isEmpty()){
                     mAdapter.unselectAll();
@@ -164,13 +172,7 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
             recyclerView.setAdapter(mAdapter);
 
         }
-        Button saveSelection=(Button)view.findViewById(R.id.saveSelectedPartsButton);
-        saveSelection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mAdapter.SaveSelection();
-            }
-        });
+
         return view;
     }
 
@@ -183,7 +185,9 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
 
         } else if(context instanceof OnPartListPartFragmentInteractionListener) {
             mPartListener=(OnPartListPartFragmentInteractionListener) context;
-        }
+        }else if(context instanceof OnPartListFragmentFinishListener){
+        partListFragmentFinishListener=(OnPartListFragmentFinishListener)context;
+    }
         else
          {
             throw new RuntimeException(context.toString()
@@ -196,8 +200,10 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
         if (context instanceof OnPartListFragmentInteractionListener) {
             mListener = (OnPartListFragmentInteractionListener) context;
 
-        } else if(context instanceof OnPartListPartFragmentInteractionListener) {
+        }  if(context instanceof OnPartListPartFragmentInteractionListener) {
             mPartListener=(OnPartListPartFragmentInteractionListener) context;
+        } if(context instanceof OnPartListFragmentFinishListener){
+            partListFragmentFinishListener=(OnPartListFragmentFinishListener)context;
         }
         else
         {
@@ -228,5 +234,8 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
     }
     public interface OnPartListPartFragmentInteractionListener{
         void onPartListPartInteraction(Part item);
+    }
+    public interface OnPartListFragmentFinishListener{
+        void onPartListFinish();
     }
 }

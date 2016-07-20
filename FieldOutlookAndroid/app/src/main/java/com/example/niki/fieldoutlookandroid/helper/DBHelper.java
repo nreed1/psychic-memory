@@ -176,6 +176,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String WORKORDERMATERIALSNEEDED_WORKORDERID="workorderid";
     public static final String WORKORDERMATERIALSNEEDED_PARTID="partid";
     public static final String WORKORDERMATERIALSNEEDED_QUANTITY="quantity";
+    public static final String WORKORDERMATERIALSNEEDED_FULFILLED="fulfilled";
 
     public static final String TABLE_FLATRATEITEM="flatrateitem";
     public static final String FLATRATEITEM_ID="id";
@@ -269,7 +270,7 @@ private void create(){
 
 
         //#start workordermaterialsneeded
-        db.execSQL("create table if not exists workordermaterialsneeded (id integer primary key, workorderid integer, partid integer, quantity integer)");
+        db.execSQL("create table if not exists workordermaterialsneeded (id integer primary key, workorderid integer, partid integer, quantity integer, fulfilled integer)");
         //#end workordermaterialsneeded
 
         //#start flatrateitem
@@ -471,8 +472,12 @@ private void create(){
             res.moveToFirst();
             while(!res.isAfterLast()){
                 WorkOrderMaterial workOrderMaterial=new WorkOrderMaterial(GetPartById(res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_PARTID))),res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_QUANTITY)));
+                workOrderMaterial.setWorkOrderId(res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_WORKORDERID)));
+                workOrderMaterial.setFulfilled(res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_FULFILLED))==1?true:false);
+                workOrderMaterials.add(workOrderMaterial);
                 res.moveToNext();
             }
+            return workOrderMaterials;
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
         }
@@ -481,7 +486,66 @@ private void create(){
         }
         return new ArrayList<>();
     }
+    public ArrayList<WorkOrderMaterial> GetWorkOrderMaterialsUnfulfilled(){
+        Cursor res=null;
+        try{
+            ArrayList<WorkOrderMaterial> materials=new ArrayList<>();
+            db=getReadableDatabase();
+            res=db.rawQuery("select * from "+TABLE_WORKORDERMATERIALSNEEDED+" where fulfilled=0",null);
+            res.moveToFirst();
+            while(res.isAfterLast()==false){
+                WorkOrderMaterial workOrderMaterial=new WorkOrderMaterial(GetPartById(res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_PARTID))),res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_QUANTITY)));
+                workOrderMaterial.setWorkOrderId(res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_WORKORDERID)));
+                workOrderMaterial.setFulfilled(res.getInt(res.getColumnIndex(WORKORDERMATERIALSNEEDED_FULFILLED))==1?true:false);
+                materials.add(workOrderMaterial);
+                res.moveToNext();
+            }
+            return materials;
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+        return new ArrayList<>();
+    }
+    public void SetWorkOrderMaterialListToFulfilled(ArrayList<WorkOrderMaterial> workOrderMaterials){
+        Cursor res=null;
+        try {
+            int workOrderId=0;
+            db=getWritableDatabase();
+            for(WorkOrderMaterial workOrderMaterial:workOrderMaterials){
+                workOrderMaterial.setFulfilled(true);
+                res=db.rawQuery("update "+TABLE_WORKORDERMATERIALSNEEDED+" set fulfilled=1 where workorderid="+workOrderMaterial.getWorkOrderId()+" and partid="+workOrderMaterial.getPartId(),null);
+                res.moveToFirst();
+            }
 
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }finally {
+            if(res!=null)res.close();
+        }
+    }
+
+    public void RemoveWorkOrderMaterial(int workorderId, int partId){
+        try{
+            db=getWritableDatabase();
+            db.delete(TABLE_WORKORDERMATERIALSNEEDED,"workorderid=? and partid=?",new String[]{String.valueOf(workorderId),String.valueOf(partId)});
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+    }
+    public void UpdateWorkOrderMaterialsQuantity(int workOrderId, int partId, int newQuantity){
+        try{
+            db=getWritableDatabase();
+            ContentValues contentValues=new ContentValues();
+            contentValues.put(WORKORDERMATERIALSNEEDED_PARTID, partId);
+            contentValues.put(WORKORDERMATERIALSNEEDED_QUANTITY,newQuantity);
+            contentValues.put(WORKORDERMATERIALSNEEDED_WORKORDERID, workOrderId);
+            db.update(TABLE_WORKORDERMATERIALSNEEDED,contentValues, "workorderid=? and partid=?", new String[]{String.valueOf(workOrderId),String.valueOf(partId)});
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+    }
     public void SaveWorkOrderMaterialsNeeded(int workOrderId, ArrayList<WorkOrderMaterial> workOrderMaterials){
         try{
             DeleteWorkOrderMaterialsByWorkOrder(workOrderId);
@@ -492,7 +556,9 @@ private void create(){
                 contentValues.put(WORKORDERMATERIALSNEEDED_PARTID, workOrderMaterial.getPartId());
                 contentValues.put(WORKORDERMATERIALSNEEDED_QUANTITY,workOrderMaterial.getQuantity());
                 contentValues.put(WORKORDERMATERIALSNEEDED_WORKORDERID, workOrderId);
-                db.insert(TABLE_WORKORDERMATERIALSNEEDED,null, contentValues);
+                contentValues.put(WORKORDERMATERIALSNEEDED_FULFILLED,workOrderMaterial.isFulfilled()==true?1:0);
+                long id=db.insert(TABLE_WORKORDERMATERIALSNEEDED,null, contentValues);
+                Log.d("id",String.valueOf(id));
             }
         }catch (Exception ex){
             ExceptionHelper.LogException(ctx,ex);
