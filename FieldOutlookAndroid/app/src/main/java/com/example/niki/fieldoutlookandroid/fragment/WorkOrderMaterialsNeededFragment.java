@@ -1,5 +1,6 @@
 package com.example.niki.fieldoutlookandroid.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -7,6 +8,9 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -29,9 +33,10 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
     private static final String ARG_SELECTED_WORKORDER="selectedworkorder";
-    // TODO: Customize parameters
+
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
+    private OnAddWorkOrderMaterialInteractionListener materialInteractionListener;
     private DBHelper db;
     private WorkOrder selectedWorkOrder;
     /**
@@ -60,6 +65,25 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
             selectedWorkOrder=getArguments().getParcelable(ARG_SELECTED_WORKORDER);
         }
         db=new DBHelper(getActivity());
+        setHasOptionsMenu(true);
+    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        inflater.inflate(R.menu.quote_list_menu, menu);
+
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.addQuoteMenuItem:
+               materialInteractionListener.onAddWorkOrderMaterialInteraction(selectedWorkOrder);
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -84,11 +108,15 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
 
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(Activity context) {
         super.onAttach(context);
         if (context instanceof OnListFragmentInteractionListener) {
             mListener = (OnListFragmentInteractionListener) context;
-        } else {
+        }
+        if(context instanceof OnAddWorkOrderMaterialInteractionListener) {
+            materialInteractionListener=(OnAddWorkOrderMaterialInteractionListener)context;
+        }    else
+         {
             throw new RuntimeException(context.toString()
                     + " must implement OnFlatRateItemListFragmentInteractionListener");
         }
@@ -113,5 +141,8 @@ public class WorkOrderMaterialsNeededFragment extends Fragment {
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
         void onListFragmentInteraction(WorkOrderMaterial item);
+    }
+    public interface OnAddWorkOrderMaterialInteractionListener{
+        void onAddWorkOrderMaterialInteraction(WorkOrder selectedWorkOrder);
     }
 }

@@ -101,7 +101,7 @@ public class MainNavigationActivity extends AppCompatActivity
         PartListFragment.OnPartListPartFragmentInteractionListener, WorkOrderPartFragment.OnWorkOrderPartListFragmentInteractionListener,
         WorkOrderPartFragment.OnWorkOrderPartMenuItemInteractionListener, SelectedWorkorderFragment.OnSelectedWorkOrderMenuItemInteractionListener,
         QuoteListFragment.OnQuoteListFragmentInteractionListener,QuoteFragment.OnAddPartsInteractionListener, SelectedWorkorderFragment.OnWorkOrderMaterialsClickedListener,
-QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingInteractionListener{
+QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingInteractionListener, WorkOrderMaterialsNeededFragment.OnAddWorkOrderMaterialInteractionListener{
     Toolbar toolbar;
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private Uri fileUri;
@@ -671,6 +671,18 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
         fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, "Travel To").addToBackStack("Travel To");
         fragmentTransaction.commit();
     }
+    private void StartAddWorkOrderMaterials(WorkOrder selectedWorkOrder){
+        toolbar.setTitle("Work Order Materials");
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+       PartListFragment partListFragment=new PartListFragment();
+        Bundle b=new Bundle();
+        b.putParcelable("selectedworkorder", selectedWorkOrder);
+        b.putBoolean("isworkordermaterial",true);
+        partListFragment.setArguments(b);
+        fragmentTransaction.replace(R.id.fragment_container, partListFragment, "Work Order Material Search").addToBackStack("Work Order Material Search");
+        fragmentTransaction.commit();
+    }
 
     @Override
     public void onTravelToFragmentInteraction(WorkOrder workOrder) {
@@ -904,5 +916,10 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
                 timekeepingHelper.AddTimekeepingEntry(getApplicationContext(),"job",selectedWorkOrder.getWorkOrderId());
                 onBackPressed();
             }
+    }
+
+    @Override
+    public void onAddWorkOrderMaterialInteraction(WorkOrder selectedWorkOrder) {
+        StartAddWorkOrderMaterials(selectedWorkOrder);
     }
 }

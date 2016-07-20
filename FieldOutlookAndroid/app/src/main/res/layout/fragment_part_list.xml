@@ -9,5 +9,11 @@
 
     <TextView android:id="@android:id/empty" android:layout_width="match_parent"
         android:layout_height="match_parent" android:gravity="center" />
+    <Button
+        android:id="@+id/saveSelectedPartsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Selected"
+        android:layout_gravity="bottom"/>
 
 </FrameLayout>

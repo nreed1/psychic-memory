@@ -23,6 +23,7 @@ import com.example.niki.fieldoutlookandroid.businessobjects.PartCategory;
 import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
 import com.example.niki.fieldoutlookandroid.businessobjects.QuotePart;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
+import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderMaterial;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrderPart;
 import com.example.niki.fieldoutlookandroid.fragment.PartListFragment;
 import com.example.niki.fieldoutlookandroid.fragment.dummy.DummyContent.DummyItem;
@@ -54,10 +55,14 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
     protected List<Part> filteredList;
     private WorkOrder workOrder;
     private Quote quote;
+    private boolean isWorkOrderMaterial=false;
     private ArrayList<Integer> partIdsInWorkOrder=new ArrayList<>();
 
+    private ArrayList<Part> selectedParts=new ArrayList<>();
 
-    public PartListRecyclerViewAdapter(Context context,List<PartCategory> items, List<Part> parts,PartCategory partCategory, WorkOrder workOrder,PartListFragment.OnPartListFragmentInteractionListener listener, PartListFragment.OnPartListPartFragmentInteractionListener partListener,Quote quote) {
+
+    public PartListRecyclerViewAdapter(Context context,List<PartCategory> items, List<Part> parts,PartCategory partCategory, WorkOrder workOrder,PartListFragment.OnPartListFragmentInteractionListener listener, PartListFragment.OnPartListPartFragmentInteractionListener partListener,Quote quote, boolean isWorkOrderMaterial) {
+        this.isWorkOrderMaterial=isWorkOrderMaterial;
         category=partCategory;
         if(category!=null){
             mValues=category.getSubCategoryList();
@@ -74,9 +79,13 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         dbHelper=new DBHelper(context);
         this.workOrder=workOrder;
         this.quote=quote;
-        if(workOrder!=null &&workOrder.getPartList()!=null && !workOrder.getPartList().isEmpty()){
+        if(workOrder!=null &&workOrder.getPartList()!=null && !workOrder.getPartList().isEmpty()&& isWorkOrderMaterial==false){
             for (WorkOrderPart workOrderPart:workOrder.getPartList()){
                 partIdsInWorkOrder.add(workOrderPart.getPartId());
+            }
+        }else if(workOrder!=null &&workOrder.getWorkOrderMaterials()!=null && !workOrder.getWorkOrderMaterials().isEmpty()&& isWorkOrderMaterial==true){
+            for(WorkOrderMaterial workOrderMaterial: workOrder.getWorkOrderMaterials()){
+                partIdsInWorkOrder.add(workOrderMaterial.getPartId());
             }
         }else if(quote!=null && quote.getParts()!=null && !quote.getParts().isEmpty()){
             for (QuotePart quotePart:quote.getParts()){
@@ -102,11 +111,13 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
                     quote.addWorkOrderPartToList(new QuotePart(p,1,null));
                 }
             }
-            if(workOrder!=null) {
-                dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(), workOrder.getPartList());
-            }else if(quote!=null){
-                dbHelper.SaveQuotePartList(quote.getParts(),quote.getQuoteId());
-            }
+//            if(workOrder!=null && isWorkOrderMaterial==false) {
+//                dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(), workOrder.getPartList());
+//            }else if(workOrder!=null && isWorkOrderMaterial==true){
+//                dbHelper.SaveWorkOrderMaterialsNeeded(workOrder.getWorkOrderId(),workOrder.getWorkOrderMaterials());
+//            }else if(quote!=null){
+//                dbHelper.SaveQuotePartList(quote.getParts(),quote.getQuoteId());
+//            }
 
             PartListRecyclerViewAdapter.this.notifyDataSetChanged();
         }
@@ -117,12 +128,22 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
         isAllSelected=false;
         isUnSelected=true;
         if(mParts!=null && !mParts.isEmpty()) {
-           // WorkOrderPartHelper.getInstance().removePartList((ArrayList<Part>) mParts);
-            for (Part p :mParts){
-                workOrder.removeWorkOrderPartFromList(new WorkOrderPart(p,1,null));
-            }
-            dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(),workOrder.getPartList());
-
+//           // WorkOrderPartHelper.getInstance().removePartList((ArrayList<Part>) mParts);
+//            if(workOrder!=null && isWorkOrderMaterial==false) {
+//                for (Part p : mParts) {
+//                    workOrder.removeWorkOrderPartFromList(new WorkOrderPart(p, 1, null));
+//                }
+//                dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(), workOrder.getPartList());
+//            }else if(workOrder!=null && isWorkOrderMaterial==true){
+//                for (Part p:mParts){
+//                    workOrder.removeWorkOrderMaterialFromList(new WorkOrderMaterial(p,1));
+//                }
+//            }else if(quote!=null){
+//                for (Part p:mParts){
+//                    quote.removeWorkOrderPartFromList(new QuotePart(p,1,null));
+//                }
+//            }
+            selectedParts=new ArrayList<>();
             PartListRecyclerViewAdapter.this.notifyDataSetChanged();
         }
     }
@@ -215,22 +236,48 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked) {
+                    selectedParts.add(holder.mPart);
                    // WorkOrderPartHelper.getInstance().addPart(holder.mPart);
-                    if(workOrder!=null){
-                        workOrder.addWorkOrderPartToList(new WorkOrderPart(holder.mPart,1,null));
-                    }else if(quote!=null){
-                        quote.addWorkOrderPartToList(new QuotePart(holder.mPart,1,null));
-                    }
+//                    if(workOrder!=null && isWorkOrderMaterial==false){
+//                        workOrder.addWorkOrderPartToList(new WorkOrderPart(holder.mPart,1,null));
+//                    }else if(workOrder!=null && isWorkOrderMaterial==true){
+//                        workOrder.addWorkOrderMaterialFromList(new WorkOrderMaterial(holder.mPart,1));
+//                    }else if(quote!=null){
+//                        quote.addWorkOrderPartToList(new QuotePart(holder.mPart,1,null));
+//                    }
                 }else {
+                    selectedParts.remove(holder.mPart);
                     //WorkOrderPartHelper.getInstance().removePart(holder.mPart);
-                    if(workOrder!=null){
-                        workOrder.removeWorkOrderPartFromList(new WorkOrderPart(holder.mPart,1,null));
-                    }else if(quote!=null){
-                        quote.removeWorkOrderPartFromList(new QuotePart(holder.mPart,1,null));
-                    }
+//                    if(workOrder!=null && isWorkOrderMaterial==false){
+//                        workOrder.removeWorkOrderPartFromList(new WorkOrderPart(holder.mPart,1,null));
+//                    }else if(workOrder!=null && isWorkOrderMaterial==true){
+//                        workOrder.removeWorkOrderMaterialFromList(new WorkOrderMaterial(holder.mPart,1));
+//                    }else if(quote!=null){
+//                        quote.removeWorkOrderPartFromList(new QuotePart(holder.mPart,1,null));
+//                    }
                 }
             }
         });
+    }
+
+    public void SaveSelection(){
+        if(workOrder!=null && isWorkOrderMaterial==false){
+            for (Part mPart:selectedParts) {
+                workOrder.addWorkOrderPartToList(new WorkOrderPart(mPart, 1, null));
+            }
+           dbHelper.SaveWorkOrderPartList(workOrder.getWorkOrderId(),workOrder.getPartList());
+        }else if(workOrder!=null && isWorkOrderMaterial==true){
+            for (Part mPart:selectedParts) {
+                workOrder.addWorkOrderMaterialFromList(new WorkOrderMaterial(mPart, 1));
+            }
+            dbHelper.SaveWorkOrderMaterialsNeeded(workOrder.getWorkOrderId(),workOrder.getWorkOrderMaterials());
+        }else if(quote!=null){
+            for (Part mPart:selectedParts) {
+                quote.addWorkOrderPartToList(new QuotePart(mPart, 1, null));
+            }
+            dbHelper.SaveQuotePartList(quote.getParts(),quote.getQuoteId());
+        }
+
     }
 
     public void addItem(Part part){

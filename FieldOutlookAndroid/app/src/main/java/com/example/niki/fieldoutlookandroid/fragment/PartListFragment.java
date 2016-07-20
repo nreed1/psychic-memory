@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Part;
@@ -41,13 +42,14 @@ import static com.example.niki.fieldoutlookandroid.R.menu.selected_workorder_men
  */
 public class PartListFragment extends Fragment implements SearchView.OnQueryTextListener {
 
-    // TODO: Customize parameter argument names
+
     private static final String ARG_COLUMN_COUNT = "column-count";
     private static final String ARG_CATEGORIES_GIVEN="categories-given";
     private static final String ARG_PARTS="parts";
     private static final String ARG_PART_CATEGORY="part-category";
     private static final String ARG_SELECTED_WORKORDER="selectedworkorder";
     private static final String ARG_SELECTED_QUOTE="selectedquote";
+    private static final String ARG_IS_WORKORDER_MATERIAL="isworkordermaterial";
 
     private int mColumnCount = 1;
     private OnPartListFragmentInteractionListener mListener;
@@ -57,6 +59,7 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
     private PartCategory partCategory;
     private WorkOrder selectedWorkOrder;
     private Quote selectedQuote;
+    private boolean isWorkOrderMaterial=false;
 
 
     PartListRecyclerViewAdapter mAdapter;
@@ -90,10 +93,11 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
             partCategory = getArguments().getParcelable(ARG_PART_CATEGORY);
             selectedWorkOrder=getArguments().getParcelable(ARG_SELECTED_WORKORDER);
             selectedQuote=getArguments().getParcelable(ARG_SELECTED_QUOTE);
-        }
-        if(partCategory!=null){
+            isWorkOrderMaterial=getArguments().getBoolean(ARG_IS_WORKORDER_MATERIAL);
+
 
         }
+
 
     }
     @Override
@@ -156,10 +160,17 @@ public class PartListFragment extends Fragment implements SearchView.OnQueryText
             else if(categories==null) {
                 categories = new DBHelper(getActivity()).GetPartCategoryList(-100);
             }
-            mAdapter=new PartListRecyclerViewAdapter(getActivity().getApplicationContext(),categories,parts,partCategory, selectedWorkOrder,mListener,mPartListener,selectedQuote);
+            mAdapter=new PartListRecyclerViewAdapter(getActivity().getApplicationContext(),categories,parts,partCategory, selectedWorkOrder,mListener,mPartListener,selectedQuote, isWorkOrderMaterial);
             recyclerView.setAdapter(mAdapter);
 
         }
+        Button saveSelection=(Button)view.findViewById(R.id.saveSelectedPartsButton);
+        saveSelection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mAdapter.SaveSelection();
+            }
+        });
         return view;
     }
 

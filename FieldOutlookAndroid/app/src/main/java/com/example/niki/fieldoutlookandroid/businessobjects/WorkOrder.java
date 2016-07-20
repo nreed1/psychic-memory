@@ -313,6 +313,46 @@ public class WorkOrder implements Serializable, Parcelable {
         }
     }
 
+    public void addWorkOrderMaterialFromList(WorkOrderMaterial workOrderMaterial){
+        if(getWorkOrderMaterials()!=null &&! getWorkOrderMaterials().isEmpty()){
+            boolean partExistsInList=false;
+            for (WorkOrderMaterial part:this.workOrderMaterials){
+                if(part.getPartId()==workOrderMaterial.getPartId()){
+                    partExistsInList=true;
+                    part.setQuantity(part.getQuantity()+1);//Increase quantity if it already exists in the list
+                    break;
+                }
+            }
+            if(!partExistsInList){
+                this.workOrderMaterials.add(workOrderMaterial);
+            }
+        }else{
+            if(getWorkOrderMaterials()==null){
+                setWorkOrderMaterials(new ArrayList<WorkOrderMaterial>());
+            }
+            this.workOrderMaterials.add(workOrderMaterial);
+        }
+    }
+    public void removeWorkOrderMaterialFromList(WorkOrderMaterial workOrderMaterial){
+        if(getWorkOrderMaterials()!=null &&! getWorkOrderMaterials().isEmpty()){
+            boolean partExistsInList=false;
+            for (WorkOrderMaterial part:this.workOrderMaterials){
+                if(part.getPartId()==workOrderMaterial.getPartId()){
+                    partExistsInList=true;
+                    break;
+                }
+            }
+            if(!partExistsInList){
+                this.workOrderMaterials.remove(workOrderMaterial);
+            }
+        }else{
+            if(getWorkOrderMaterials()==null){
+                setWorkOrderMaterials(new ArrayList<WorkOrderMaterial>());
+            }
+
+        }
+    }
+
     public ArrayList<WorkOrderMaterial> getWorkOrderMaterials() {
         return workOrderMaterials;
     }
