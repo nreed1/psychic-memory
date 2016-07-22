@@ -76,6 +76,7 @@ import com.example.niki.fieldoutlookandroid.helper.ServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.MyPagerAdapter;
+import com.example.niki.fieldoutlookandroid.helper.array_adapters.SelectedPartsSingleton;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobReciever;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobServiceHelper;
 import com.example.niki.fieldoutlookandroid.helper.assigned_job_service.AssignedJobsAsyncTask;
@@ -162,17 +163,27 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
 
         FirebaseMessaging.getInstance().subscribeToTopic("news");
         StartMainFragment();
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     private void StartMainFragment() {
+        toolbar.setTitle("Assigned Jobs");
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        StartFragment startFragment = new StartFragment();
-        fragmentTransaction.replace(R.id.fragment_container, startFragment, getString(R.string.StartDay));
+        AssignedJobFragment assignedJobFragment = new AssignedJobFragment();
+        Bundle b = new Bundle();
+        b.putParcelableArrayList("workOrders", dbHelper.GetWorkOrders());
+        assignedJobFragment.setArguments(b);
+        fragmentTransaction.replace(R.id.fragment_container, assignedJobFragment, getString(R.string.AssignedJobs)).addToBackStack("Assigned Jobs");
         fragmentTransaction.commit();
+//        FragmentManager fragmentManager = getFragmentManager();
+//        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+//        StartFragment startFragment = new StartFragment();
+//        fragmentTransaction.replace(R.id.fragment_container, startFragment, getString(R.string.StartDay));
+//        fragmentTransaction.commit();
     }
 
     @Override
@@ -207,8 +218,10 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
                     if ((fragmentManager.getBackStackEntryCount() - 2) >= 0) {
                         FragmentManager.BackStackEntry entry = fragmentManager.getBackStackEntryAt(fragmentManager.getBackStackEntryCount() - 2);
                         toolbar.setTitle(entry.getName());
+
                     } else {
-                        toolbar.setTitle("Field Outlook");
+                        toolbar.setTitle("Assigned Jobs");
+                        StartMainFragment();
                     }
 
                     fragmentManager.popBackStack();
@@ -289,6 +302,15 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
             TimesheetReviewFragment timesheetReviewFragment = new TimesheetReviewFragment();
             fragmentTransaction.replace(R.id.fragment_container, timesheetReviewFragment, getString(R.string.Timekeeping)).addToBackStack("Timekeeping");
             fragmentTransaction.commit();
+        }else if(id==R.id.nav_clock_timekeeping){
+            setTitle("Timekeeping");
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            //TimekeepingFragment timekeepingFragment=new TimekeepingFragment();
+            StartDayFragment timesheetReviewFragment = new StartDayFragment();
+
+            fragmentTransaction.replace(R.id.fragment_container, timesheetReviewFragment, "Clock In").addToBackStack("Clock In");
+            fragmentTransaction.commit();
         } else if (id == R.id.nav_logout) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
@@ -304,81 +326,108 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
 
             // start the image capture Intent
             startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+        } else if(id==R.id.nav_refresh_job_data){
+            progressDialog=new ProgressDialog(this);
+            progressDialog.setTitle("Refreshing Jobs");
+            progressDialog.isIndeterminate();
+            progressDialog.setCanceledOnTouchOutside(false);
+            progressDialog.setCancelable(false);
+
+            progressDialog.show();
+            ArrayList<WorkOrder> completedWorkOrders = dbHelper.GetCompletedWorkOrders();
+            ArrayList<WorkOrderMaterial> materials=dbHelper.GetWorkOrderMaterialsUnfulfilled();
+            progressDialog.setMessage("Sending Work Order Materials");
+            SendWorkOrderMaterialListAsyncTask sendWorkOrderMaterialListAsyncTask=new SendWorkOrderMaterialListAsyncTask(getApplicationContext(), new SendWorkOrderMaterialListAsyncTask.SendWorkOrderMaterialsDelegate() {
+                @Override
+                public void processFinish() {
+                    progressDialog.setMessage("Getting Work Orders");
+                }
+            });
+            sendWorkOrderMaterialListAsyncTask.execute(materials);
+
+            final AssignedJobsAsyncTask assignedJobsAsyncTask = new AssignedJobsAsyncTask(new AssignedJobsAsyncTask.AssignedJobsResponse() {
+
+                @Override
+                public void processFinish(ArrayList<WorkOrder> workOrders) {
+                    if (dbHelper == null)
+                        dbHelper = new DBHelper(getApplicationContext());
+                    dbHelper.SaveWorkOrderList(workOrders);
+                    progressDialog.setMessage("Downloaded " + workOrders.size() + " Work Orders");
+                }
+            });
+            if (completedWorkOrders != null && !completedWorkOrders.isEmpty()) {
+                progressDialog.setMessage("Sending " + completedWorkOrders.size() + " Work Orders");
+                SendCompletedWorkOrdersAsyncTask sendCompletedWorkOrdersAsyncTask = new SendCompletedWorkOrdersAsyncTask(getApplicationContext(), new SendCompletedWorkOrdersAsyncTask.SendCompletedWorkOrdersDelegate() {
+                    @Override
+                    public void processFinish(Boolean success) {
+                        if (success) {
+                            progressDialog.setMessage("Sending Work Orders successful!");
+
+
+                            assignedJobsAsyncTask.execute((String) null);
+                        } else {
+                            AlertDialog.Builder alert = new AlertDialog.Builder(getApplicationContext());
+                            alert.setMessage("Unable to upload or download new data. Please try again and if this error persists contact the administrator.");
+                            alert.show();
+                            return;
+                        }
+                    }
+                });
+                sendCompletedWorkOrdersAsyncTask.execute((Void) null);
+            } else {
+                assignedJobsAsyncTask.execute((String) null);
+            }
+            SendOtherTaskListAsyncTask sendOtherTaskListAsyncTask=new SendOtherTaskListAsyncTask(getApplicationContext(), new SendOtherTaskListAsyncTask.SendOtherTaskListDelegate() {
+                @Override
+                public void processFinish() {
+
+                }
+            });
+            sendOtherTaskListAsyncTask.execute((Void)null);
+
+            //Send Customer Images
+            if (dbHelper.hasCustomerImages()) {
+                SendCustomerImageAsyncTask sendCustomerImageAsyncTask = new SendCustomerImageAsyncTask(getApplicationContext(), new SendCustomerImageAsyncTask.SendCustomersAsyncTaskDelegate() {
+                    @Override
+                    public void processFinish(Boolean result) {
+                        if (result == true) {
+                            progressDialog.setMessage("Sent Customer Images");
+                            progressDialog.dismiss();
+                        }
+                    }
+                });
+                sendCustomerImageAsyncTask.execute((String[]) null);
+            }else{
+                progressDialog.dismiss();
+            }
+            FragmentManager fragmentManager = getFragmentManager();
+
+            Fragment currentFragment=fragmentManager.findFragmentById(R.id.fragment_container);
+            if(currentFragment instanceof AssignedJobFragment){
+                AssignedJobFragment current=(AssignedJobFragment)currentFragment;
+                if(currentFragment!=null)
+                    current.refresh();
+            }else {
+                AssignedJobFragment assignedJobFragment=(AssignedJobFragment) fragmentManager.getFragment(null,"Assigned Jobs");
+                if(assignedJobFragment!=null){
+                    assignedJobFragment.refresh();
+
+                }
+            }
         } else if (id == R.id.nav_update_data) {
             if (networkHelper.isConnectionAvailable(getApplicationContext())) {
 
                 //Refresh the data //refdata
                 progressDialog = new ProgressDialog(this);
                 progressDialog.setTitle("Refreshing Data");
+                progressDialog.setMessage("This will take a few minutes...");
                 progressDialog.isIndeterminate();
                 progressDialog.setCanceledOnTouchOutside(false);
                 progressDialog.setCancelable(false);
 
                 progressDialog.show();
 
-                ArrayList<WorkOrder> completedWorkOrders = dbHelper.GetCompletedWorkOrders();
-                ArrayList<WorkOrderMaterial> materials=dbHelper.GetWorkOrderMaterialsUnfulfilled();
-            progressDialog.setMessage("Sending Work Order Materials");
-                SendWorkOrderMaterialListAsyncTask sendWorkOrderMaterialListAsyncTask=new SendWorkOrderMaterialListAsyncTask(getApplicationContext(), new SendWorkOrderMaterialListAsyncTask.SendWorkOrderMaterialsDelegate() {
-                    @Override
-                    public void processFinish() {
-                        progressDialog.setMessage("Getting Work Orders");
-                    }
-                });
-                sendWorkOrderMaterialListAsyncTask.execute(materials);
 
-                final AssignedJobsAsyncTask assignedJobsAsyncTask = new AssignedJobsAsyncTask(new AssignedJobsAsyncTask.AssignedJobsResponse() {
-
-                    @Override
-                    public void processFinish(ArrayList<WorkOrder> workOrders) {
-                        if (dbHelper == null)
-                            dbHelper = new DBHelper(getApplicationContext());
-                        dbHelper.SaveWorkOrderList(workOrders);
-                        progressDialog.setMessage("Downloaded " + workOrders.size() + " Work Orders");
-                    }
-                });
-                if (completedWorkOrders != null && !completedWorkOrders.isEmpty()) {
-                    progressDialog.setMessage("Sending " + completedWorkOrders.size() + " Work Orders");
-                    SendCompletedWorkOrdersAsyncTask sendCompletedWorkOrdersAsyncTask = new SendCompletedWorkOrdersAsyncTask(getApplicationContext(), new SendCompletedWorkOrdersAsyncTask.SendCompletedWorkOrdersDelegate() {
-                        @Override
-                        public void processFinish(Boolean success) {
-                            if (success) {
-                                progressDialog.setMessage("Sending Work Orders successful!");
-
-
-                                assignedJobsAsyncTask.execute((String) null);
-                            } else {
-                                AlertDialog.Builder alert = new AlertDialog.Builder(getApplicationContext());
-                                alert.setMessage("Unable to upload or download new data. Please try again and if this error persists contact the administrator.");
-                                alert.show();
-                                return;
-                            }
-                        }
-                    });
-                    sendCompletedWorkOrdersAsyncTask.execute((Void) null);
-                } else {
-                    assignedJobsAsyncTask.execute((String) null);
-                }
-                SendOtherTaskListAsyncTask sendOtherTaskListAsyncTask=new SendOtherTaskListAsyncTask(getApplicationContext(), new SendOtherTaskListAsyncTask.SendOtherTaskListDelegate() {
-                    @Override
-                    public void processFinish() {
-
-                    }
-                });
-                sendOtherTaskListAsyncTask.execute((Void)null);
-
-                //Send Customer Images
-                if (dbHelper.hasCustomerImages()) {
-                    SendCustomerImageAsyncTask sendCustomerImageAsyncTask = new SendCustomerImageAsyncTask(getApplicationContext(), new SendCustomerImageAsyncTask.SendCustomersAsyncTaskDelegate() {
-                        @Override
-                        public void processFinish(Boolean result) {
-                            if (result == true) {
-                                progressDialog.setMessage("Sent Customer Images");
-                            }
-                        }
-                    });
-                    sendCustomerImageAsyncTask.execute((String[]) null);
-                }
                 GetOtherTasksForUserAsyncTask getOtherTasksForUserAsyncTask=new GetOtherTasksForUserAsyncTask(getApplicationContext(), new GetOtherTasksForUserAsyncTask.GetOtherTasksForUserDelegate() {
                     @Override
                     public void processFinish() {
@@ -782,17 +831,20 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
 
             ViewPager viewPager=searchPartFlatRateItemFragment.getViewPager();
             MyPagerAdapter myPagerAdapter=(MyPagerAdapter) viewPager.getAdapter();
+
             myPagerAdapter.setFirstPositionFragment(partListFragment);
 
-            myPagerAdapter.notifyDataSetChanged();
-            viewPager.refreshDrawableState();
+           // myPagerAdapter.notifyDataSetChanged();//MUST leave these commented out as they invalidate the action menu at the top if they are enabled
+            //viewPager.refreshDrawableState();
         }else {
 
             fragmentTransaction.replace(R.id.fragment_container, partListFragment, "SubPartList").addToBackStack("SubPartList");
             fragmentTransaction.commit();
         }
     }
-
+    public void setQuote(Quote selectedQuote){
+        this.quote=selectedQuote;
+    }
     @Override
     public void onPartListPartInteraction(Part item) {
         //TODO
@@ -839,6 +891,10 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
 
     @Override
     public void onQuoteListFragmentInteraction(Quote item) {
+        StartQuoteFragment(item);
+    }
+
+    private void StartQuoteFragment(Quote item) {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         QuoteFragment quoteFragment = new QuoteFragment();
@@ -938,7 +994,7 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
             if(o instanceof WorkOrder){
                 WorkOrder selectedWorkOrder=(WorkOrder)o;
                 TimekeepingHelper timekeepingHelper=new TimekeepingHelper();
-                timekeepingHelper.AddTimekeepingEntry(getApplicationContext(),"job",selectedWorkOrder.getWorkOrderId());
+                timekeepingHelper.AddTimekeepingEntry(getApplicationContext(),"travel",selectedWorkOrder.getWorkOrderId());
                 onBackPressed();
             }
     }
@@ -952,11 +1008,19 @@ QuoteFragment.OnQuoteSaveSuccessfulListener, TimekeepingHelper.TimekeepingIntera
     public void onPartListFinish() {
         FragmentManager fragmentManager = getFragmentManager();
         Fragment currentFragment=fragmentManager.findFragmentById(R.id.fragment_container);
-        while(currentFragment instanceof WorkOrderMaterialsNeededFragment ==false){
-            super.onBackPressed();
+        boolean isReturnToQuote=false;
+        while(currentFragment instanceof WorkOrderMaterialsNeededFragment ==false && currentFragment instanceof QuoteFragment==false){
+            onBackPressed();
             currentFragment=fragmentManager.findFragmentById(R.id.fragment_container);
+            if(currentFragment instanceof QuoteFragment) isReturnToQuote=true;
         }
-        super.onBackPressed();
-        StartWorkOrderMaterialsList(workOrder);
+        onBackPressed();
+        if(isReturnToQuote){
+
+            quote=dbHelper.GetQuoteById(quote.getQuoteId());
+            StartQuoteFragment(quote);
+        }else {
+            StartWorkOrderMaterialsList(workOrder);
+        }
     }
 }

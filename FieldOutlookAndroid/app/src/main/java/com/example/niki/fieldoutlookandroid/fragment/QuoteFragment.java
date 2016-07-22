@@ -17,6 +17,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.niki.fieldoutlookandroid.MainNavigationActivity;
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
@@ -24,6 +25,7 @@ import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
+import com.example.niki.fieldoutlookandroid.helper.array_adapters.QuotePartListArrayAdapter;
 
 import java.util.Date;
 
@@ -92,6 +94,8 @@ public class QuoteFragment extends Fragment {
         description=(EditText)view.findViewById(R.id.descriptionQuote);
         notes=(EditText)view.findViewById(R.id.notesQuote);
         partList=(ListView)view.findViewById(R.id.partListQuote);
+        QuotePartListArrayAdapter quotePartListArrayAdapter=new QuotePartListArrayAdapter(selectedQuote,mListener,getActivity());
+        partList.setAdapter(quotePartListArrayAdapter);
 
         customerName=(AutoCompleteTextView)view.findViewById(R.id.customerNameQuote);
         final CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter=new CustomerAutoCompleteArrayAdapter(getActivity(),new DBHelper(getActivity()).GetAllPersons());
@@ -115,7 +119,20 @@ public class QuoteFragment extends Fragment {
         addParts.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onAddPartsInteractionListener.onAddPartsInteraction(selectedQuote);
+                MainNavigationActivity mainNavigationActivity=(MainNavigationActivity) getActivity();
+                if(selectedQuote!=null) {
+                    onAddPartsInteractionListener.onAddPartsInteraction(selectedQuote);
+                    if(mainNavigationActivity!=null){
+                        mainNavigationActivity.setQuote(selectedQuote);
+                    }
+                }
+                else{
+
+                    if(mainNavigationActivity!=null){
+                        mainNavigationActivity.setQuote(newQuote);
+                    }
+                    onAddPartsInteractionListener.onAddPartsInteraction(newQuote);
+                }
             }
         });
         if(selectedQuote!=null){
@@ -191,12 +208,24 @@ public class QuoteFragment extends Fragment {
                 // selectedQuote.setCustomer(dbHelper.GetPersonByFullName(customerName.getText().toString()));
                 selectedQuote.setNotes(notes.getText().toString());
                 //selectedQuote.setDateCreated(DateHelper.DateToString(new Date()));
-               pkid=dbHelper.SaveQuote(selectedQuote);
+                if(selectedQuote.getCustomer()!=null && selectedQuote.getCustomer().getPersonId()!=0){
+                    pkid = dbHelper.SaveQuote(selectedQuote);
+                    Toast.makeText(getActivity(), "Quote Saved", Toast.LENGTH_SHORT);
+
+                }else {
+                    Toast.makeText(getActivity(),"Customer does not exist", Toast.LENGTH_LONG).show();
+                }
             }else {
                 newQuote.setDateCreated(DateHelper.DateToString(new Date()));
-                pkid=dbHelper.SaveQuote(newQuote);
+                if(newQuote.getCustomer()!=null &&newQuote.getCustomer().getPersonId()!=0 ){
+                    pkid = dbHelper.SaveQuote(newQuote);
+                    Toast.makeText(getActivity(),"Quote Saved", Toast.LENGTH_SHORT);
+
+                }else {
+                    Toast.makeText(getActivity(),"Customer does not exist", Toast.LENGTH_LONG).show();
+                }
             }
-            Toast.makeText(getActivity(),"Quote Saved", Toast.LENGTH_SHORT);
+
             return pkid;
 
         }catch (Exception ex){

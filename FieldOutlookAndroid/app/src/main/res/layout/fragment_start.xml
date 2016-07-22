@@ -4,45 +4,7 @@
     android:layout_height="match_parent"
     tools:context="com.example.niki.fieldoutlookandroid.fragment.StartFragment" android:orientation="vertical"
     android:gravity="center_horizontal">
-    <LinearLayout
-        android:id="@+id/nextWorkOrderLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:orientation="vertical" android:padding="5dp" android:background="@color/lightGray" android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:paddingTop="0dp"
-        android:layout_marginTop="0dp"
-        android:elevation="@dimen/design_fab_elevation"
-        android:layout_gravity="top"
-        android:gravity="top">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Next Appointment:"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
-            android:textStyle="bold" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/nextName"
-            android:text="Joe Customer"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/nextAddress"
-            android:text="address"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/nextDescription"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:id="@+id/nextNavTo"
-            android:text="Navigate To"/>
 
-
-    </LinearLayout>
     <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

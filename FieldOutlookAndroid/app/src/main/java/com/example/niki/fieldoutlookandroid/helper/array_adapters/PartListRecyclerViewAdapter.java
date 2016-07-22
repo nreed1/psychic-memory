@@ -64,6 +64,7 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
     public PartListRecyclerViewAdapter(Context context,List<PartCategory> items, List<Part> parts,PartCategory partCategory, WorkOrder workOrder,PartListFragment.OnPartListFragmentInteractionListener listener, PartListFragment.OnPartListPartFragmentInteractionListener partListener,Quote quote, boolean isWorkOrderMaterial) {
         this.isWorkOrderMaterial=isWorkOrderMaterial;
         category=partCategory;
+        SelectedPartsSingleton.getInstance().clear();
         if(category!=null){
             mValues=category.getSubCategoryList();
             mParts=category.getParts();
@@ -288,7 +289,8 @@ public class PartListRecyclerViewAdapter extends RecyclerView.Adapter<PartListRe
             for (Part mPart:SelectedPartsSingleton.getInstance()) {
                 quote.addWorkOrderPartToList(new QuotePart(mPart, 1, null));
             }
-            dbHelper.SaveQuotePartList(quote.getParts(),quote.getQuoteId());
+            if(quote.getQuoteId()!=0)
+                dbHelper.SaveQuotePartList(quote.getParts(),quote.getQuoteId());
         }
 
     }

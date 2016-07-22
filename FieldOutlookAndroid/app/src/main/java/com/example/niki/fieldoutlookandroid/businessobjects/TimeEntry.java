@@ -45,6 +45,7 @@ public class TimeEntry implements Parcelable,Serializable {
     @Expose
     private int otherTaskId;
 
+
     public TimeEntry(){
         sqlId=0;
 

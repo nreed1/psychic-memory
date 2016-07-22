@@ -67,6 +67,7 @@ public class FlatRateItemListFragment extends Fragment implements SearchView.OnQ
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         dbHelper=new DBHelper(getActivity());
+        this.setHasOptionsMenu(true);
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
             flatRateItems=getArguments().getParcelableArrayList(ARG_FLATRATE_LIST);

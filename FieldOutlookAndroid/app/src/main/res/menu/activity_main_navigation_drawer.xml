@@ -35,10 +35,14 @@
                 <item
                     android:id="@+id/nav_edit_timekeeping"
                     android:icon="@mipmap/ic_clock"
-                    android:title="View" />
+                    android:title="Review" />
+                <item android:title="Clock in" android:icon="@mipmap/ic_clock" android:id="@+id/nav_clock_timekeeping">
+
+                </item>
 
             </menu>
         </item>
+
     </group>
     <group android:checkableBehavior="single">
         <item android:title="Camera">
@@ -51,10 +55,18 @@
             </menu>
         </item>
     </group>
-    <item android:id="@+id/nav_update_data"
-        android:title="Refresh Data"
-        android:icon="@mipmap/ic_refresh"
-        ></item>
+    <group android:checkableBehavior="single">
+        <item android:title="Refresh">
+            <menu>
+                <item android:id="@+id/nav_refresh_job_data" android:title="Refresh Jobs"
+                    android:icon="@mipmap/ic_refresh"></item>
+                <item android:id="@+id/nav_update_data"
+                    android:title="Refresh Data"
+                    android:icon="@mipmap/ic_refresh"
+                    ></item>
+            </menu>
+        </item>
+    </group>
     <item android:id="@+id/nav_logout"
         android:icon="@mipmap/ic_power"
         android:title="Logout"></item>

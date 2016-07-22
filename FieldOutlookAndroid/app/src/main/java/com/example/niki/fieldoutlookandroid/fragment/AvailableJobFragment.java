@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
@@ -78,8 +79,10 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
         GetAvailableWorkOrdersAsyncTask getAvailableWorkOrdersAsyncTask=new GetAvailableWorkOrdersAsyncTask(new GetAvailableWorkOrdersAsyncTask.GetAvailableWorkOrdersDelegate() {
             @Override
             public void processFinish(ArrayList<WorkOrder> workOrders) {
-                mAdapter=new WorkOrderArrayAdapter(getActivity(),R.layout.workorder_list_item,workOrders);
-
+                mAdapter=new WorkOrderArrayAdapter(mListener,getActivity(),R.layout.workorder_list_item,workOrders);
+            if(workOrders.isEmpty()){
+                Toast.makeText(getActivity(),"No Work Orders Available",Toast.LENGTH_LONG).show();
+            }
              //   progressDialog.dismiss();
             }
         });
@@ -117,6 +120,7 @@ public class AvailableJobFragment extends Fragment implements AbsListView.OnItem
         while(mAdapter!=null) {
             mListView = (AbsListView) view.findViewById(android.R.id.list);
             ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+
         }
 
         // Set OnItemClickListener so we can be notified on item clicks

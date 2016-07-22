@@ -9,7 +9,7 @@
         android:hint="Type Customer Name"
         android:id="@+id/autoCompleteCustomerTextView"
         android:layout_gravity="center_horizontal"
-        android:dropDownHeight="100px"/>
+        android:dropDownHeight="300px"/>
 
     <EditText
         android:layout_width="match_parent"

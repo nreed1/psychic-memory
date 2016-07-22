@@ -55,6 +55,15 @@ public class DateHelper {
         }
         return "";
     }
+    public static String DatetoMMDDYYYString(Date date){
+        try{
+            SimpleDateFormat output=new SimpleDateFormat("yyyy-MM-dd");
+            return output.format(date);
+        }catch (Exception ex){
+
+        }
+        return "";
+    }
 
     public static String GetTodayDateAsString(){
         try{

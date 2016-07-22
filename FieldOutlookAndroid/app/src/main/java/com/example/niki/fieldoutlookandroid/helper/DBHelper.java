@@ -621,6 +621,7 @@ private void create(){
                 Quote newQuote=new Quote(res.getInt(res.getColumnIndex(QUOTE_ID)),GetPersonByPersonId(res.getInt(res.getColumnIndex(QUOTE_CUSTOMERID))),res.getString(res.getColumnIndex(QUOTE_DESCRIPTION)),
                         res.getString(res.getColumnIndex(QUOTE_NOTES)), res.getString(res.getColumnIndex(QUOTE_DATECREATED)),GetQuotePartListByQuote(res.getInt(res.getColumnIndex(QUOTE_ID))),
                         res.getDouble(res.getColumnIndex(QUOTE_AMOUNT)));
+                newQuote.setParts(GetQuotePartListByQuote(newQuote.getQuoteId()));
 
                 return newQuote;
 
@@ -1163,6 +1164,7 @@ private void create(){
             }
         }
     }
+
 
 
 
@@ -1746,7 +1748,16 @@ private void create(){
         }
         return 0;
     }
-
+    /**Hard Delete
+     * */
+    public void DeleteTimeEntry(int timeEntrysqlid){
+        try{
+            db=getWritableDatabase();
+            db.delete(TABLE_TIMEENTRY,"id=?",new String[]{String.valueOf(timeEntrysqlid)});
+        }catch (Exception ex){
+            ExceptionHelper.LogException(ctx,ex);
+        }
+    }
     /**Inserts a time entry
      * Checks for possible duplicate entries on start and end day and prevents them from being added to the table
      * */
@@ -1760,7 +1771,7 @@ private void create(){
             }else if(timeEntry.getTimeEntryTypeId()==GetTimeEntryTypeByName("end").getTimeEntryTypeId()){
                 dayStarted=CheckIfDayEnded();
             }else if(timeEntry.getTimeEntryTypeId()==GetTimeEntryTypeByName("job").getTimeEntryTypeId()) {
-                int workorder = getWorkOrderArrivedAt(DateHelper.DateToString(new Date(timeEntry.getStartDateTime().getDate())));
+                int workorder = getWorkOrderArrivedAt(DateHelper.DatetoMMDDYYYString(timeEntry.getStartDateTime()));
                 if(workorder!=0) timeEntry.setWorkOrderId(workorder);
             }
             if (!dayStarted) {
@@ -1804,6 +1815,7 @@ private void create(){
             contentValues.put(TIMEENTRY_NOTES, timeEntry.getNotes());
             contentValues.put(TIMEENTRY_TIMEENTRYTYPEID, timeEntry.getTimeEntryTypeId());
             contentValues.put(TIMEENTRY_ACCEPTED, timeEntry.isAccepted()?1:0);
+            db.update(TABLE_TIMEENTRY,contentValues,"id=?",new String[]{String.valueOf(timeEntry.getSqlId())});
         }catch(Exception ex){
             ExceptionHelper.LogException(ctx,ex);
         }

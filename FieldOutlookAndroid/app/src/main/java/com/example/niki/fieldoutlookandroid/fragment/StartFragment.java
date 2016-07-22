@@ -68,28 +68,28 @@ public class StartFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view= inflater.inflate(R.layout.fragment_start, container, false);
-        nextWorkOrder=new DBHelper(getActivity()).GetNextWorkOrder();
-        LinearLayout nextWorkOrderLayout=(LinearLayout)view.findViewById(R.id.nextWorkOrderLayout);
-        if(nextWorkOrder==null){
-            nextWorkOrderLayout.setVisibility(View.INVISIBLE);
-        }else{
-            TextView customerName=(TextView)view.findViewById(R.id.nextName);
-            customerName.setText(nextWorkOrder.getPerson().getFullName());
-            final TextView customerAddress=(TextView)view.findViewById(R.id.nextAddress);
-            customerAddress.setText(nextWorkOrder.getPerson().getAddress().getPrintableAddress());
-            TextView description=(TextView)view.findViewById(R.id.nextDescription);
-            description.setText(nextWorkOrder.getDescription());
-            Button navigateTo=(Button)view.findViewById(R.id.nextNavTo);
-            navigateTo.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Uri gmmIntentUri=Uri.parse("google.navigation:q="+customerAddress.getText().toString().replace(' ','+'));
-                    Intent mapIntent=new Intent(Intent.ACTION_VIEW,gmmIntentUri);
-                    mapIntent.setPackage("com.google.android.apps.maps");
-                    startActivity(mapIntent);
-                }
-            });
-        }
+        //nextWorkOrder=new DBHelper(getActivity()).GetNextWorkOrder();
+        //LinearLayout nextWorkOrderLayout=(LinearLayout)view.findViewById(R.id.nextWorkOrderLayout);
+//        if(nextWorkOrder==null){
+//           // nextWorkOrderLayout.setVisibility(View.INVISIBLE);
+//        }else{
+//            TextView customerName=(TextView)view.findViewById(R.id.nextName);
+//            customerName.setText(nextWorkOrder.getPerson().getFullName());
+//            final TextView customerAddress=(TextView)view.findViewById(R.id.nextAddress);
+//            customerAddress.setText(nextWorkOrder.getPerson().getAddress().getPrintableAddress());
+//            TextView description=(TextView)view.findViewById(R.id.nextDescription);
+//            description.setText(nextWorkOrder.getDescription());
+//            Button navigateTo=(Button)view.findViewById(R.id.nextNavTo);
+//            navigateTo.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Uri gmmIntentUri=Uri.parse("google.navigation:q="+customerAddress.getText().toString().replace(' ','+'));
+//                    Intent mapIntent=new Intent(Intent.ACTION_VIEW,gmmIntentUri);
+//                    mapIntent.setPackage("com.google.android.apps.maps");
+//                    startActivity(mapIntent);
+//                }
+//            });
+//        }
         Button startDayButton=(Button)view.findViewById(R.id.start_day_button);
         if(Global.GetInstance().getIsDayStarted()==true){
             startDayButton.setText("Continue Day");

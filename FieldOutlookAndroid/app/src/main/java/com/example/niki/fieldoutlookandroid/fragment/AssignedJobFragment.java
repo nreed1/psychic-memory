@@ -23,6 +23,7 @@ import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.WorkOrder;
 import com.example.niki.fieldoutlookandroid.dummy.DummyContent;
+import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.TimekeepingHelper;
 import com.example.niki.fieldoutlookandroid.helper.UnassignAsyncTask;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.WorkOrderArrayAdapter;
@@ -88,8 +89,8 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
         }
 
         if(workOrders!=null)
-        mAdapter = new WorkOrderArrayAdapter(getActivity(),
-                R.layout.workorder_list_item, workOrders);
+        mAdapter = new WorkOrderArrayAdapter(mListener,timekeepingInteractionListener,getActivity(),
+                R.layout.workorder_list_item, workOrders,travelTo);
 
 
         this.setHasOptionsMenu(true);
@@ -197,6 +198,13 @@ public class AssignedJobFragment extends Fragment implements AbsListView.OnItemC
         }else if(travelTo==true){
             timekeepingInteractionListener.onTimekeepingInteraction((WorkOrder)parent.getItemAtPosition(position));
         }
+    }
+    public void refresh(){
+       workOrders=new DBHelper(getActivity()).GetWorkOrders();
+        mAdapter=new WorkOrderArrayAdapter(mListener,timekeepingInteractionListener,getActivity(),R.layout.workorder_list_item,workOrders,travelTo);
+        mListView.setAdapter(mAdapter);
+        mAdapter.notifyDataSetChanged();
+
     }
 
     /**

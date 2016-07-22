@@ -60,7 +60,7 @@ public class TravelToFragment extends Fragment implements AbsListView.OnItemClic
         }
         workOrders = dbHelper.GetWorkOrders();
 
-        mAdapter = new WorkOrderArrayAdapter(getActivity(),
+        mAdapter = new WorkOrderArrayAdapter(mListener,getActivity(),
                 R.layout.workorder_list_item, workOrders);
     }
 

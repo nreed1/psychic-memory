@@ -6,18 +6,25 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TimePicker;
 
 import com.example.niki.fieldoutlookandroid.R;
+import com.example.niki.fieldoutlookandroid.businessobjects.TimeEntry;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.TimeEntryReviewArrayAdapter;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import static com.example.niki.fieldoutlookandroid.R.layout.timelinelayout;
 
@@ -30,7 +37,8 @@ import static com.example.niki.fieldoutlookandroid.R.layout.timelinelayout;
  * create an instance of this fragment.
  */
 public class TimesheetReviewFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
+    private ArrayList<TimeEntry> timeEntries;
+    TimeEntryReviewArrayAdapter timeEntryReviewArrayAdapter;
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -101,14 +109,77 @@ public class TimesheetReviewFragment extends Fragment {
             }
         });
         ListView timeLineList=(ListView)view.findViewById(R.id.timeLineListView);
-
+        registerForContextMenu(timeLineList);
         if(dbHelper==null)dbHelper=new DBHelper(this.getActivity().getApplicationContext());
-        TimeEntryReviewArrayAdapter timeEntryReviewArrayAdapter=new TimeEntryReviewArrayAdapter(this.getActivity(),R.layout.timelinelayout,dbHelper.GetTimeEntryListForToday());
+        timeEntries=dbHelper.GetTimeEntryListForToday();
+        timeEntryReviewArrayAdapter=new TimeEntryReviewArrayAdapter(this.getActivity(),R.layout.timelinelayout, timeEntries);
 
         timeLineList.setAdapter(timeEntryReviewArrayAdapter);
         return view;
     }
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.timekeeping_context_menu, menu);
+    }
 
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
+                .getMenuInfo();
+
+        switch (item.getItemId()) {
+            case R.id.timekeeping_adjust:
+                final Date newDate=new Date();
+                final AlertDialog.Builder alert=new AlertDialog.Builder(getActivity());
+                alert.setTitle("Update Time");
+                LayoutInflater layoutInflater=getActivity().getLayoutInflater();
+                View adjust=layoutInflater.inflate(R.layout.timekeeping_adjust_time_layout,null);
+                final TimePicker timePicker=(TimePicker)adjust.findViewById(R.id.timekeepking_timePicker);
+                timePicker.setCurrentHour(timeEntries.get(info.position).getStartDateTime().getHours());
+                timePicker.setCurrentMinute(timeEntries.get(info.position).getStartDateTime().getMinutes());
+                timePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+                    @Override
+                    public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+                        newDate.setHours(hourOfDay);
+                        newDate.setMinutes(minute);
+                    }
+                });
+                alert.setView(adjust);
+
+
+                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        timeEntries.get(info.position).getStartDateTime().setHours(newDate.getHours());
+                        timeEntries.get(info.position).getStartDateTime().setMinutes(newDate.getMinutes());
+                        DBHelper dbHelper=new DBHelper(getActivity());
+                        dbHelper.UpdateTimeEntry(timeEntries.get(info.position));
+                        timeEntryReviewArrayAdapter.getItem(info.position).setStartDateTime(timeEntries.get(info.position).getStartDateTime());
+                        timeEntryReviewArrayAdapter.notifyDataSetChanged();
+                    }
+                });
+                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                alert.show();
+                return true;
+            case R.id.timekeeping_delete:
+                DBHelper dbHelper=new DBHelper(getActivity());
+                dbHelper.DeleteTimeEntry(timeEntries.get(info.position).getSqlId());
+                timeEntryReviewArrayAdapter.remove(timeEntries.get(info.position));
+                timeEntryReviewArrayAdapter.notifyDataSetChanged();
+                //dbHelper
+                return true;
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }
 
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {

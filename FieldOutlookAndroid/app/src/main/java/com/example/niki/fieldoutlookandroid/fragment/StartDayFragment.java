@@ -112,7 +112,7 @@ public class StartDayFragment extends Fragment {
         arrivedAtJob.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                OnButtonPressed("job");
+                OnButtonPressed("arrived");
             }
         });
         return view;

@@ -37,7 +37,9 @@ public class TimekeepingHelper {
 
     }
     public void AddTimekeepingEntry(Context context, TimeEntryType timeEntryType, int workOrderId){
-        if(timeEntryType==null) return;
+        if(timeEntryType==null || workOrderId==0){
+            Toast.makeText(context,"Unable to add time entry", Toast.LENGTH_LONG).show();
+            return;}
         Location location=GetGPSSnapshot(context);
 
         TimeEntry newTimeEntry=new TimeEntry();
@@ -57,7 +59,10 @@ public class TimekeepingHelper {
 
     }
     public void AddOtherTimekeepingEntry(Context context, TimeEntryType timeEntryType, int otherTaskId){
-        if(timeEntryType==null) return;
+        if(timeEntryType==null){
+            Toast.makeText(context,"Unable to add time entry", Toast.LENGTH_LONG).show();
+
+            return;}
         Location location=GetGPSSnapshot(context);
 
         TimeEntry newTimeEntry=new TimeEntry();
@@ -81,6 +86,10 @@ public class TimekeepingHelper {
     public void AddTimekeepingEntry(Context context, String entryType){
         DBHelper dbHelper=new DBHelper(context);
         TimeEntryType timeEntryType=dbHelper.GetTimeEntryTypeByName(entryType);
+        int workOrderId=0;
+        if(entryType.equals("job")){
+          //  dbHelper.get
+        }
         AddTimekeepingEntry(context,timeEntryType);
     }
     public void AddTimekeepingEntry(Context context, String entryType, int workOrderId){

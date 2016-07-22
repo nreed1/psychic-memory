@@ -75,7 +75,7 @@ public class TimeEntryReviewArrayAdapter extends ArrayAdapter<TimeEntry> {
                 TimeEntryType timeEntryType=rows.get(position).getType();
                 DBHelper dbHelper=new DBHelper(_context);
                 holder.descriptionTimeline.setText(String.valueOf(timeEntryType.getName()));
-                if(timeEntryType.getName().contains("Job")){
+                if(timeEntryType.getName().contains("Job") && rows.get(position).getWorkOrderId()!=0){
                     holder.descriptionTimeline.setText(holder.descriptionTimeline.getText()+" - "+dbHelper.GetWorkOrderById(rows.get(position).getWorkOrderId()).getPerson().getFullName());
                 }else if(timeEntryType.getName().contains("Other")){
                     holder.descriptionTimeline.setText(holder.descriptionTimeline.getText()+" - "+dbHelper.GetOtherTaskById(rows.get(position).getOtherTaskId()).getName());
