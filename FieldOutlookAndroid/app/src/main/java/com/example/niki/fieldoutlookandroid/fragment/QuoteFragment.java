@@ -21,13 +21,16 @@ import com.example.niki.fieldoutlookandroid.MainNavigationActivity;
 import com.example.niki.fieldoutlookandroid.R;
 import com.example.niki.fieldoutlookandroid.businessobjects.Person;
 import com.example.niki.fieldoutlookandroid.businessobjects.Quote;
+import com.example.niki.fieldoutlookandroid.businessobjects.QuotePart;
 import com.example.niki.fieldoutlookandroid.helper.DBHelper;
 import com.example.niki.fieldoutlookandroid.helper.DateHelper;
 import com.example.niki.fieldoutlookandroid.helper.ExceptionHelper;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.CustomerAutoCompleteArrayAdapter;
 import com.example.niki.fieldoutlookandroid.helper.array_adapters.QuotePartListArrayAdapter;
 
+import java.util.Currency;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -51,6 +54,7 @@ public class QuoteFragment extends Fragment {
     private EditText description;
     private EditText notes;
     private ListView partList;
+    private TextView partListTotal;
 
     private OnFragmentInteractionListener mListener;
     private OnAddPartsInteractionListener onAddPartsInteractionListener;
@@ -96,10 +100,18 @@ public class QuoteFragment extends Fragment {
         partList=(ListView)view.findViewById(R.id.partListQuote);
         QuotePartListArrayAdapter quotePartListArrayAdapter=new QuotePartListArrayAdapter(selectedQuote,mListener,getActivity());
         partList.setAdapter(quotePartListArrayAdapter);
-
+        partListTotal=(TextView)view.findViewById(R.id.quotePartTotal);
+        if(selectedQuote.getParts()!=null) {
+            double total=0.00;
+            for (QuotePart quotePart : selectedQuote.getParts()) {
+                total+=(quotePart.getPrice()*quotePart.getQuantity());
+            }
+            partListTotal.setText(Currency.getInstance(Locale.ENGLISH).getSymbol()+String.format("%.2f",total));
+        }
         customerName=(AutoCompleteTextView)view.findViewById(R.id.customerNameQuote);
         final CustomerAutoCompleteArrayAdapter customerAutoCompleteArrayAdapter=new CustomerAutoCompleteArrayAdapter(getActivity(),new DBHelper(getActivity()).GetAllPersons());
         customerName.setAdapter(customerAutoCompleteArrayAdapter);
+
         customerName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

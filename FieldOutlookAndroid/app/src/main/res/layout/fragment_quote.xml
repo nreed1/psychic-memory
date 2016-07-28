@@ -48,12 +48,44 @@
             android:layout_gravity="right"
             android:text="Add Part"
             android:minHeight="20dp" android:minWidth="20dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Part List:"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            android:textColor="@android:color/black"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"/>
 
        <ListView
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
             android:id="@+id/partListQuote"
            tools:listitem="@layout/part_list_item"></ListView>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="horizontal">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight=".5"
+                android:layout_height="wrap_content"
+                android:text="Total: "
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight=".5"
+                android:layout_gravity="right"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+                android:textColor="@android:color/black"
+                android:id="@+id/quotePartTotal"/>
+        </LinearLayout>
 
         <Button
             android:layout_width="match_parent"
